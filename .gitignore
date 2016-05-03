@@ -1,0 +1,10 @@
+*~
+*.orig
+__pycache__
+bin/
+config.ini
+alembic.ini
+include/
+lib/
+share/
+pip-selfcheck.json
