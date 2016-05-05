@@ -1,12 +1,16 @@
 from flask import Flask, jsonify
 from SpaceDock.config import Config
-from SpaceDock.api import API
+from SpaceDock.database import Database
 from SpaceDock.documentation import Documentation
 
-cfg = Config()
 app = Flask(__name__)
+cfg = Config()
+db = Database(cfg)
 documentation = Documentation(app)
-api = API(app, documentation)
+
+#Import must come after DB loads
+from SpaceDock.api import API
+api = API(app, documentation, cfg, db)
 
 @app.before_first_request
 def prepare():

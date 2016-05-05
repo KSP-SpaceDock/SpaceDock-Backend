@@ -1,1 +1,4 @@
+bcrypt
 flask
+psycopg2
+sqlalchemy

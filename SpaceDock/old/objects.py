@@ -1,14 +1,12 @@
 from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, ForeignKey, Table, UnicodeText, Text, text,Float
 from sqlalchemy.orm import relationship, backref
-import SpaceDock.database
-#import SpaceDock.thumbnail as thumbnail
+from .database import Base
+from SpaceDock.config import _cfg
+import SpaceDock.thumbnail as thumbnail
 import os.path
 
 from datetime import datetime
 import bcrypt
-
-#See database.py for an explaination of this line
-Base = SpaceDock.database.Base
 
 mod_followers = Table('mod_followers', Base.metadata,
     Column('mod_id', Integer, ForeignKey('mod.id')),
