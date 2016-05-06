@@ -1,0 +1,9 @@
+bcrypt
+celery
+flask
+flask-login
+psycopg2
+pystache
+sqlalchemy
+redis
+requests
