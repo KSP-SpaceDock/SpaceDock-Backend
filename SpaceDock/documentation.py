@@ -14,5 +14,8 @@ class Documentation:
         return jsonify(self.methods)
     
     def add_documentation(self, url, method):
-        self.methods[url] = method.__doc__.strip()
-        self.flask.add_url_rule('/documentation/' + url, "doc_" + method.__name__, method.__doc__.strip())
+		if not method.__doc__ == None:
+			self.methods[url] = method.__doc__.strip()
+		else:
+			self.methods[url] = 'No documentation available'
+        self.flask.add_url_rule('/documentation/' + url, "doc_" + method.__name__, self.methods[url])
