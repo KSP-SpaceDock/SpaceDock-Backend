@@ -15,6 +15,6 @@ class GameEndpoints:
         results = list()
         for game in Game.query.order_by(desc(Game.name)).all():
             results.append(game_info(game))
-        return jsonify(results)
+        return jsonify({"games": results})
         
     list_games.api_path = "/api/games"
