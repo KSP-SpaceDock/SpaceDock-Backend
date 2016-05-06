@@ -61,25 +61,6 @@ def wrap_mod(mod):
         return None
     return details
 
-# I am unsure if this function is still needed or rather, if it still works.
-# TODO(Thomas): Investigate and remove
-def getForumId(user):
-    r = requests.post("http://forum.kerbalspaceprogram.com/ajax.php?do=usersearch", data= {
-        'securitytoken': 'guest',
-        'do': 'usersearch',
-        'fragment': user
-        })
-    root = ET.fromstring(r.text)
-    results = list()
-    for child in root:
-        results.append({
-            'id': child.attrib['userid'],
-            'name': child.text
-        })
-    if len(results) == 0:
-        return None
-    return results[0]
-
 def with_session(f):
     @wraps(f)
     def go(*args, **kw):
