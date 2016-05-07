@@ -13,7 +13,7 @@ class GameEndpoints:
         Displays a list of all games in the database.
         """
         results = list()
-        for game in Game.query.order_by(desc(Game.name)).all():
+        for game in Game.query.order_by(desc(Game.name)).filter(Game.active):
             results.append(game_info(game))
         return jsonify({"games": results})
         
