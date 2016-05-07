@@ -28,7 +28,15 @@ class Config:
         """
         Returns a boolean
         """
-        return bool(self.get(key))
+        if self.get(key).lower() in ['true', 't', 'yes', 'y', 1]:
+            return True
+        return False
+    
+    def getf(self, key):
+        """
+        Returns a float
+        """
+        return float(self.get(key))
     
     def __getitem__(self, key):
         """

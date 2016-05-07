@@ -3,12 +3,14 @@ from flask.ext.login import LoginManager
 from SpaceDock.config import Config
 from SpaceDock.database import Database
 from SpaceDock.documentation import Documentation
+from SpaceDock.profiler import Profiler
 
 
 app = Flask(__name__)
 cfg = Config()
 db = Database(cfg)
 documentation = Documentation(app)
+profiler = Profiler(cfg)
 
 #Import of email must come after cfg/db load
 from SpaceDock.email import Email
@@ -19,7 +21,7 @@ login_manager.init_app(app)
 
 #Import must come after DB loads
 from SpaceDock.api import API
-api = API(app, documentation, cfg, db, email)
+api = API(app, documentation, cfg, db, email, profiler)
 
 @app.before_first_request
 def prepare():
