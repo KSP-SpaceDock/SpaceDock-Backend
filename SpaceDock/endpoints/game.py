@@ -25,7 +25,7 @@ class GameEndpoints:
         """
         Displays information about a game. Required parameters: gameid
         """
-        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0 or not gameid.isdigit():
+        if not gameid.isdigit() or len(Game.query.filter(Game.id == int(gameid)).all()) == 0:
             return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
 
         # Return gameinfo
@@ -38,7 +38,7 @@ class GameEndpoints:
         """
         Displays information about the versions of a game. Required parameters: gameid
         """
-        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0 or not gameid.isdigit():
+        if not gameid.isdigit() or len(Game.query.filter(Game.id == int(gameid)).all()) == 0:
             return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
    
         # get game versions        
@@ -57,7 +57,7 @@ class GameEndpoints:
         """
         Displays a list of all mods added for this game. Required parameters: gameid
         """
-        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0 or not gameid.isdigit():
+        if not gameid.isdigit() or len(Game.query.filter(Game.id == int(gameid)).all()) == 0:
             return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
 
         # Get mods
@@ -76,7 +76,7 @@ class GameEndpoints:
         """
         Displays all mod lists this game knows. Required parameters: gameid
         """
-        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0 or not gameid.isdigit():
+        if not gameid.isdigit() or len(Game.query.filter(Game.id == int(gameid)).all()) == 0:
             return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
 
         # Get mod lists

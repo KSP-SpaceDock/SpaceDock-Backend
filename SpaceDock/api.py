@@ -16,7 +16,7 @@ class API:
         for member_name in dir(endpoints):
             member = getattr(endpoints, member_name)
             if 'api_path' in dir(member):
-                if self.cfg.getb('profiler-histogram') or self.cfg['profiler'] != 0:
+                if self.cfg.getb('profiler-histogram') or self.cfg.geti('profiler') != 0:
                     member = self.profiler.profile_method(member)
                 print("Registered " + member.api_path)
                 self.flask.add_url_rule(member.api_path, member.__name__, member)
