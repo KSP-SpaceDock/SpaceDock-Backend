@@ -24,7 +24,7 @@ class AccountEndpoints:
         Optional parameters: follow-mod
         """
         if not self.cfg.getb('registration'):
-            return jsonify({'error': 'True', 'configError': 'Registrations are disabled'}), 400
+            return jsonify({'error': True, 'configError': 'Registrations are disabled'}), 400
 
         followMod = request.form.get('follow-mod')
         email = request.form.get('email')
@@ -55,7 +55,7 @@ class AccountEndpoints:
                 passwordErrors.append('We admire your dedication to security, but please use a shorter password.')
         
         if len(usernameErrors) > 0 or len(passwordErrors) > 0 or len(emailErrors) > 0:
-            return jsonify({'error': 'True', 'usernameErrors': usernameErrors, 'passwordErrors': passwordErrors, 'emailErrors': emailErrors}), 400
+            return jsonify({'error': True, 'usernameErrors': usernameErrors, 'passwordErrors': passwordErrors, 'emailErrors': emailErrors}), 400
 
         # All valid, let's make them an account
         user = User(username, email, password)

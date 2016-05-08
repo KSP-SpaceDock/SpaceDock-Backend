@@ -24,9 +24,9 @@ class GameEndpoints:
         Displays information about a game. Required parameters: gameid
         """
         if not gameid.isdigit():
-            return jsonify({'error': 'True', 'message': 'The number you entered is not a valid ID.'}), 400
+            return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
         if len(Game.query.filter(Game.id == int(gameid)).all()) == 0:
-            return jsonify({'error': 'True', 'message': 'The number you entered is not a valid ID.'}), 400
+            return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
 
         # Return gameinfo
         game = Game.query.filter(Game.id == int(gameid)).first()
@@ -39,9 +39,9 @@ class GameEndpoints:
         Displays information about the versions of a game. Required parameters: gameid
         """
         if not gameid.isdigit():
-            return jsonify({'error': 'True', 'message': 'The number you entered is not a valid ID.'}), 400
+            return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
         if len(Game.query.filter(Game.id == int(gameid)).all()) == 0:
-            return jsonify({'error': 'True', 'message': 'The number you entered is not a valid ID.'}), 400
+            return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
    
         # get game versions        
         game = Game.query.filter(Game.id == int(gameid)).first()
