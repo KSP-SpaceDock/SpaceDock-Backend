@@ -10,3 +10,5 @@ share/
 pip-selfcheck.json
 Scripts/
 plot_profile/output/
+.vs/
+*.sln
