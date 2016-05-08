@@ -1,12 +1,14 @@
 from flask import jsonify, request
+from flask_login import login_required, current_user
 from sqlalchemy import desc, asc
 from SpaceDock.objects import *
 from SpaceDock.formatting import game_info, game_version_info
+from SpaceDock.common import has_access
 
 class GameEndpoints:
     def __init__(self, cfg, db):
         self.cfg = cfg
-        self.db = db
+        self.db = db.get_database()
         
     def list_games(self):
         """
@@ -88,3 +90,33 @@ class GameEndpoints:
         return jsonify(result)
 
     game_modlists.api_path = '/api/games/<gameid>/modlists'
+
+    @login_required
+    def create_game(self):
+        """
+        Creates a new game in the database. Required parameters: name, publisher, short
+        """
+        if not has_access(current_user, api_path):
+            return jsonify({'error': True, 'accessErrors': 'You don\'t have the permission to add a new game.'}), 403
+
+        # Get vars from the POST
+        name = request['name']
+        publisher = request['publisher']
+        short = request['short']
+
+        # Check for issues
+        if not name or not publisher or not short:
+            return jsonify({'error': True, 'paramErrors': 'Your request is missing required parameters.'}), 400
+        elif any(Game.query.filter(Game.name == name)):
+            return jsonify({'error': True, 'dataErrors': 'This game name already exists.'}), 400
+        elif any(Game.query.filter(Game.short == short)):
+            return jsonify({'error': True, 'dataErrors': 'This game short already exists.'}), 400
+
+        # We are ready to create the game
+        game = Game(name, publisher, short)
+        self.db.add(game)
+        self.db.commit()
+        return jsonify({'error': False})
+
+    create_game.api_path = '/api/games/create'
+    create_game.methods = ['POST']
