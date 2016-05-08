@@ -23,9 +23,7 @@ class GameEndpoints:
         """
         Displays information about a game. Required parameters: gameid
         """
-        if not gameid.isdigit():
-            return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
-        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0:
+        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0 or not gameid.isdigit():
             return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
 
         # Return gameinfo
@@ -38,9 +36,7 @@ class GameEndpoints:
         """
         Displays information about the versions of a game. Required parameters: gameid
         """
-        if not gameid.isdigit():
-            return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
-        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0:
+        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0 or not gameid.isdigit():
             return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
    
         # get game versions        
@@ -54,3 +50,41 @@ class GameEndpoints:
         return jsonify({game.id: result})
 
     game_versions.api_path = '/api/games/<gameid>/versions'
+
+    def game_mods(self, gameid):
+        """
+        Displays a list of all mods added for this game. Required parameters: gameid
+        """
+        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0 or not gameid.isdigit():
+            return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
+
+        # Get mods
+        game = Game.query.filter(Game.id == int(gameid)).first()
+        mods = Mod.query.filter(Mod.game_id == int(gameid)).all()
+
+        # Format
+        result = dict()
+        for mod in mods:
+            result[str(mod.id)] = mod.name
+        return jsonify(results)
+
+    game_mods.api_path = '/api/games/<gameid>/mods'
+
+    def game_modlists(self, gameid):
+        """
+        Displays all mod lists this game knows. Required parameters: gameid
+        """
+        if len(Game.query.filter(Game.id == int(gameid)).all()) == 0 or not gameid.isdigit():
+            return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
+
+        # Get mod lists
+        game = Game.query.filter(Game.id == int(gameid)).first()
+        modlists = ModList.query.filter(ModList.game_id == int(gameid)).all()
+
+        # Format
+        result = dict()
+        for ml in modlists:
+            result[str(ml.id)] = ml.name
+        return jsonify(result)
+
+    game_modlists.api_path = '/api/games/<gameid>/modlists'
