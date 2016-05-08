@@ -458,6 +458,7 @@ class ModVersion(Base):
     download_path = Column(String(512))
     changelog = Column(Unicode(10000))
     sort_index = Column(Integer)
+    file_size = Column(Integer)
 
     def __init__(self, friendly_version, gameversion_id, download_path,is_beta):
         self.friendly_version = friendly_version
@@ -466,10 +467,15 @@ class ModVersion(Base):
         self.download_path = download_path
         self.created = datetime.now()
         self.sort_index = 0
+        self.file_size = 0
+
+        if self.download_path:
+            file_path = os.path.join(_cfg('storage'), download_path)
+            if os.path.isfile(file_path): self.file_size = os.path.getsize(file_path)
 
     def __repr__(self):
         return '<Mod Version %r>' % self.id
-    
+
     def serialize(self):
         return {
             'id': self.id,
@@ -481,7 +487,8 @@ class ModVersion(Base):
             'created': self.created,
             'download_path': self.download_path,
             'changelog': self.changelog,
-            'sort_index': self.sort_index
+            'sort_index': self.sort_index,
+            'file_size': self.file_size
         }
 
 class Media(Base):
