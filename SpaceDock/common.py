@@ -78,7 +78,7 @@ def loginrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not current_user or current_user.confirmation:
-            abort(401)
+            return jsonify({'error': True, 'accessErrors': 'You need to be logged in to access this page.'}), 401
         else:
             return f(*args, **kwargs)
     return wrapper
@@ -86,11 +86,18 @@ def loginrequired(f):
 def adminrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if not current_user or current_user.confirmation:
-            abort(401)
+        if not current_user or current_user.confirmation or not current_user.admin:
+            return jsonify({'error': True, 'accessErrors': 'You don\'t have the permission to access this page.'}), 401
         else:
-            if not current_user.admin:
-                abort(401)
+            return f(*args, **kwargs)
+    return wrapper
+
+def accessrequired(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not current_user or current_user.confirmation or not has_access(current_user, f.api_path):
+            return jsonify({'error': True, 'accessErrors': 'You don\'t have the permission to access this page.'}), 401
+        else:
             return f(*args, **kwargs)
     return wrapper
 

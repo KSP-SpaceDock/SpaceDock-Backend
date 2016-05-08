@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import desc, asc
 from SpaceDock.objects import *
 from SpaceDock.formatting import game_info, game_version_info
-from SpaceDock.common import has_access
+from SpaceDock.common import accessrequired, with_session
 
 class GameEndpoints:
     def __init__(self, cfg, db):
@@ -91,13 +91,12 @@ class GameEndpoints:
 
     game_modlists.api_path = '/api/games/<gameid>/modlists'
 
-    @login_required
+    @accessrequired
+    @with_session
     def create_game(self):
         """
         Creates a new game in the database. Required parameters: name, publisher, short
         """
-        if not has_access(current_user, api_path):
-            return jsonify({'error': True, 'accessErrors': 'You don\'t have the permission to add a new game.'}), 403
 
         # Get vars from the POST
         name = request['name']
@@ -115,7 +114,6 @@ class GameEndpoints:
         # We are ready to create the game
         game = Game(name, publisher, short)
         self.db.add(game)
-        self.db.commit()
         return jsonify({'error': False})
 
     create_game.api_path = '/api/games/create'
