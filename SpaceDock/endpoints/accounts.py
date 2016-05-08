@@ -66,7 +66,7 @@ class AccountEndpoints:
             self.email.send_confirmation(user, followMod)
         else:
             self.email.send_confirmation(user)
-        return jsonify({'error': 'False'})
+        return jsonify({'error': False})
 
     register.api_path = "/api/register"
     register.methods = ['POST']    
