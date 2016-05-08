@@ -114,7 +114,7 @@ class User(Base):
     def is_authenticated(self):
         return True
     def is_active(self):
-        return public
+        return confirmation == None
     def is_anonymous(self):
         return False
     def get_id(self):
@@ -555,7 +555,7 @@ class Permission(Base):
     id = Column(Integer, primary_key = True)
     rule = Column(String(512))
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship('User', backref=backref('permission', order_by=id))
+    user = relationship('User')
 
     def __init__(self, rule, user):
         self.rule = rule
