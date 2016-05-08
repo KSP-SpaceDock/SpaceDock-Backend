@@ -140,6 +140,6 @@ def has_access(user, rule):
         return False
     
     # Get matching permission
-    return any(Permission.query.filter(Permission.rule == rule and Permission.user_id == user.get_id()))
+    return any(Permission.query.filter(Permission.rule == rule and Permission.user_id == user.id))
 
 
