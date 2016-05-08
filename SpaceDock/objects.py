@@ -82,6 +82,7 @@ class User(Base):
     mods = relationship('Mod', order_by='Mod.created')
     packs = relationship('ModList', order_by='ModList.created')
     following = relationship('Mod', secondary=mod_followers, backref='user.id')
+    permissions = relationship('Permission')
     dark_theme = Column(Boolean())
 
     def set_password(self, password):
@@ -113,7 +114,7 @@ class User(Base):
     def is_authenticated(self):
         return True
     def is_active(self):
-        return True
+        return public
     def is_anonymous(self):
         return False
     def get_id(self):
@@ -541,3 +542,19 @@ class GameVersion(Base):
             'friendly_version': self.friendly_version,
             'game_id': self.game_id,
         }
+
+class Permission(Base):
+    __tablename__ = 'permissions'
+    id = Column(Integer, primary_key = True)
+    rule = Column(String(512))
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship('User', backref=backref('permission', order_by=id))
+
+    def __init__(self, rule, user):
+        self.rule = rule
+        self.user_id = user
+
+    def __repr__(self):
+        return '<Permission %r>' % self.id
+
+

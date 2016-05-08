@@ -1,5 +1,5 @@
 from flask import Flask, jsonify
-from flask.ext.login import LoginManager
+from flask_login import LoginManager
 from SpaceDock.config import Config
 from SpaceDock.database import Database
 from SpaceDock.documentation import Documentation

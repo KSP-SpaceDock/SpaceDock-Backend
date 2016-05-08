@@ -4,7 +4,7 @@ from flask.ext.login import current_user
 from werkzeug.utils import secure_filename
 from functools import wraps
 import SpaceDock.database
-from SpaceDock.objects import User
+from SpaceDock.objects import User, Permission
 
 db = SpaceDock.database.db
 Base = SpaceDock.database.Base
@@ -134,5 +134,12 @@ def cors(f):
         return res
 
     return wrapper
+
+def has_access(user, rule):
+    if not user or not rule:
+        return False
+    
+    # Get matching permission
+    return any(Permission.query.filter(Permission.rule == rule and Permission.user_id == user.get_id()))
 
 
