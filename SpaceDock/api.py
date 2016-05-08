@@ -20,6 +20,10 @@ class API:
                     member = self.profiler.profile_method(member)
                 print("Registered " + member.api_path)
                 self.flask.add_url_rule(member.api_path, member.__name__, member)
+                if member.api_path.endswith('/'):
+                    self.flask.add_url_rule(member.api_path[:-1], member.__name__, member)
+                else:
+                    self.flask.add_url_rule(member.api_path + '/', member.__name__, member)
                 self.documentation.add_documentation(member.api_path, member)
 
     def register_endpoints(self):
