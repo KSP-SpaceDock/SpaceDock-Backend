@@ -149,4 +149,8 @@ def has_access(user, rule):
     # Get matching permission
     return any(Permission.query.filter(Permission.rule == rule).filter(Permission.user_id == user.id))
 
+def edit_object(object, patch):
+    for field in patch:
+        if field in dir(object):
+            setattr(object, field, patch[field])
 
