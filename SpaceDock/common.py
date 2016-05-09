@@ -13,6 +13,7 @@ import json
 import urllib
 import requests
 import xml.etree.ElementTree as ET
+import re
 
 def firstparagraph(text):
     try:
@@ -95,7 +96,7 @@ def adminrequired(f):
 def accessrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if not current_user or current_user.confirmation or not has_access(current_user, f.api_path):
+        if not current_user or current_user.confirmation or not has_access(current_user, request.path):
             return jsonify({'error': True, 'accessErrors': 'You don\'t have the permission to access this page.'}), 401
         else:
             return f(*args, **kwargs)
@@ -147,7 +148,19 @@ def has_access(user, rule):
         return False
     
     # Get matching permission
-    return any(Permission.query.filter(Permission.rule == rule).filter(Permission.user_id == user.id))
+    perms = Permission.query.filter(Permission.user_id == user.id).all() # I love you too sqlalchemy
+    for p in perms:
+        if check_permission(p.rule, p.params, rule): return True
+    return False
+
+def check_permission(rule, params, url):
+    perm = Permission.query.filter(Permission.params == params).filter(Permission.rule == rule).first()
+    iURL = perm.rule
+    params_ = perm.get_params()
+    for key in params_:
+        iURL = iURL.replace('<' + key + '>', str(params_[key]).replace(', ', '|').replace('\'', '').replace('[', '(?:').replace(']', ')'))
+    print(iURL)
+    return not re.search('^' + iURL + '$', url) == None
 
 def edit_object(object, patch):
     for field in patch:

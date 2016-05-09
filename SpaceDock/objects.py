@@ -6,6 +6,8 @@ import os.path
 
 from datetime import datetime
 import bcrypt
+import json
+import re
 
 #See database.py for an explaination of this line
 Base = SpaceDock.database.Base
@@ -556,12 +558,33 @@ class Permission(Base):
     rule = Column(String(512))
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship('User')
+    params = Column(String(512))
 
     def __init__(self, rule, user):
         self.rule = rule
         self.user_id = user
+        self.set_params({})
 
     def __repr__(self):
         return '<Permission %r>' % self.id
+
+    def get_params(self):
+        if self.params == None: self.set_params({})
+        return json.loads(self.params)
+
+    def set_params(self, nParams):
+        self.params = json.dumps(nParams)
+
+    def add_param(self, param, values):
+        if not param in self.get_params():
+            p = self.get_params()
+            p[param] = values
+            self.set_params(p)
+
+    def remove_param(self, param):
+        if param in self.get_params():
+            p = self.get_params()
+            p.pop(param)
+            self.set_params(p)
 
 
