@@ -478,21 +478,6 @@ class ModVersion(Base):
     def __repr__(self):
         return '<Mod Version %r>' % self.id
 
-    def serialize(self):
-        return {
-            'id': self.id,
-            'mod_id': self.mod_id,
-            'is_beta': self.is_beta,
-            'friendly_version': self.friendly_version,
-            'gameversion_id': self.gameversion_id,
-            'gameversion': self.gameversion.serialize(),
-            'created': self.created,
-            'download_path': self.download_path,
-            'changelog': self.changelog,
-            'sort_index': self.sort_index,
-            'file_size': self.file_size
-        }
-
 class Media(Base):
     __tablename__ = 'media'
     id = Column(Integer, primary_key = True)

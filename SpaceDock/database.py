@@ -21,7 +21,7 @@ class Database:
             Base.query = self.db.query_property()
 
     def init_db(self):
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=self.engine)
         
     def get_database(self):
         return self.db

@@ -42,6 +42,57 @@ def publisher_info(publisher):
         'link': publisher.link,
     }
 
+def mod_info(mod):
+    return {
+        'id': mod.id,
+        'user_id': mod.user_id,
+        'game_id': mod.game_id,
+        #'shared_authors': mod.shared_authors,
+        'name': mod.name,
+        'description': mod.description,
+        'short_description': mod.short_description,
+        'approved': mod.approved,
+        'published': mod.published,
+        'donation_link': mod.donation_link,
+        'external_link': mod.external_link,
+        'license': mod.license,
+        'votes': mod.votes,
+        'created': mod.created.isoformat() if not mod.created == None else None,
+        'updated': mod.updated,
+        'background': mod.background,
+        'bgOffsetX': mod.bgOffsetX,
+        'bgOffsetY': mod.bgOffsetY,
+        #'medias': mod.medias,
+        'default_version_id': mod.default_version_id,
+        'versions': {version.id: mod_version_info(version) for version in mod.versions},
+        'downloads': mod.downloads,
+        #'follow_events': mod.follow_events,
+        #'referrals': mod.referrals,
+        'source_link': mod.source_link,
+        'follower_count': mod.follower_count,
+        'download_count': mod.download_count,
+        'followers': mod.followers,
+        #'rating': mod.rating,
+        #'review': mod.review,
+        #'total_score': mod.total_score,
+        #'rating_count': mod.rating_count,
+    }
+
+def mod_version_info(modversion):
+    return {
+        'id': modversion.id,
+        'mod_id': modversion.mod_id,
+        'is_beta': modversion.is_beta,
+        'friendly_version': modversion.friendly_version,
+        'gameversion_id': modversion.gameversion_id,
+        'gameversion': game_version_info(modversion.gameversion),
+        'created': modversion.created,
+        'download_path': modversion.download_path,
+        'changelog': modversion.changelog,
+        'sort_index': modversion.sort_index,
+        'file_size': modversion.file_size
+    }
+
 #WARNING: Some of this stuff is sensitive, make sure it comes from admin only access!
 def admin_user_info(user):
     return {

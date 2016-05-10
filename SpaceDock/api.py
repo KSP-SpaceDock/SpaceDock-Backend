@@ -1,16 +1,18 @@
 from flask import jsonify
 from SpaceDock.endpoints.accounts import AccountEndpoints
+from SpaceDock.endpoints.anonymous import AnonymousEndpoints
 from SpaceDock.endpoints.admin import AdminEndpoints
 from SpaceDock.endpoints.game import GameEndpoints
 
 class API:
-    def __init__(self, flask, documentation, cfg, db, email, profiler):
+    def __init__(self, flask, documentation, cfg, db, email, profiler, search):
         self.flask = flask
         self.documentation = documentation
         self.cfg = cfg
         self.db = db
         self.email = email
         self.profiler = profiler
+        self.search = search
         self.register_endpoints()
         
     def register_api_endpoint(self, endpoints):
@@ -32,6 +34,8 @@ class API:
             self.register_api_endpoint(self.profiler)
         admin_endpoints = AdminEndpoints(self.db, self.email)
         self.register_api_endpoint(admin_endpoints)
+        anonymous_endpoints = AnonymousEndpoints(self.cfg, self.db, self.search)
+        self.register_api_endpoint(anonymous_endpoints)
         account_endpoints = AccountEndpoints(self.cfg, self.db, self.email)
         self.register_api_endpoint(account_endpoints)
         game_endpoints = GameEndpoints(self.cfg, self.db)

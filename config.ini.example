@@ -3,6 +3,9 @@
 environment=dev
 
 [dev]
+#Default game (shortname)
+default-game=kerbal-space-program
+
 # The displayed name of this site
 site-name=Spacedock.Info
 # The email where users who need help write to

@@ -36,7 +36,7 @@ class AdminEndpoints:
     backend.api_path="/api/admin"
     
     def __init__(self, db, email):
-        self.db = db
+        self.db = db.get_database()
         self.email = email
     
     @adminrequired
