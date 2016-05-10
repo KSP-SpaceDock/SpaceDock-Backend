@@ -1,12 +1,17 @@
 from flask import Blueprint, render_template, abort, request, redirect, session, url_for, current_app, make_response, jsonify
 from flask.ext.login import current_user, login_user
+from flask.ext.cache import Cache
 from sqlalchemy import desc, asc
 from SpaceDock.search import search_mods, search_users, typeahead_mods
 from SpaceDock.objects import *
 from SpaceDock.common import *
 from SpaceDock.config import _cfg
 from SpaceDock.email import send_update_notification, send_grant_notice
+from SpaceDock.celery import notify_ckan
 from datetime import datetime
+from functools import wraps
+from SpaceDock.app import cache
+from flask_json import FlaskJSON, JsonError, json_response, as_json, as_json_p
 
 import time
 import os
@@ -16,6 +21,8 @@ import math
 import json
 
 api = Blueprint('api', __name__)
+
+
 
 default_description = """This is your mod listing! You can edit it as much as you like before you make it public.
 
@@ -28,15 +35,86 @@ You can check out the SpaceDock [markdown documentation](/markdown) for tips.
 Thanks for hosting your mod on SpaceDock!"""
 
 #some helper functions to keep things consistant
+
 def user_info(user):
+    if not user.showEmail:
+        user.email = ""
+    if not user.showForumName:
+        user.forumUsername = ""
+    if not user.showForumName:
+        user.forumUsername = ""
+    if not user.showIRCName:
+        user.ircNick = ""
+    if not user.showCreated:
+        user.created = ""
+    if not user.showFacebookName:
+        user.facebookUsername = ""
+    if not user.showLocation:
+        user.location = ""
+    if not user.showRedditName:
+        user.redditUsername = ""
+    if not user.showTwitchName:
+        user.twitchUsername = ""
+    if not user.showTwitterName:
+        user.twitterUsername = ""
+
     return {
         "username": user.username,
+        "uid": user.id,
         "description": user.description,
+        "background": user.backgroundMedia,
+        "location": user.location,
+        "email": user.email,
+        "twitchUsername": user.twitchUsername,
+        "facebookUsername": user.facebookUsername,
+        "youtubeUsername": user.youtubeUsername,
         "forumUsername": user.forumUsername,
         "ircNick": user.ircNick,
         "twitterUsername": user.twitterUsername,
-        "redditUsername": user.redditUsername
+        "redditUsername": user.redditUsername,
+        "created": user.created
     }
+
+
+id = Column(Integer, primary_key=True)
+username = Column(String(128), nullable=False, index=True)
+email = Column(String(256), nullable=False, index=True)
+showEmail = Column(Boolean())
+public = Column(Boolean())
+admin = Column(Boolean())
+password = Column(String(128))
+description = Column(Unicode(10000))
+created = Column(DateTime)
+showCreated = Column(Boolean())
+forumUsername = Column(String(128))
+showForumName = Column(Boolean())
+forumId = Column(Integer)
+ircNick = Column(String(128))
+showIRCName = Column(Boolean())
+twitterUsername = Column(String(128))
+showTwitterName = Column(Boolean())
+redditUsername = Column(String(128))
+showRedditName = Column(Boolean())
+youtubeUsername = Column(String(128))
+showYoutubeName = Column(Boolean())
+twitchUsername = Column(String(128))
+showTwitchName = Column(Boolean())
+facebookUsername = Column(String(128))
+showFacebookName = Column(Boolean())
+location = Column(String(128))
+showLocation = Column(Boolean())
+confirmation = Column(String(128))
+passwordReset = Column(String(128))
+passwordResetExpiry = Column(DateTime)
+backgroundMedia = Column(String(512))
+bgOffsetX = Column(Integer)
+bgOffsetY = Column(Integer)
+rating = relationship('Rating', order_by='Rating.created')
+review = relationship('Review', order_by='Review.created')
+mods = relationship('Mod', order_by='Mod.created')
+packs = relationship('ModList', order_by='ModList.created')
+following = relationship('Mod', secondary=mod_followers, backref='user.id')
+dark_theme = Column(Boolean())
 
 def mod_info(mod):
     return {
@@ -83,10 +161,11 @@ def game_info(game):
         "publisher_id": game.publisher_id,
         "short_description": game.short_description,
         "description": game.description,
-        "created": game.created.isoformat(),
+        "created": game.created,
         "background": game.background,
         "bg_offset_x": game.bgOffsetX,
         "bg_offset_y": game.bgOffsetY,
+        "short": game.short,
         "link": game.link
     }
 
@@ -104,41 +183,69 @@ def publisher_info(publisher):
     }
 
 @api.route("/api/kspversions")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def kspversions_list():
-    results = list()
+    results = dict()
+    i = 0
     for v in GameVersion.query.order_by(desc(GameVersion.id)).all():
-        results.append(kspversion_info(v))
-    return results
+        results[i] = kspversion_info(v)
+        i = i + 1
+    data = dict()
+    data["data"] = results
+    return data
 
 @api.route("/api/<gameid>/versions")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def gameversions_list(gameid):
-    results = list()
+    results = dict()
+    i = 0
     for v in GameVersion.query.filter(GameVersion.game_id == gameid).order_by(desc(GameVersion.id)).all():
-        results.append(kspversion_info(v))
-
-    return results
+        results[i] = kspversion_info(v)
+        i = i + 1
+    data = dict()
+    data["data"] = results
+    return data
 
 @api.route("/api/games")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def games_list():
-    results = list()
-    for v in Game.query.order_by(desc(Game.name)).all():
-        results.append(game_info(v))
-	# Workaround because CustomJSONEncoder seems to have problems with this
-    return json.dumps(results)
+    results = dict()
+    i = 0
+    for v in Game.query.filter(Game.active).order_by(desc(Game.name)):
+        results[i] = game_info(v)
+        i = i + 1
+    data = dict()
+    data["data"] = results
+    return data
+
+@api.route("/api/game/<short>")
+@as_json_p
+@cache.cached(timeout=50)
+def game_short(short):
+    result = game_info(Game.query.filter(Game.short == short).first())
+    data = dict()
+    data["data"] = result
+    return data
 
 @api.route("/api/publishers")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def publishers_list():
-    results = list()
+    results = dict()
+    i = 0
     for v in Publisher.query.order_by(desc(Publisher.id)).all():
-        results.append(publisher_info(v))
-    return results
+        results[i] = publisher_info(v)
+        i = i + 1
+    data = dict()
+    data["data"] = results
+    return data
 
 @api.route("/api/typeahead/mod")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def typeahead_mod():
     query = request.args.get('query')
     page = request.args.get('page')
@@ -154,14 +261,15 @@ def typeahead_mod():
     return results
 
 @api.route("/api/search/mod")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def search_mod():
     query = request.args.get('query')
     page = request.args.get('page')
     query = '' if not query else query
     page = 1 if not page or not page.isdigit() else int(page)
     results = list()
-    for m in search_mods(False,query, page, 30)[0]:
+    for m in search_mods(None, query, page, 30)[0]:
         a = mod_info(m)
         a['versions'] = list()
         for v in m.versions:
@@ -170,7 +278,8 @@ def search_mod():
     return results
 
 @api.route("/api/search/user")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def search_user():
     query = request.args.get('query')
     page = request.args.get('page')
@@ -186,13 +295,14 @@ def search_user():
         results.append(a)
     return results
 
-@api.route("/api/browse")
-@json_output
-def browse():
+@api.route("/api/<gameid>/browse")
+@as_json_p
+@cache.cached(timeout=50)
+def browse(gameid):
     # set count per page
     count = request.args.get('count')
     count = 30 if not count or not count.isdigit() or int(count) > 500 else int(count)
-    mods = Mod.query.filter(Mod.published)
+    mods = Mod.query.filter(Mod.published,Mod.game_id == gameid)
     # detect total pages
     total_pages = math.ceil(mods.count() / count)
     total_pages = 1 if not total_pages > 0 else total_pages
@@ -229,10 +339,11 @@ def browse():
         "result": results
     }
 
-@api.route("/api/browse/new")
-@json_output
-def browse_new():
-    mods = Mod.query.filter(Mod.published).order_by(desc(Mod.created))
+@api.route("/api/<gameid>/browse/new")
+@as_json_p
+@cache.cached(timeout=50)
+def browse_new(gameid):
+    mods = Mod.query.filter(Mod.published,Mod.game_id == gameid).order_by(desc(Mod.created))
     total_pages = math.ceil(mods.count() / 30)
     page = request.args.get('page')
     page = 1 if not page or not page.isdigit() else int(page)
@@ -245,36 +356,93 @@ def browse_new():
     else:
         page = 1
     mods = mods.offset(30 * (page - 1)).limit(30)
-    results = list()
+    results = dict()
+    i = 0
     for m in mods:
         a = mod_info(m)
         a['versions'] = list()
         for v in m.versions:
             a['versions'].append(version_info(m, v))
-        results.append(a)
-    return results
+        results[i] = a
+        i = i + 1
+    data = dict()
+    data["data"] = results
+    return data
 
-@api.route("/api/browse/top")
-@json_output
-def browse_top():
+@api.route("/api/<gameid>/browse/top")
+@as_json_p
+@cache.cached(timeout=50)
+def browse_top(gameid):
     page = request.args.get('page')
     if page:
         page = int(page)
     else:
         page = 1
-    mods, total_pages = search_mods(False,"", page, 30)
-    results = list()
+    mods, total_pages = search_mods(gameid,"", page, 30)
+    results = dict()
+    i = 0
     for m in mods:
         a = mod_info(m)
         a['versions'] = list()
         for v in m.versions:
             a['versions'].append(version_info(m, v))
-        results.append(a)
-    return results
+        results[i] = a
+        i = i + 1
+    data = dict()
+    data["data"] = results
+    return data
 
-@api.route("/api/browse/featured")
-@json_output
-def browse_featured():
+@api.route("/api/<gameid>/preview/new")
+@as_json_p
+@cache.cached(timeout=50)
+def preview_new(gameid):
+    mods = Mod.query.filter(Mod.published,Mod.game_id == gameid).order_by(desc(Mod.created))
+    total_pages = math.ceil(mods.count() / 15)
+    page = request.args.get('page')
+    page = 1 if not page or not page.isdigit() else int(page)
+    if page:
+        page = int(page)
+        if page > total_pages:
+            page = total_pages
+        if page < 1:
+            page = 1
+    else:
+        page = 1
+    mods = mods.offset(30 * (page - 1)).limit(30)
+    results = dict()
+    i = 0
+    for m in mods:
+        a = mod_info(m)
+        results[i] = a
+        i = i + 1
+    data = dict()
+    data["data"] = results
+    return data
+
+@api.route("/api/<gameid>/preview/top")
+@as_json_p
+@cache.cached(timeout=50)
+def preview_top(gameid):
+    page = request.args.get('page')
+    if page:
+        page = int(page)
+    else:
+        page = 1
+    mods, total_pages = search_mods(gameid,"", page, 15)
+    results = dict()
+    i = 0
+    for m in mods:
+        a = mod_info(m)
+        results[i] = a
+        i = i + 1
+    data = dict()
+    data["data"] = results
+    return data
+
+@api.route("/api/<gameid>/browse/featured")
+@as_json_p
+@cache.cached(timeout=50)
+def browse_featured(gameid):
     mods = Featured.query.order_by(desc(Featured.created))
     total_pages = math.ceil(mods.count() / 30)
     page = request.args.get('page')
@@ -289,17 +457,21 @@ def browse_featured():
     if page != 0:
         mods = mods.offset(30 * (page - 1)).limit(30)
     mods = [f.mod for f in mods]
-    results = list()
+    results = dict()
+    i = 0
     for m in mods:
         a = mod_info(m)
         a['versions'] = list()
         for v in m.versions:
             a['versions'].append(version_info(m, v))
-        results.append(a)
-    return results
+        results[i] = a
+        i = i + 1
+    data = dict()
+    data["data"] = results
+    return data
 
 @api.route("/api/login", methods=['POST'])
-@json_output
+@as_json_p
 def login():
     username = request.form['username']
     password = request.form['password']
@@ -316,7 +488,8 @@ def login():
     return { 'error': False }
 
 @api.route("/api/mod/<modid>")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def mod(modid):
     if not modid.isdigit():
        return { 'error': True, 'reason': 'Invalid mod ID.' }, 400
@@ -332,11 +505,13 @@ def mod(modid):
     for v in mod.versions:
         info["versions"].append(version_info(mod, v))
     info["description"] = mod.description
+    info["updated"] = mod.updated
     info["description_html"] = str(current_app.jinja_env.filters['markdown'](mod.description))
     return info
 
 @api.route("/api/mod/<modid>/<version>")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def mod_version(modid, version):
     if not modid.isdigit():
         return { 'error': True, 'reason': 'Invalid mod ID.' }, 400
@@ -358,7 +533,8 @@ def mod_version(modid, version):
     return info
 
 @api.route("/api/user/<username>")
-@json_output
+@as_json_p
+@cache.cached(timeout=50)
 def user(username):
     user = User.query.filter(User.username == username).first()
     if not user:
@@ -373,9 +549,10 @@ def user(username):
         info['mods'].append(mod_info(m))
     return info
 
+
 @api.route('/api/mod/<mod_id>/update-bg', methods=['POST'])
 @with_session
-@json_output
+@as_json_p
 def update_mod_background(mod_id):
     if current_user == None:
         return { 'error': True, 'reason': 'You are not logged in.' }, 401
@@ -412,7 +589,7 @@ def update_mod_background(mod_id):
 
 @api.route('/api/user/<username>/update-bg', methods=['POST'])
 @with_session
-@json_output
+@as_json_p
 def update_user_background(username):
     if current_user == None:
         return { 'error': True, 'reason': 'You are not logged in.' }, 401
@@ -439,7 +616,7 @@ def update_user_background(username):
 
 @api.route('/api/mod/<mod_id>/grant', methods=['POST'])
 @with_session
-@json_output
+@as_json_p
 def grant_mod(mod_id):
     mod = Mod.query.filter(Mod.id == mod_id).first()
     if not mod:
@@ -473,7 +650,7 @@ def grant_mod(mod_id):
 
 @api.route('/api/mod/<mod_id>/accept_grant', methods=['POST'])
 @with_session
-@json_output
+@as_json_p
 def accept_grant_mod(mod_id):
     if current_user == None:
         return { 'error': True, 'reason': 'You are not logged in.' }, 401
@@ -491,7 +668,7 @@ def accept_grant_mod(mod_id):
 
 @api.route('/api/mod/<mod_id>/reject_grant', methods=['POST'])
 @with_session
-@json_output
+@as_json_p
 def reject_grant_mod(mod_id):
     if current_user == None:
         return { 'error': True, 'reason': 'You are not logged in.' }, 401
@@ -510,7 +687,7 @@ def reject_grant_mod(mod_id):
 
 @api.route('/api/mod/<mod_id>/revoke', methods=['POST'])
 @with_session
-@json_output
+@as_json_p
 def revoke_mod(mod_id):
     if current_user == None:
         return { 'error': True, 'reason': 'You are not logged in.' }, 401
@@ -540,7 +717,7 @@ def revoke_mod(mod_id):
 
 @api.route('/api/mod/<int:mid>/set-default/<int:vid>', methods=['POST'])
 @with_session
-@json_output
+@as_json_p
 def set_default_version(mid, vid):
     mod = Mod.query.filter(Mod.id == mid).first()
     if not mod:
@@ -561,7 +738,7 @@ def set_default_version(mid, vid):
     return { 'error': False }, 200
 
 @api.route('/api/pack/create', methods=['POST'])
-@json_output
+@as_json_p
 @with_session
 def create_list():
     if not current_user:
@@ -585,7 +762,7 @@ def create_list():
     return { 'url': url_for("lists.view_list", list_id=mod_list.id, list_name=mod_list.name) }
 
 @api.route('/api/mod/create', methods=['POST'])
-@json_output
+@as_json_p
 def create_mod():
     if not current_user:
         return { 'error': True, 'reason': 'You are not logged in.' }, 401
@@ -660,11 +837,12 @@ def create_mod():
     session['gamename'] = ga.name;
     session['gameshort'] = ga.short;
     session['gameid'] = ga.id;
+    notify_ckan.delay(mod.id, 'create')
     return { 'url': url_for("mods.mod", id=mod.id, mod_name=mod.name), "id": mod.id, "name": mod.name }
 
 @api.route('/api/mod/<mod_id>/update', methods=['POST'])
 @with_session
-@json_output
+@as_json_p
 def update_mod(mod_id):
     if current_user == None:
         return { 'error': True, 'reason': 'You are not logged in.' }, 401
@@ -731,4 +909,5 @@ def update_mod(mod_id):
     db.commit()
     mod.default_version_id = version.id
     db.commit()
+    notify_ckan.delay(mod_id, 'update')
     return { 'url': url_for("mods.mod", id=mod.id, mod_name=mod.name), "id": version.id  }

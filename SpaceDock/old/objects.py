@@ -240,7 +240,8 @@ class Game(Base):
             thumbnail.create(fullImagePath, fullThumbPath, thumbnailSize)
         return thumbPath
 
-    def __init__(self,name,publisher_id,short):
+    def __init__(self,name,publisher_id,short,id):
+        self.id = id
         self.created = datetime.now()
         self.name = name
         self.publisher_id = publisher_id
@@ -294,7 +295,8 @@ class Mod(Base):
         thumbnailSizesStr = _cfg('thumbnail_size').split('x')
         thumbnailSize = (int(thumbnailSizesStr[0]), int(thumbnailSizesStr[1]))
         split = os.path.split(self.background)
-        thumbPath = os.path.join(split[0], 'thumb_' + split[1])
+        filenamep = split[1].split(".")
+        thumbPath = os.path.join(split[0], filenamep[0] + '_thumb.jpg')
         fullThumbPath = os.path.join(os.path.join(_cfg('storage'), thumbPath.replace('/content/', '')))
         fullImagePath = os.path.join(_cfg('storage'), self.background.replace('/content/', ''))
         if not os.path.exists(fullThumbPath):
