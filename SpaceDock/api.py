@@ -1,5 +1,6 @@
 from flask import jsonify
 from SpaceDock.endpoints.accounts import AccountEndpoints
+from SpaceDock.endpoints.admin import AdminEndpoints
 from SpaceDock.endpoints.game import GameEndpoints
 
 class API:
@@ -29,6 +30,8 @@ class API:
     def register_endpoints(self):
         if self.cfg.getb('profiler-histogram'):
             self.register_api_endpoint(self.profiler)
+        admin_endpoints = AdminEndpoints(self.db, self.email)
+        self.register_api_endpoint(admin_endpoints)
         account_endpoints = AccountEndpoints(self.cfg, self.db, self.email)
         self.register_api_endpoint(account_endpoints)
         game_endpoints = GameEndpoints(self.cfg, self.db)

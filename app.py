@@ -27,6 +27,7 @@ api = API(app, documentation, cfg, db, email, profiler)
 def prepare():
     pass
 
+from SpaceDock.objects import User
 @login_manager.user_loader
 def load_user(username):
     return User.query.filter(User.username == username).first()

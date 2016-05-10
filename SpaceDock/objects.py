@@ -536,7 +536,7 @@ class GameVersion(Base):
     game = relationship('Game', back_populates='version')
 
 
-    def __init__(self, friendly_version, game_id,is_beta):
+    def __init__(self, friendly_version, game_id, is_beta):
         self.friendly_version = friendly_version
         self.is_beta = is_beta
         self.game_id = game_id

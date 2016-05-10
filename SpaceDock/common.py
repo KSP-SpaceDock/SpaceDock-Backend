@@ -93,14 +93,15 @@ def adminrequired(f):
             return f(*args, **kwargs)
     return wrapper
 
-def accessrequired(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if not current_user or current_user.confirmation or not has_access(current_user, request.path):
-            return jsonify({'error': True, 'accessErrors': 'You don\'t have the permission to access this page.'}), 401
-        else:
-            return f(*args, **kwargs)
-    return wrapper
+#TODO: This approach has problems.
+#def accessrequired(f):
+#    @wraps(f)
+#    def wrapper(*args, **kwargs):
+#        if not current_user or current_user.confirmation or not has_access(current_user, request.path):
+#            return jsonify({'error': True, 'accessErrors': 'You don\'t have the permission to access this page.'}), 401
+#        else:
+#            return f(*args, **kwargs)
+#    return wrapper
 
 #def json_output(f):
 #    @wraps(f)

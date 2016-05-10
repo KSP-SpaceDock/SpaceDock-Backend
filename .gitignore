@@ -1,4 +1,6 @@
 *~
+*.pyc
+*.kate-swp
 *.orig
 __pycache__
 bin/
