@@ -3,6 +3,7 @@ from flask.ext.login import current_user
 from sqlalchemy import asc, desc
 from SpaceDock.objects import Featured, BlogPost, Mod, ModVersion, Publisher, Game
 from SpaceDock.common import *
+from SpaceDock.formatting import *
 import os.path
 
 import math
@@ -62,11 +63,11 @@ class AnonymousEndpoints:
         for new_entry in new_raw:
             new.append(new_entry.id)
             mods[new_entry.id] = new_entry
-        recent_raw = Mod.query.filter(Mod.published,Mod.game_id == game.id, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 1).order_by(desc(Mod.updated)).limit(6)[:6]
+        recent_raw = Mod.query.filter(Mod.published,Mod.game_id == game.id, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(desc(Mod.updated)).limit(6)[:6]
         recent = []
         for recent_entry in recent_raw:
-            recent.append(recent.id)
-            mods[recent.id] = recent
+            recent.append(recent_entry.id)
+            mods[recent_entry.id] = recent_entry
         user_count = User.query.count()
         mod_count = Mod.query.filter(Mod.game_id == game.id).count()
         yours = []
@@ -77,7 +78,7 @@ class AnonymousEndpoints:
                 mods[yours_entry.id] = yours_entry
         send_mods = {}
         for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
+            send_mods[mod_entry] = mod_info(mods[mod_entry])
                 
         return({'featured': featured, 'top': top, 'new': new, 'recent': recent, 'user_count': user_count, 'mod_count': mod_count, 'yours': yours, 'mods': send_mods})
     
@@ -93,7 +94,7 @@ class AnonymousEndpoints:
         game = Game.query.filter(Game.id == gameid).first()
         if not game:
             return jsonify({'error': True, 'reason': 'Game does not exist'}), 400
-        set_default_game(game)
+        self.set_default_game(game)
         return jsonify({'error': False, 'game_id': game.id, 'data': self.get_game_data(game)})
     
     game_data.api_path = "/anon/game/<gameid>"
@@ -115,10 +116,7 @@ class AnonymousEndpoints:
         #else:
         #    page = 1
         #mods = mods.offset(30 * (page - 1)).limit(30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     browse_new.api_path = "/anon/game/new"
     
@@ -135,7 +133,7 @@ class AnonymousEndpoints:
         if not game:
             return jsonify({'error': True, 'reason': 'No game selected and default game not found'}), 400
         
-        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 1).order_by(desc(Mod.updated)).all()
+        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(desc(Mod.updated)).all()
         #TODO: Pagify
         #total_pages = math.ceil(mods.count() / 30)
         #page = request.args.get('page')
@@ -148,10 +146,7 @@ class AnonymousEndpoints:
         #else:
         #    page = 1
         #mods = mods.offset(30 * (page - 1)).limit(30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     browse_updated.api_path = "/anon/game/updated"
     
@@ -167,7 +162,7 @@ class AnonymousEndpoints:
         game = self.get_default_or_current_game()
         if not game:
             return jsonify({'error': True, 'reason': 'No game selected and default game not found'}), 400
-        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 1).order_by(desc(Mod.download_count)).all()
+        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(desc(Mod.download_count)).all()
         #TODO: Pagify
         #page = request.args.get('page')
         #if page:
@@ -175,10 +170,7 @@ class AnonymousEndpoints:
         #else:
         #    page = 1
         #mods, total_pages = search_mods(None, "", page, 30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     browse_top.api_path = "/anon/game/top"
     
@@ -201,10 +193,7 @@ class AnonymousEndpoints:
         #if page != 0:
         #    mods = mods.offset(30 * (page - 1)).limit(30)
         #mods = [f.mod for f in mods]
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     browse_featured.api_path = "/anon/game/featured"
     
@@ -225,7 +214,7 @@ class AnonymousEndpoints:
         game = self.get_default_or_current_game()
         if not game:
             return jsonify({'error': True, 'reason': 'No game selected and default game not found'}), 400
-        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 1).order_by(asc(Mod.name)).all()
+        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(asc(Mod.name)).all()
         #TODO: Pagify
         #
         #page = request.args.get('page')
@@ -234,10 +223,7 @@ class AnonymousEndpoints:
         #else:
         #    page = 1
         #mods, total_pages = search_mods(None, "", page, 30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     browse_all.api_path = "/anon/game/all"
 
@@ -258,10 +244,7 @@ class AnonymousEndpoints:
         #else:
         #    page = 1
         #mods = mods.offset(30 * (page - 1)).limit(30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     singlegame_browse_new.api_path = "/anon/game/<gameid>/new"
     
@@ -348,7 +331,7 @@ class AnonymousEndpoints:
         if not game:
             return jsonify({'error': True, 'reason': 'Game does not exist'}), 400
         
-        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 1).order_by(desc(Mod.updated)).all()
+        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(desc(Mod.updated)).all()
         #TODO: Pagify
         #total_pages = math.ceil(mods.count() / 30)
         #page = request.args.get('page')
@@ -361,10 +344,7 @@ class AnonymousEndpoints:
         #else:
         #    page = 1
         #mods = mods.offset(30 * (page - 1)).limit(30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     singlegame_browse_updated.api_path = "/anon/game/<gameid>/updated"
     
@@ -389,7 +369,7 @@ class AnonymousEndpoints:
         if not game:
             return jsonify({'error': True, 'reason': 'Game does not exist'}), 400
         
-        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 1).order_by(desc(Mod.download_count)).all()
+        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(desc(Mod.download_count)).all()
         #TODO: Pagify
         #total_pages = math.ceil(mods.count() / 30)
         #page = request.args.get('page')
@@ -402,10 +382,7 @@ class AnonymousEndpoints:
         #else:
         #    page = 1
         #mods = mods.offset(30 * (page - 1)).limit(30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     singlegame_browse_top.api_path = "/anon/game/<gameid>/top"
     
@@ -427,10 +404,7 @@ class AnonymousEndpoints:
         #else:
         #    page = 1
         #mods = mods.offset(30 * (page - 1)).limit(30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     singlegame_browse_featured.api_path = "/anon/game/<gameid>/featured"
     
@@ -458,7 +432,7 @@ class AnonymousEndpoints:
         game = Game.query.filter(Game.id == gameid).first()
         if not game:
             return jsonify({'error': True, 'reason': 'Game does not exist'}), 400
-        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 1).order_by(asc(Mod.name)).all()
+        mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(asc(Mod.name)).all()
         #TODO: Pagify
         #
         #page = request.args.get('page')
@@ -467,10 +441,7 @@ class AnonymousEndpoints:
         #else:
         #    page = 1
         #mods, total_pages = search_mods(None, "", page, 30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'game_id': game.id, 'mods': send_mods})
+        return jsonify({'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]})
     
     singlegame_browse_all.api_path = "/anon/game/<gameid>/all"
     
@@ -513,10 +484,7 @@ class AnonymousEndpoints:
         else:
             page = 1
         mods, total_pages = self.search.search_mods(None, query, page, 30)
-        send_mods = {}
-        for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'page_id': page, 'pages': total_pages, 'mods': send_mods})
+        return jsonify({'error': False, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods]})
     allgame_search.api_path = "/anon/search"
 
     def singlegame_search(self, gameid):
@@ -534,8 +502,8 @@ class AnonymousEndpoints:
         mods, total_pages = self.search.search_mods(gameid, query, page, 30)
         send_mods = {}
         for mod_entry in mods:
-            send_mods[mod.id] = mod_info(mod_entry)
-        return jsonify({'error': False, 'page_id': page, 'pages': total_pages, 'mods': send_mods})
+            send_mods[mod_entry.id] = mod_info(mod_entry)
+        return jsonify({'error': False, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods]})
     
     singlegame_search.api_path = "/anon/search/<gameid>"
     
