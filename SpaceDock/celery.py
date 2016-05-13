@@ -43,6 +43,13 @@ def send_mail(sender, recipients, subject, message, important=False):
         print("Sending email from {} to {} recipients".format(sender, len(group)))
         smtp.sendmail(sender, group, message.as_string())
     smtp.quit()
+    
+@app.task
+def notify_ckan(mod_id, event_type):
+    if self.cfg("notify-url") == "":
+        return
+    send_data = { 'mod_id': mod_id, 'event_type': event_type }
+    requests.post(self.cfg["notify-url"], send_data)
 
 @app.task
 def update_patreon():

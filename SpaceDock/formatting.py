@@ -1,3 +1,4 @@
+from flask import url_for
 from SpaceDock.objects import *
 
 def game_info(game):
@@ -45,9 +46,11 @@ def publisher_info(publisher):
 def mod_info(mod):
     return {
         'id': mod.id,
+        'author': mod.user.username,
         'user_id': mod.user_id,
         'game_id': mod.game_id,
-        #'shared_authors': mod.shared_authors,
+        'game': mod.game.name,
+        'shared_authors': [s.user.username for s in mod.shared_authors],
         'name': mod.name,
         'description': mod.description,
         'short_description': mod.short_description,
@@ -58,13 +61,13 @@ def mod_info(mod):
         'license': mod.license,
         'votes': mod.votes,
         'created': mod.created.isoformat() if not mod.created == None else None,
-        'updated': mod.updated,
+        'updated': mod.updated.isoformat() if not mod.updated == None else None,
         'background': mod.background,
         'bgOffsetX': mod.bgOffsetX,
         'bgOffsetY': mod.bgOffsetY,
         #'medias': mod.medias,
         'default_version_id': mod.default_version_id,
-        'versions': {version.id: mod_version_info(version) for version in mod.versions},
+        'versions': [mod_version_info(version) for version in mod.versions],
         #'downloads': mod.downloads,
         #'follow_events': mod.follow_events,
         #'referrals': mod.referrals,
@@ -85,9 +88,11 @@ def mod_version_info(modversion):
         'is_beta': modversion.is_beta,
         'friendly_version': modversion.friendly_version,
         'gameversion_id': modversion.gameversion_id,
-        'gameversion': game_version_info(modversion.gameversion),
-        'created': modversion.created,
+        'game_version': modversion.gameversion.friendly_version,
+        'created': modversion.created.isoformat() if not modversion.created == None else None,
+        #TODO: Fix
         'download_path': modversion.download_path,
+        #'download_path': url_for('mods.download', mod_id=modversion.mod.id, mod_name=modversion.mod.name, version=modversion.friendly_version),
         'changelog': modversion.changelog,
         'sort_index': modversion.sort_index,
         'file_size': modversion.file_size
@@ -104,7 +109,42 @@ def admin_user_info(user):
     'admin': user.admin,
     #Password skipped
     'description': user.description,
-    'created': user.created,
+    'created': user.created.isoformat() if not user.created == None else None,
+    'showCreated': user.showCreated,
+    'forumUsername': user.forumUsername,
+    'showForumName': user.showForumName,
+    'forumId': user.forumId,
+    'ircNick': user.ircNick,
+    'showIRCName': user.showIRCName,
+    'twitterUsername': user.twitterUsername,
+    'showTwitterName': user.showTwitterName,
+    'redditUsername': user.redditUsername,
+    'showRedditName': user.showRedditName,
+    'youtubeUsername': user.youtubeUsername,
+    'showYoutubeName': user.showYoutubeName,
+    'twitchUsername': user.twitchUsername,
+    'showTwitchName': user.showTwitchName,
+    'facebookUsername': user.facebookUsername,
+    'showFacebookName': user.showFacebookName,
+    'location': user.location,
+    'showLocation': user.showLocation,
+    'backgroundMedia': user.backgroundMedia,
+    #Password reset skipped
+    'bgOffsetX': user.bgOffsetX,
+    'bgOffsetY': user.bgOffsetY,
+    'dark_theme': user.dark_theme
+    }
+
+def user_info(user):
+    return {
+    'id': user.id,
+    'username': user.username,
+    'public': user.public,
+    'admin': user.admin,
+    #Email skipped
+    #Password skipped
+    'description': user.description,
+    'created': user.created.isoformat() if not user.created == None else None,
     'showCreated': user.showCreated,
     'forumUsername': user.forumUsername,
     'showForumName': user.showForumName,

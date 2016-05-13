@@ -1,8 +1,9 @@
-from flask import jsonify, request
+from flask import request
 from flask.ext.login import current_user, login_user, logout_user
 from datetime import datetime, timedelta
 from SpaceDock.objects import *
 from SpaceDock.common import *
+from SpaceDock.formatting import user_info
 
 import bcrypt
 import re
@@ -24,7 +25,7 @@ class AccountEndpoints:
         Optional parameters: follow-mod
         """
         if not self.cfg.getb('registration'):
-            return jsonify({'error': True, 'configError': 'Registrations are disabled'}), 400
+            return {'error': True, 'configError': 'Registrations are disabled'}, 400
 
         followMod = request.form.get('follow-mod')
         email = request.form.get('email')
@@ -55,7 +56,7 @@ class AccountEndpoints:
                 passwordErrors.append('We admire your dedication to security, but please use a shorter password.')
         
         if len(usernameErrors) > 0 or len(passwordErrors) > 0 or len(emailErrors) > 0:
-            return jsonify({'error': True, 'usernameErrors': usernameErrors, 'passwordErrors': passwordErrors, 'emailErrors': emailErrors}), 400
+            return {'error': True, 'usernameErrors': usernameErrors, 'passwordErrors': passwordErrors, 'emailErrors': emailErrors}, 400
 
         # All valid, let's make them an account
         user = User(username, email, password)
@@ -66,7 +67,7 @@ class AccountEndpoints:
             self.email.send_confirmation(user, followMod)
         else:
             self.email.send_confirmation(user)
-        return jsonify({'error': False})
+        return {'error': False}
 
     register.api_path = "/api/register"
     register.methods = ['POST']    
@@ -98,11 +99,11 @@ class AccountEndpoints:
         """
         user = User.query.filter(User.username == username).first()
         if not user:
-            return jsonify({"error": True, "confirmError": "User does not exist"}), 400
+            return {"error": True, "confirmError": "User does not exist"}, 400
         if user.confirmation == None:
-            return jsonify({"error": True, "confirmError": "User already confirmed"}), 400
+            return {"error": True, "confirmError": "User already confirmed"}, 400
         if user.confirmation != confirmation:
-            return jsonify({"error": True, "confirmError": "Confirmation does not match"}), 400
+            return {"error": True, "confirmError": "Confirmation does not match"}, 400
 
         user.confirmation = None
         login_user(user)
@@ -111,7 +112,7 @@ class AccountEndpoints:
             mod = Mod.query.filter(Mod.id == int(f)).first()
             mod.follower_count += 1
             user.following.append(mod)
-        return jsonify({"error": False})
+        return {"error": False}
 
     confirm.api_path = "/api/confirm/<username>/<confirmation>"
     
@@ -123,25 +124,33 @@ class AccountEndpoints:
         username = request.form['username']
         password = request.form['password']
         if not username or not password:
-            return jsonify({ 'error': True, 'reason': 'Missing username or password' }), 400
+            return { 'error': True, 'reason': 'Missing username or password' }, 400
         user = User.query.filter(User.username.ilike(username)).first()
         if not user:
-            return jsonify({ 'error': True, 'reason': 'Username or password is incorrect' }), 400
+            return { 'error': True, 'reason': 'Username or password is incorrect' }, 400
         if not bcrypt.hashpw(password.encode('utf-8'), user.password.encode('utf-8')) == user.password.encode('utf-8'):
-            return jsonify({ 'error': True, 'reason': 'Username or password is incorrect' }), 400
+            return { 'error': True, 'reason': 'Username or password is incorrect' }, 400
         if user.confirmation != '' and user.confirmation != None:
-            return jsonify({ 'error': True, 'reason': 'User is not confirmed' }), 400
+            return { 'error': True, 'reason': 'User is not confirmed' }, 400
         login_user(user)
-        return jsonify({'error': False})
+        return {'error': False}
     
     login.api_path = "/api/login"
     login.methods = ['POST']
     
     def logout(self):
         logout_user()
-        return jsonify({ 'error': False })
+        return { 'error': False }
     
     logout.api_path = "/api/logout"
+    
+    def get_current_user(self):
+        if not user:
+            return { 'error': True, 'reason': 'User is not confirmed' }, 400
+        return { 'error': False, 'current_user': user_info(current_user) }
+    
+    login.api_path = "/api/login"
+    login.methods = ['POST']
     
     @with_session
     def forgot_password(self):
@@ -150,15 +159,15 @@ class AccountEndpoints:
         """
         email = request.form.get('email')
         if not email:
-            return jsonify({ 'error': True, 'reason': 'No email address' }), 400
+            return { 'error': True, 'reason': 'No email address' }, 400
         user = User.query.filter(User.email == email).first()
         if not user:
-            return jsonify({ 'error': True, 'reason': 'No user for provided email address' }), 400
+            return { 'error': True, 'reason': 'No user for provided email address' }, 400
         user.passwordReset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
         user.passwordResetExpiry = datetime.now() + timedelta(days=1)
         self.db.commit()
         send_reset(user)
-        return jsonify({'error': False})
+        return {'error': False}
         
     forgot_password.api_path = "/api/reset"
     forgot_password.methods = ['POST']
@@ -170,23 +179,23 @@ class AccountEndpoints:
         """
         user = User.query.filter(User.username == username).first()
         if not user:
-            return jsonify({ 'error': True, 'reason': 'Username is incorrect' }), 400
+            return { 'error': True, 'reason': 'Username is incorrect' }, 400
         
         if user.passwordResetExpiry == None or user.passwordResetExpiry < datetime.now():
-            return jsonify({ 'error': True, 'reason': 'Password reset invalid' }), 400
+            return { 'error': True, 'reason': 'Password reset invalid' }, 400
         if user.passwordReset != confirmation:
-            return jsonify({ 'error': True, 'reason': 'Password reset invalid' }), 400
+            return { 'error': True, 'reason': 'Password reset invalid' }, 400
         password = request.form.get('password')
         password2 = request.form.get('password2')
         if not password or not password2:
-            return jsonify({ 'error': True, 'reason': 'Passwords not provided' }), 400
+            return { 'error': True, 'reason': 'Passwords not provided' }, 400
         if password != password2:
-            return jsonify({ 'error': True, 'reason': 'Passwords do not match' }), 400
+            return { 'error': True, 'reason': 'Passwords do not match' }, 400
         user.set_password(password)
         user.passwordReset = None
         user.passwordResetExpiry = None
         self.db.commit()
-        return jsonify({ 'error': False})
+        return { 'error': False }
     
     reset_password.api_path = "/reset/<username>/<confirmation>"
     reset_password.methods = ['POST']

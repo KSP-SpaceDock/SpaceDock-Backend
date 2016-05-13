@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+from flask_json import FlaskJSON
 from flask_login import LoginManager
 from SpaceDock.config import Config
 from SpaceDock.database import Database
@@ -7,6 +8,7 @@ from SpaceDock.profiler import Profiler
 
 
 app = Flask(__name__)
+json = FlaskJSON(app)
 cfg = Config()
 db = Database(cfg)
 documentation = Documentation(app)
@@ -41,5 +43,7 @@ login_manager.anonymous_user = lambda: None
 if __name__ == '__main__':
     if cfg.get_environment() == 'dev':
         app.debug = True
+    app.config['JSON_ADD_STATUS'] = False
+    app.config['JSON_JSONP_OPTIONAL'] = False
     app.secret_key = cfg['secret-key']
     app.run(host = cfg['debug-host'], port = cfg.geti('debug-port'))

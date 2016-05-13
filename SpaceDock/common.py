@@ -1,6 +1,6 @@
-from flask import session, jsonify, redirect, request, Response, abort
+from flask import session, request, Response, abort
+from flask_json import as_json_p
 from flask.ext.login import current_user
-#from SpaceDock.custom_json import CustomJSONEncoder
 from werkzeug.utils import secure_filename
 from functools import wraps
 import SpaceDock.database
@@ -79,7 +79,7 @@ def loginrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not current_user or current_user.confirmation:
-            return jsonify({'error': True, 'accessErrors': 'You need to be logged in to access this page.'}), 401
+            return {'error': True, 'accessErrors': 'You need to be logged in to access this page.'}, 401
         else:
             return f(*args, **kwargs)
     return wrapper
@@ -88,7 +88,7 @@ def adminrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not current_user or current_user.confirmation or not current_user.admin:
-            return jsonify({'error': True, 'accessErrors': 'You don\'t have the permission to access this page.'}), 401
+            return {'error': True, 'accessErrors': 'You don\'t have the permission to access this page.'}, 401
         else:
             return f(*args, **kwargs)
     return wrapper
@@ -103,25 +103,29 @@ def adminrequired(f):
 #            return f(*args, **kwargs)
 #    return wrapper
 
-#def json_output(f):
-#    @wraps(f)
-#    def wrapper(*args, **kwargs):
-#        def jsonify_wrap(obj):
-#            jsonification = json.dumps(obj, default=CustomJSONEncoder)
-#            return Response(jsonification, mimetype='application/json')
-#
-#        result = f(*args, **kwargs)
-#        if isinstance(result, tuple):
-#            return jsonify_wrap(result[0]), result[1]
-#        if isinstance(result, dict):
-#            return jsonify_wrap(result)
-#        if isinstance(result, list):
-#            return jsonify_wrap(result)
-#
-#        # This is a fully fleshed out response, return it immediately
-#        return result
-#
-#    return wrapper
+def json_output(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        def jsonify_wrap(obj):
+            jsonification = json.dumps(obj)
+            return Response(jsonification, mimetype='application/json')
+        
+        if request.args.get('callback'):
+            result = as_json_p(f)(*args, **kwargs)
+        else:
+            result = f(*args, **kwargs)
+            
+        if isinstance(result, tuple):
+            return jsonify_wrap(result[0]), result[1]
+        if isinstance(result, dict):
+            return jsonify_wrap(result)
+        if isinstance(result, list):
+            return jsonify_wrap(result)
+
+        # This is a fully fleshed out response, return it immediately
+        return result
+
+    return wrapper
 
 def cors(f):
     @wraps(f)
