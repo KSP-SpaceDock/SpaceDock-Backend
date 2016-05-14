@@ -50,6 +50,7 @@ def mod_info(mod):
         'user_id': mod.user_id,
         'game_id': mod.game_id,
         'game': mod.game.name,
+        'game_short': mod.game.short,
         'shared_authors': [s.user.username for s in mod.shared_authors],
         'name': mod.name,
         'description': mod.description,
