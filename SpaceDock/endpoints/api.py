@@ -6,6 +6,8 @@ from SpaceDock.common import *
 from SpaceDock.celery import notify_ckan
 from SpaceDock.formatting import *
 from datetime import datetime
+from flask_json import FlaskJSON, JsonError, json_response, as_json, as_json_p
+from flask.ext.cache import Cache
 
 import time
 import os
@@ -13,6 +15,7 @@ import zipfile
 import urllib
 import math
 import json
+import urllib.parse
 
 class ApiEndpoints:
     
@@ -30,6 +33,42 @@ class ApiEndpoints:
         
         Thanks for hosting your mod on SpaceDock!"""
 
+    @as_json
+    def browse_mod(self,gameid,filterby):
+        count = 30
+        if filterby == "top":
+            mods = Mod.query.filter(Mod.published,Mod.game_id == gameid).order_by(desc(Mod.created)).limit(count)
+        elif filterby == "new":
+            mods = Mod.query.filter(Mod.published, Mod.game_id == gameid).order_by(desc(Mod.created)).limit(count)
+        else:
+            mods = Mod.query.filter(Mod.published, Mod.game_id == gameid).order_by(desc(Mod.created)).limit(count)
+        results = list()
+        for mod in mods:
+            results.append({
+                "name": mod.name,
+                "id": mod.id,
+                "game": mod.game.name,
+                "game_id": mod.game_id,
+                "game_short": mod.game.short,
+                "short_description": mod.short_description,
+                "downloads": mod.download_count,
+                "followers": mod.follower_count,
+                "author": mod.user.username,
+                "default_version_id": mod.default_version().id,
+                "shared_authors": list(),
+                "background": mod.background,
+                "license": mod.license,
+                "website": mod.external_link,
+                "donations": mod.donation_link,
+                "source_code": mod.source_link,
+                "url": "/mod/"+ str(mod.id) + "/" + urllib.parse.quote_plus(mod.name)
+            })
+        return {"count":len(results),"data":results}
+
+    browse_mod.api_path = "/api/game/<int:gameid>/browse/mod/<filterby>"
+
+
+    @as_json
     def typeahead_mod(self):
         query = request.args.get('query')
         page = request.args.get('page')
@@ -42,7 +81,9 @@ class ApiEndpoints:
         return results
     
     typeahead_mod.api_path = "/api/typeahead/mod"
-    
+
+
+    @as_json
     def search_mod(self):
         query = request.args.get('query')
         page = request.args.get('page')
@@ -55,7 +96,9 @@ class ApiEndpoints:
         return results
     
     search_mod.api_path = "/api/search/mod"
-    
+
+
+    @as_json
     def search_user(self):
         query = request.args.get('query')
         page = request.args.get('page')
@@ -72,7 +115,9 @@ class ApiEndpoints:
         return results
     
     search_user.api_path = "/api/search/user"
-    
+
+
+    @as_json
     def mod(self, modid):
         mod = Mod.query.filter(Mod.id == modid).first()
         if not mod:
@@ -85,7 +130,9 @@ class ApiEndpoints:
         return info
     
     mod.api_path = "/api/mod/<int:modid>"
-    
+
+
+    @as_json
     def mod_version(self, modid, version):
         mod = Mod.query.filter(Mod.id == modid).first()
         if not mod:
@@ -105,7 +152,9 @@ class ApiEndpoints:
         return info
     
     mod_version.api_path = "/api/mod/<int:modid>/<version>"
-    
+
+
+    @as_json
     def user(self, username):
         user = User.query.filter(User.username == username).first()
         if not user:
@@ -121,7 +170,9 @@ class ApiEndpoints:
         return info
     
     user.api_path = "/api/user/<username>"
-    
+
+
+    @as_json
     @with_session
     def update_mod_background(self, mod_id):
         if current_user == None:
@@ -159,7 +210,9 @@ class ApiEndpoints:
     
     update_mod_background.methods = ['POST']
     update_mod_background.api_path = "/api/mod/<mod_id>/update-bg"
-    
+
+
+    @as_json
     @with_session
     def update_user_background(self, username):
         if current_user == None:
@@ -187,7 +240,9 @@ class ApiEndpoints:
     
     update_user_background.methods = ['POST']
     update_user_background.api_path = "/api/user/<username>/update-bg"
-    
+
+
+    @as_json
     @with_session
     def grant_mod(self, mod_id):
         mod = Mod.query.filter(Mod.id == mod_id).first()
@@ -223,7 +278,8 @@ class ApiEndpoints:
     grant_mod.methods = ['POST']
     grant_mod.api_path = "/api/mod/<mod_id>/grant"
 
-    
+
+    @as_json
     @with_session
     def accept_grant_mod(self, mod_id):
         if current_user == None:
@@ -242,7 +298,8 @@ class ApiEndpoints:
     
     accept_grant_mod.methods = ['POST']
     accept_grant_mod.api_path = "/api/mod/<mod_id>/accept_grant"
-    
+
+    @as_json
     @with_session
     def reject_grant_mod(self, mod_id):
         if current_user == None:
@@ -262,7 +319,9 @@ class ApiEndpoints:
     
     reject_grant_mod.methods = ['POST']
     reject_grant_mod.api_path = "/api/mod/<mod_id>/reject_grant"
-    
+
+
+    @as_json
     @with_session
     def revoke_mod(self, mod_id):
         if current_user == None:
@@ -293,7 +352,9 @@ class ApiEndpoints:
     
     revoke_mod.methods = ['POST']
     revoke_mod.api_path = "/api/mod/<mod_id>/revoke"
-    
+
+
+    @as_json
     @with_session
     def set_default_version(self, mid, vid):
         mod = Mod.query.filter(Mod.id == mid).first()
@@ -316,7 +377,9 @@ class ApiEndpoints:
     
     set_default_version.methods = ['POST']
     set_default_version.api_path = "/api/mod/<int:mid>/set-default/<int:vid>"
-    
+
+
+    @as_json
     @with_session
     def create_list(self):
         if not current_user:
@@ -341,7 +404,9 @@ class ApiEndpoints:
     
     create_list.methods = ['POST']
     create_list.api_path = "/api/pack/create"
-    
+
+
+    @as_json
     @with_session
     def create_mod(self):
         if not current_user:
@@ -419,7 +484,9 @@ class ApiEndpoints:
     
     create_mod.methods = ['POST']
     create_mod.api_path = "/api/mod/create"
-    
+
+
+    @as_json
     @with_session
     def update_mod(self, mod_id):
         if current_user == None:
