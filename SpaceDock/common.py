@@ -14,6 +14,9 @@ import re
 def game_id(short):
     return Game.query.filter(Game.short == short).first().id
 
+def boolean(s):
+    return s.lower() in ['true', 'yes', '1', 'y', 't']
+
 def with_session(f):
     @wraps(f)
     def wrapper(*args, **kw):

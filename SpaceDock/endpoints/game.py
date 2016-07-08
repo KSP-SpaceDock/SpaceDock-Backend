@@ -1,5 +1,6 @@
+from flask import request
 from sqlalchemy import desc
-from SpaceDock.common import game_id
+from SpaceDock.common import game_id, boolean
 from SpaceDock.objects import *
 from SpaceDock.formatting import game_info, game_version_info
 
@@ -13,8 +14,15 @@ class GameEndpoints:
         Displays a list of all games in the database.
         """
         results = list()
-        for game in Game.query.order_by(desc(Game.name)).filter(Game.active):
-            results.append(game.short)
+        includeInactive = False
+        if request.args.get('includeInactive'):
+            includeInactive = boolean(request.args.get('includeInactive'))
+        # Game.active or includeInactive refuses to work :-(
+        f = Game.active
+        if includeInactive:
+            f = True
+        for game in Game.query.order_by(desc(Game.name)).filter(f):
+            results.append(game_info(game))
         return {'error': False, 'count': len(results), 'data': results}
 
     list_games.api_path = '/api/games'
