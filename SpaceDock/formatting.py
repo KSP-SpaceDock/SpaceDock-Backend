@@ -30,6 +30,10 @@ def game_version_info(version):
     }
 
 def publisher_info(publisher):
+    # get games manually
+    games = list()
+    for g in Game.query.filter(Game.publisher_id == publisher.id).all():
+        games.append(game_info(g))
     return {
         'id': publisher.id,
         'name': publisher.name,
@@ -41,6 +45,7 @@ def publisher_info(publisher):
         'bgOffsetX': publisher.bgOffsetX,
         'bgOffsetY': publisher.bgOffsetY,
         'link': publisher.link,
+        'games': games
     }
 
 def mod_info(mod):
