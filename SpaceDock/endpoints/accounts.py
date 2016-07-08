@@ -7,8 +7,6 @@ from SpaceDock.formatting import user_info
 
 import bcrypt
 import re
-import random
-import base64
 import binascii
 import os
 
