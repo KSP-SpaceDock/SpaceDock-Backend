@@ -19,7 +19,6 @@ class GameEndpoints:
 
     list_games.api_path = '/api/games'
 
-
     def game_info(self, gameshort):
         """
         Displays information about a game. Required parameters: gameshort
@@ -33,21 +32,9 @@ class GameEndpoints:
 
         # Game does exist
         game = filter.first()
-        data =  {
-            "id": game.id,
-            "name": game.name,
-            "publisher_id": game.publisher_id,
-            "short_description": game.short_description,
-            "description": game.description,
-            "created": game.created,
-            "background": game.background,
-            "short": game.short,
-            "link": game.link
-        }
-        return {'error': False, 'count': 1, 'data': data}
+        return {'error': False, 'count': 1, 'data': game_info(game)}
 
     game_info.api_path = '/api/games/<gameshort>'
-
 
     def game_versions(self, gameshort):
         """
@@ -70,7 +57,6 @@ class GameEndpoints:
 
     game_versions.api_path = '/api/games/<gameshort>/versions'
 
-
     def game_mods(self, gameshort):
         """
         Displays a list of all mods added for this game. Required parameters: gameshort
@@ -91,7 +77,6 @@ class GameEndpoints:
         return {'error': False, 'count': len(result), 'data': result}
 
     game_mods.api_path = '/api/games/<gameshort>/mods'
-
 
     def game_modlists(self, gameshort):
         """
