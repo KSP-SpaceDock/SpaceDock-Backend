@@ -1,6 +1,6 @@
 from flask import jsonify
 from functools import wraps
-from SpaceDock.common import json_output
+from SpaceDock.common import json
 from SpaceDock.endpoints.accounts import AccountEndpoints
 from SpaceDock.endpoints.api import ApiEndpoints
 from SpaceDock.endpoints.anonymous import AnonymousEndpoints
@@ -18,19 +18,19 @@ class API:
         self.profiler = profiler
         self.search = search
         self.register_endpoints()
-        
+
     #Decorate all API endpoints
     def decorate_function(self, member):
         if self.cfg.getb('profiler-histogram') or self.cfg.geti('profiler') != 0:
             member = self.profiler.profile_method(member)
-        member = json_output(member)
+        member = json(member)
         return member
-        
+
     def register_api_endpoint(self, endpoints):
         for member_name in dir(endpoints):
             member = getattr(endpoints, member_name)
             if 'api_path' in dir(member):
-                member = self.decorate_function(member)                
+                member = self.decorate_function(member)
                 print("Registered " + member.api_path)
                 self.flask.add_url_rule(member.api_path, member.__name__, member)
                 if member.api_path.endswith('/'):
