@@ -14,26 +14,22 @@ db = Database(cfg)
 documentation = Documentation(app)
 profiler = Profiler(cfg)
 
-#Import of search must come after DB
-from SpaceDock.search import Search
-search = Search(db)
-
-#Import of email must come after cfg/db load
+# Additional imports
 from SpaceDock.email import Email
-email = Email(cfg)
+from SpaceDock.search import Search
+from SpaceDock.api import API
+from SpaceDock.objects import User
 
+search = Search(db)
+email = Email(cfg)
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-#Import must come after DB loads
-from SpaceDock.api import API
 api = API(app, documentation, cfg, db, email, profiler, search)
 
 @app.before_first_request
 def prepare():
     db.init_db()
 
-from SpaceDock.objects import User
 @login_manager.user_loader
 def load_user(username):
     return User.query.filter(User.username == username).first()
