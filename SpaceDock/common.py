@@ -17,6 +17,21 @@ def game_id(short):
 def boolean(s):
     return s.lower() in ['true', 'yes', '1', 'y', 't']
 
+def re_in(itr, value):
+    if itr == None:
+        return False
+    for v in itr:
+        if not re.match(str(v), value) == None:
+            return True
+    return False
+
+def dummy():
+    return None
+
+def has_ability(ability, **params): # HAX
+    f = user_has(ability, **params)(dummy)
+    return f() == None
+
 def with_session(f):
     @wraps(f)
     def wrapper(*args, **kw):
@@ -62,24 +77,28 @@ def edit_object(object, patch):
         if field in dir(object):
             setattr(object, field, patch[field])
 
-def user_has(*ability):
+def user_has(ability, **params):
     def wrapper(func):
         @wraps(func)
         def inner(*args, **kwargs):
-            desired_ability = Ability.query.filter_by(Ability.name == ability).first()
+            desired_ability = Ability.query.filter(Ability.name == ability).first()
             user_abilities = []
             if not current_user:
                 return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 400
             for role in current_user._roles:
                 user_abilities += role.abilities
             has = True
-            for a in ability:
-                if not a in user_abilities:
-                    has = False
-            if has:
-                return func(*args, **kwargs)
+            if desired_ability in user_abilities:
+                if 'params' in params:
+                    for p in params['params']:
+                        if not re_in(current_user.get_param(ability, p), kwargs[p]):
+                            has = False
+                if has:
+                    return func(*args, **kwargs)
+                else:
+                    return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability]}, 400
             else:
-                return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ','.join(ability)]}, 400
+                return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability]}, 400
         return inner
     return wrapper
 
