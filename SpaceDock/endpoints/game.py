@@ -29,7 +29,7 @@ class GameEndpoints:
 
     def game_info(self, gameshort):
         """
-        Displays information about a game. Required parameters: gameshort
+        Displays information about a game.
         """
         # Get the games with the according gameshort
         filter = Game.query.filter(Game.short == gameshort)
@@ -46,7 +46,7 @@ class GameEndpoints:
 
     def game_versions(self, gameshort):
         """
-        Displays information about the versions of a game. Required parameters: gameshort
+        Displays information about the versions of a game.
         """
         if not Game.query.filter(Game.short == gameshort).first():
             return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
@@ -67,7 +67,7 @@ class GameEndpoints:
 
     def game_mods(self, gameshort):
         """
-        Displays a list of all mods added for this game. Required parameters: gameshort
+        Displays a list of all mods added for this game.
         """
         if not Game.query.filter(Game.short == gameshort).first():
             return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
@@ -88,7 +88,7 @@ class GameEndpoints:
 
     def game_modlists(self, gameshort):
         """
-        Displays all mod lists this game knows. Required parameters: gameshort
+        Displays all mod lists this game knows.
         """
         if not Game.query.filter(Game.short == gameshort).first():
             return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
@@ -108,25 +108,22 @@ class GameEndpoints:
 
     game_modlists.api_path = '/api/games/<gameshort>/modlists'
 
+    @with_session
+    @user_has('edit-game', params=['gameshort'])
+    def edit_game(self, gameshort):
+        """
+        Edits a game, based on the request parameters.
+        """
+        if not Game.query.filter(Game.short == gameshort).first():
+            return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
-    #TODO: Move this to admin maybe?
-    #TODO: Redo with propper access control
-    #@accessrequired
-    #@with_session
-    #def edit_game(self, gameid):
-    #    """
-    #    Edits a game, based on the request parameters. Required parameters: gameid
-    #    """
-    #    if not gameid.isdigit() or len(Game.query.filter(Game.id == int(gameid)).all()) == 0:
-    #        return jsonify({'error': True, 'idErrors': 'The number you entered is not a valid ID.'}), 400
-    #
-    #    # Get variables
-    #    parameters = request.form.to_dict()
-    #
-    #    # Get the matching game and edit it
-    #    game = Game.query.filter(Game.id == int(gameid)).first()
-    #    edit_object(game, parameters)
-    #    return jsonify({'error': False})
-    #
-    #edit_game.api_path = '/api/games/<gameid>/edit'
-    #edit_game.methods = ['POST']
+        # Get variables
+        parameters = request.form.to_dict()
+
+        # Get the matching game and edit it
+        game = Game.query.filter(Game.short == gameshort).first()
+        edit_object(game, parameters)
+        return {'error': False}
+
+    edit_game.api_path = '/api/games/<gameshort>/edit'
+    edit_game.methods = ['POST']
