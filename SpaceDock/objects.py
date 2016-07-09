@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, ForeignKey, Table, UnicodeText, Text, text,Float
 from sqlalchemy.orm import relationship, backref
-import SpaceDock.database
-#import SpaceDock.thumbnail as thumbnail
+from sqlalchemy.ext.associationproxy import association_proxy
+from SpaceDock.database import Base, db
 import os.path
 
 from datetime import datetime
@@ -9,13 +9,34 @@ import bcrypt
 import json
 import re
 
-#See database.py for an explaination of this line
-Base = SpaceDock.database.Base
-
 mod_followers = Table('mod_followers', Base.metadata,
     Column('mod_id', Integer, ForeignKey('mod.id')),
     Column('user_id', Integer, ForeignKey('user.id')),
 )
+
+user_role_table = Table('user_role', Base.metadata,
+    Column('user_id', Integer(), ForeignKey('user.id')),
+    Column('role_id', Integer(), ForeignKey('role.id'))
+)
+
+role_ability_table = Table('role_ability', Base.metadata,
+    Column('role_id', Integer(), ForeignKey('role.id')),
+    Column('ability_id', Integer(), ForeignKey('ability.id'))
+)
+
+def role_find_or_create(r):
+    role = Role.query.filter_by(name=r).first()
+    if not role:
+        role = Role(name=r)
+        db.add(role)
+        db.commit()
+    return role
+
+def is_sequence(arg):
+    return (not hasattr(arg, "strip") and
+            hasattr(arg, "__getitem__") or
+            hasattr(arg, "__iter__"))
+
 
 class Featured(Base):
     __tablename__ = 'featured'
@@ -31,6 +52,7 @@ class Featured(Base):
     def __repr__(self):
         return '<Featured %r>' % self.id
 
+
 class BlogPost(Base):
     __tablename__ = 'blog'
     id = Column(Integer, primary_key = True)
@@ -43,6 +65,7 @@ class BlogPost(Base):
 
     def __repr__(self):
         return '<Blog Post %r>' % self.id
+
 
 class User(Base):
     __tablename__ = 'user'
@@ -84,13 +107,21 @@ class User(Base):
     mods = relationship('Mod', order_by='Mod.created')
     packs = relationship('ModList', order_by='ModList.created')
     following = relationship('Mod', secondary=mod_followers, backref='user.id')
-    permissions = relationship('Permission')
     dark_theme = Column(Boolean())
+    # Permissions
+    _roles = relationship('Role', secondary=user_role_table, backref='users')
+    roles = association_proxy('_roles', 'name', creator=role_find_or_create)
+    type = Column(String(50))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'usermixin',
+        'polymorphic_on': type
+    }
 
     def set_password(self, password):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    def __init__(self, username, email, password):
+    def __init__(self, username, email, password, roles=None, default_role='unconfirmed'):
         self.email = email
         self.username = username
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -108,6 +139,12 @@ class User(Base):
         self.bgOffsetX = 0
         self.bgOffsetY = 0
         self.dark_theme = False
+        if roles and isinstance(roles, basestring):
+            roles = [roles]
+        if roles and is_sequence(roles):
+            self.roles = roles
+        elif default_role:
+            self.roles = [default_role]
     def __repr__(self):
         return '<User %r>' % self.username
 
@@ -121,6 +158,58 @@ class User(Base):
         return False
     def get_id(self):
         return self.username
+
+    # Permissions
+    def add_roles(self, *roles):
+        self.roles.extend([role for role in roles if role not in self.roles])
+    def remove_roles(self, *roles):
+        self.roles = [role for role in self.roles if role not in roles]
+
+
+class Role(Base):
+    __tablename__ = 'role'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(120), unique=True)
+    abilities = relationship('Ability', secondary=role_ability_table, backref='roles')
+
+    def __init__(self, name):
+        self.name = name.lower()
+
+    def add_abilities(self, *abilities):
+        for ability in abilities:
+            existing_ability = Ability.query.filter_by(Ability.name == ability).first()
+            if not existing_ability:
+                existing_ability = Ability(ability)
+                db.add(existing_ability)
+                db.commit()
+            self.abilities.append(existing_ability)
+
+    def remove_abilities(self, *abilities):
+        for ability in abilities:
+            existing_ability = Ability.query.filter_by(Ability.name == ability).first()
+            if existing_ability and existing_ability in self.abilities:
+                self.abilities.remove(existing_ability)
+
+    def __repr__(self):
+        return '<Role {}>'.format(self.name)
+
+    def __str__(self):
+        return self.name
+
+
+class Ability(Base):
+    __tablename__ = 'ability'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(120), unique=True)
+
+    def __init__(self, name):
+        self.name = name.lower()
+
+    def __repr__(self):
+        return '<Ability {}>'.format(self.name)
+
+    def __str__(self):
+        return self.name
 
 
 class UserAuth(Base):
@@ -142,6 +231,7 @@ class UserAuth(Base):
     def __repr__(self):
         return '<UserAuth %r, User %r>' % (self.provider, self.user_id)
 
+
 class Rating(Base):
     __tablename__ = 'rating'
     id = Column(Integer, primary_key = True)
@@ -160,6 +250,7 @@ class Rating(Base):
 
     def __repr__(self):
         return '<Rating %r %r>' % (self.id, self.score)
+
 
 class Review(Base):
     __tablename__ = 'review'
@@ -187,6 +278,7 @@ class Review(Base):
     def __repr__(self):
         return '<Review %r %r>' % (self.id, self.review_title)
 
+
 class Publisher(Base):
     __tablename__ = 'publisher'
     id = Column(Integer, primary_key = True)
@@ -207,6 +299,7 @@ class Publisher(Base):
 
     def __repr__(self):
         return '<Publisher %r %r>' % (self.id, self.name)
+
 
 class Game(Base):
     __tablename__ = 'game'
@@ -254,7 +347,8 @@ class Game(Base):
 
     def __repr__(self):
         return '<Game %r %r>' % (self.id, self.name)
-    
+
+
 class Mod(Base):
     __tablename__ = 'mod'
     id = Column(Integer, primary_key = True)
@@ -292,7 +386,7 @@ class Mod(Base):
     total_score = Column(Float(), nullable=True)
     rating_count = Column(Integer, nullable=False, server_default=text('0'))
     ckan = Column(Boolean)
-    
+
     def background_thumb(self):
         if (_cfg('thumbnail_size') == ''):
             return self.background
@@ -347,6 +441,7 @@ class Mod(Base):
     def __repr__(self):
         return '<Mod %r %r>' % (self.id, self.name)
 
+
 class ModList(Base):
     __tablename__ = 'modlist'
     id = Column(Integer, primary_key = True)
@@ -368,6 +463,7 @@ class ModList(Base):
     def __repr__(self):
         return '<ModList %r %r>' % (self.id, self.name)
 
+
 class ModListItem(Base):
     __tablename__ = 'modlistitem'
     id = Column(Integer, primary_key = True)
@@ -383,6 +479,7 @@ class ModListItem(Base):
     def __repr__(self):
         return '<ModListItem %r %r>' % (self.mod_id, self.mod_list_id)
 
+
 class SharedAuthor(Base):
     __tablename__ = 'sharedauthor'
     id = Column(Integer, primary_key = True)
@@ -397,6 +494,7 @@ class SharedAuthor(Base):
 
     def __repr__(self):
         return '<SharedAuthor %r>' % self.user_id
+
 
 class DownloadEvent(Base):
     __tablename__ = 'downloadevent'
@@ -415,6 +513,7 @@ class DownloadEvent(Base):
     def __repr__(self):
         return '<Download Event %r>' % self.id
 
+
 class FollowEvent(Base):
     __tablename__ = 'followevent'
     id = Column(Integer, primary_key = True)
@@ -431,6 +530,7 @@ class FollowEvent(Base):
     def __repr__(self):
         return '<Download Event %r>' % self.id
 
+
 class ReferralEvent(Base):
     __tablename__ = 'referralevent'
     id = Column(Integer, primary_key = True)
@@ -446,6 +546,7 @@ class ReferralEvent(Base):
 
     def __repr__(self):
         return '<Download Event %r>' % self.id
+
 
 class ModVersion(Base):
     __tablename__ = 'modversion'
@@ -478,6 +579,7 @@ class ModVersion(Base):
     def __repr__(self):
         return '<Mod Version %r>' % self.id
 
+
 class Media(Base):
     __tablename__ = 'media'
     id = Column(Integer, primary_key = True)
@@ -494,6 +596,7 @@ class Media(Base):
 
     def __repr__(self):
         return '<Media %r>' % self.hash
+
 
 class ReviewMedia(Base):
     __tablename__ = 'reviewmedia'
@@ -512,6 +615,7 @@ class ReviewMedia(Base):
     def __repr__(self):
         return '<ReviewMedia %r>' % self.hash
 
+
 class GameVersion(Base):
     __tablename__ = 'gameversion'
     id = Column(Integer, primary_key = True)
@@ -528,7 +632,7 @@ class GameVersion(Base):
 
     def __repr__(self):
         return '<Game Version %r>' % self.friendly_version
-    
+
     def serialize(self):
         return {
             'id': self.id,
@@ -536,40 +640,3 @@ class GameVersion(Base):
             'friendly_version': self.friendly_version,
             'game_id': self.game_id,
         }
-
-class Permission(Base):
-    __tablename__ = 'permissions'
-    id = Column(Integer, primary_key = True)
-    rule = Column(String(512))
-    user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship('User')
-    params = Column(String(512))
-
-    def __init__(self, rule, user):
-        self.rule = rule
-        self.user_id = user
-        self.set_params({})
-
-    def __repr__(self):
-        return '<Permission %r>' % self.id
-
-    def get_params(self):
-        if self.params == None: self.set_params({})
-        return json.loads(self.params)
-
-    def set_params(self, nParams):
-        self.params = json.dumps(nParams)
-
-    def add_param(self, param, values):
-        if not param in self.get_params():
-            p = self.get_params()
-            p[param] = values
-            self.set_params(p)
-
-    def remove_param(self, param):
-        if param in self.get_params():
-            p = self.get_params()
-            p.pop(param)
-            self.set_params(p)
-
-

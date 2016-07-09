@@ -104,6 +104,7 @@ class AccountEndpoints:
 
         user.confirmation = None
         login_user(user)
+        user.add_roles('user')
         f = request.args.get('f')
         if f:
             mod = Mod.query.filter(Mod.id == int(f)).first()
