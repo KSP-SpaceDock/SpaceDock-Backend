@@ -15,13 +15,13 @@ mod_followers = Table('mod_followers', Base.metadata,
 )
 
 user_role_table = Table('user_role', Base.metadata,
-    Column('user_id', Integer(), ForeignKey('user.id')),
-    Column('role_id', Integer(), ForeignKey('role.id'))
+    Column('user_id', Integer(), ForeignKey('user.id'), primary_key=False),
+    Column('role_id', Integer(), ForeignKey('role.id'), primary_key=False)
 )
 
 role_ability_table = Table('role_ability', Base.metadata,
-    Column('role_id', Integer(), ForeignKey('role.id')),
-    Column('ability_id', Integer(), ForeignKey('ability.id'))
+    Column('role_id', Integer(), ForeignKey('role.id'), primary_key=False),
+    Column('ability_id', Integer(), ForeignKey('ability.id'), primary_key=False)
 )
 
 def role_find_or_create(r):
@@ -112,6 +112,7 @@ class User(Base):
     _roles = relationship('Role', secondary=user_role_table, backref='users')
     roles = association_proxy('_roles', 'name', creator=role_find_or_create)
     type = Column(String(50))
+    params = Column(String(512))
 
     __mapper_args__ = {
         'polymorphic_identity': 'usermixin',
@@ -139,6 +140,7 @@ class User(Base):
         self.bgOffsetX = 0
         self.bgOffsetY = 0
         self.dark_theme = False
+        self.params = '{}'
         if roles and isinstance(roles, basestring):
             roles = [roles]
         if roles and is_sequence(roles):
@@ -164,6 +166,28 @@ class User(Base):
         self.roles.extend([role for role in roles if role not in self.roles])
     def remove_roles(self, *roles):
         self.roles = [role for role in self.roles if role not in roles]
+    def get_param(self, ability, param):
+        p = json.loads(self.params)
+        if ability in p.keys():
+            if param in p[ability].keys():
+                return p[ability][param]
+        return None
+    def add_param(self, ability, param, value):
+        p = json.loads(self.params)
+        if not ability in p:
+            p[ability] = dict()
+        if not param in p[ability]:
+            p[ability][param] = list()
+        if not value in p[ability][param]:
+            p[ability][param].append(value)
+        self.params = json.dumps(p)
+    def remove_param(self, ability, param, value):
+        p = json.loads(self.params)
+        if ability in p:
+            if param in p[ability]:
+                if value in p[ability][param]:
+                    p[ability][param].remove(value)
+        self.params = json.dumps(p)
 
 
 class Role(Base):
@@ -177,7 +201,7 @@ class Role(Base):
 
     def add_abilities(self, *abilities):
         for ability in abilities:
-            existing_ability = Ability.query.filter_by(Ability.name == ability).first()
+            existing_ability = Ability.query.filter(Ability.name == ability).first()
             if not existing_ability:
                 existing_ability = Ability(ability)
                 db.add(existing_ability)
@@ -186,7 +210,7 @@ class Role(Base):
 
     def remove_abilities(self, *abilities):
         for ability in abilities:
-            existing_ability = Ability.query.filter_by(Ability.name == ability).first()
+            existing_ability = Ability.query.filter(Ability.name == ability).first()
             if existing_ability and existing_ability in self.abilities:
                 self.abilities.remove(existing_ability)
 

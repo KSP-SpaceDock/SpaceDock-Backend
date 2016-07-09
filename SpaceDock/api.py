@@ -1,6 +1,7 @@
 from flask import jsonify
 from functools import wraps
 from SpaceDock.common import json
+from SpaceDock.endpoints.access import AccessEndpoints
 from SpaceDock.endpoints.accounts import AccountEndpoints
 from SpaceDock.endpoints.api import ApiEndpoints
 from SpaceDock.endpoints.anonymous import AnonymousEndpoints
@@ -42,6 +43,8 @@ class API:
     def register_endpoints(self):
         if self.cfg.getb('profiler-histogram'):
             self.register_api_endpoint(self.profiler)
+        access_endpoints = AccessEndpoints(self.cfg, self.db)
+        self.register_api_endpoint(access_endpoints)
         admin_endpoints = AdminEndpoints(self.db, self.email)
         self.register_api_endpoint(admin_endpoints)
         anonymous_endpoints = AnonymousEndpoints(self.cfg, self.db, self.search)

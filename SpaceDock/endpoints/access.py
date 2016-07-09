@@ -1,0 +1,138 @@
+from flask import request
+from flask_login import current_user, login_user, logout_user
+from datetime import datetime, timedelta
+from SpaceDock.objects import *
+from SpaceDock.common import *
+from SpaceDock.formatting import user_info
+
+
+class AccessEndpoints:
+    def __init__(self, cfg, db):
+        self.cfg = cfg
+        self.db = db.get_database()
+
+    @user_has('edit-access')
+    @with_session
+    def add_role(self):
+        """
+        Promotes a user for the given role. Required parameters: userid, rolename
+        """
+        userid = request.form['userid']
+        rolename = request.form['rolename']
+        if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
+            return {'error': True, 'reasons': ['The userid is invalid.']}, 400
+        user = User.query.filter(User.id == int(userid)).first()
+        user.add_roles(rolename)
+        return {'error': False}
+
+    add_role.api_path = '/api/access/roles/assign'
+    add_role.methods = ['POST']
+
+    @user_has('edit-access')
+    @with_session
+    def remove_role(self):
+        """
+        Removes a user from a group. Required parameters: userid, rolename
+        """
+        userid = request.form['userid']
+        rolename = request.form['rolename']
+        if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
+            return {'error': True, 'reasons': ['The userid is invalid.']}, 400
+        user = User.query.filter(User.id == int(userid)).first()
+        if not rolename in user._roles:
+            return {'error': True, 'reasons': ['The user doesn\'t have this role']}, 400
+        user.remove_roles(rolename)
+        return {'error': False}
+
+    remove_role.api_path = '/api/access/roles/remove'
+    remove_role.methods = ['POST']
+
+    @user_has('edit-access')
+    @with_session
+    def add_abilities(self):
+        """
+        Adds a permission to a group. Required parameters: rolename, abname
+        """
+        rolename = request.form['rolename']
+        abname = request.form['abname']
+        if not Role.query.filter(Role.name == rolename).first():
+            return {'error': True, 'reasons': ['The role does not exist. Please add it to a user to create it internally.']}, 400
+        r = Role.query.filter(Role.name == rolename).first()
+        r.add_abilities(abname)
+        return {'error': False}
+
+    add_abilities.api_path = '/api/access/abilities/assign'
+    add_abilities.methods = ['POST']
+
+    @user_has('edit-access')
+    @with_session
+    def remove_abilities(self):
+        """
+        Removes a permission from a group. Required parameters: rolename, abname
+        """
+        rolename = request.form['rolename']
+        abname = request.form['abname']
+        errors = []
+        if not Role.query.filter(Role.name == rolename).first():
+            errors.append('The role does not exist.')
+        if not Ability.query.filter(Ability.name == abname).first():
+            errors.append('The ability does not exist.')
+        if len(errors) > 0:
+            return {'error': True, 'reasons': errors}, 400
+        role = Role.query.filter(Role.name == rolename).first()
+        ability = Ability.query.filter(Ability.name == abname).first()
+        if not ability in role.abilities:
+            return {'error': True, 'reasons': ['The ability isn\'t assigned to this role']}, 400
+        role.remove_abilities(abname)
+        return {'error': False}
+
+    remove_abilities.api_path = '/api/access/abilities/remove'
+    remove_abilities.methods = ['POST']
+
+    @user_has('edit-access')
+    @with_session
+    def add_params(self, userid):
+        """
+        Adds a parameter for an ability. Required parameters: abname, param, value
+        """
+        abname = request.form['abname']
+        param = request.form['param']
+        value = request.form['value']
+        errors = []
+        if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
+            errors.append('The userid is invalid.')
+        if not Ability.query.filter(Ability.name == abname).first():
+            errors.append('The ability does not exist.')
+        if len(errors) > 0:
+            return {'error': True, 'reasons': errors}, 400
+        user = User.query.filter(User.id == int(userid)).first()
+        user.add_param(abname, param, value)
+        return {'error': False}
+
+    add_params.api_path = '/api/access/params/add/<userid>'
+    add_params.methods = ['POST']
+
+    @user_has('edit-access')
+    @with_session
+    def remove_params(self, userid):
+        """
+        Removes a parameter from an ability Required parameters: abname, param, value
+        """
+        abname = request.form['abname']
+        param = request.form['param']
+        value = request.form['value']
+        errors = []
+        if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
+            errors.append('The userid is invalid.')
+        if not Ability.query.filter(Ability.name == abname).first():
+            errors.append('The ability does not exist.')
+        if len(errors) > 0:
+            return {'error': True, 'reasons': errors}, 400
+        user = User.query.filter(User.id == int(userid)).first()
+        if not value in user.get_param(abname, param):
+            return {'error': True, 'reasons': ['The parameter doesn\'t exist']}, 400
+        user.remove_param(abname, param, value)
+        return {'error': False}
+
+    remove_params.api_path = '/api/access/params/remove/<userid>'
+    remove_params.methods = ['POST']
