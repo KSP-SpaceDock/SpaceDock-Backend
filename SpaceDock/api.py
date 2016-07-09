@@ -8,6 +8,7 @@ from SpaceDock.endpoints.anonymous import AnonymousEndpoints
 from SpaceDock.endpoints.admin import AdminEndpoints
 from SpaceDock.endpoints.game import GameEndpoints
 from SpaceDock.endpoints.publisher import PublisherEndpoints
+from SpaceDock.endpoints.user import UserEndpoints
 
 class API:
     def __init__(self, flask, documentation, cfg, db, email, profiler, search):
@@ -57,3 +58,5 @@ class API:
         self.register_api_endpoint(game_endpoints)
         publisher_endpoints = PublisherEndpoints()
         self.register_api_endpoint(publisher_endpoints)
+        user_endpoints = UserEndpoints(self.cfg, self.db)
+        self.register_api_endpoint(user_endpoints)
