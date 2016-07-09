@@ -59,6 +59,7 @@ class AccountEndpoints:
         user = User(username, email, password)
         user.confirmation = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
         self.db.add(user)
+        user.add_param('edit-user', 'userid', user.id)
         self.db.commit() # We do this manually so that we're sure everything's hunky dory before the email leaves
         if followMod:
             self.email.send_confirmation(user, followMod)
@@ -130,7 +131,7 @@ class AccountEndpoints:
             return {'error': True, 'reasons': ['Username or password is incorrect']}, 400
         if not bcrypt.hashpw(password.encode('utf-8'), user.password.encode('utf-8')) == user.password.encode('utf-8'):
             return {'error': True, 'reasons': ['Username or password is incorrect']}, 400
-        if user.confirmation != '' and user.confirmation != None:
+        if user.confirmation == '' and user.confirmation == None:
             return {'error': True, 'reasons': ['User is not confirmed']}, 400
         login_user(user)
         return {'error': False}
@@ -148,18 +149,6 @@ class AccountEndpoints:
         return {'error': False}
 
     logout.api_path = '/api/logout'
-
-    def get_current_user(self):
-        """
-        Returns data about the currently logged in user
-        """
-        if current_user and not current_user.confirmation:
-            return {'error': True, 'reasons': ['User is not confirmed']}, 400
-        if not current_user:
-            return {'error': True, 'reasons': ['You aren\'t logged in']}, 400
-        return {'error': False, 'count': 1, 'data': user_info(current_user)}
-
-    get_current_user.api_path = '/api/user'
 
     @with_session
     def forgot_password(self):
