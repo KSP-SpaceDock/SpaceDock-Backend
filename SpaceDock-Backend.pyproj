@@ -30,16 +30,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="SpaceDock\" />
-    <Folder Include="SpaceDock\blueprints\" />
-    <Folder Include="SpaceDock\blueprints\old\" />
     <Folder Include="SpaceDock\endpoints\" />
-    <Folder Include="SpaceDock\old\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SpaceDock\blueprints\old\*.py" />
-    <Compile Include="SpaceDock\blueprints\*.py" />
     <Compile Include="SpaceDock\endpoints\*.py" />
-    <Compile Include="SpaceDock\old\*.py" />
     <Compile Include="SpaceDock\*.py" />
     <Compile Include="*.py" />
   </ItemGroup>
