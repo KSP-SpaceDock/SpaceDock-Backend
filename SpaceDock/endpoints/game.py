@@ -139,9 +139,21 @@ class GameEndpoints:
         pubid = request.form['pubid']
         short = request.form['short']
 
+        errors = list()
+
         # Check if the publisher ID is valid
         if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
-            return {'error': True, 'reasons': ['The pubid is invalid.']}, 400
+            errors.append('The pubid is invalid.')
+
+        # Check if the game already exists
+        if Game.query.filter(Game.short == short).first():
+            errors.append('The gameshort already exists.')
+        if Game.query.filter(Game.name == name).first():
+            errors.append('The game name already exists.')
+
+        # Errors
+        if len(errors) > 0:
+            return {'error': True, 'reasons': errors}, 400
 
         # Make a new game
         game = Game(name, int(pubid), short)
@@ -155,7 +167,7 @@ class GameEndpoints:
     @user_has('remove-game')
     def remove_game(self):
         """
-        Adds a new game based on the request parameters. Required fields: short
+        Removes a game from existence. Required fields: short
         """
         short = request.form['short']
 
