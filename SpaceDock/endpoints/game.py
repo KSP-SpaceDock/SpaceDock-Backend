@@ -3,6 +3,7 @@ from sqlalchemy import desc
 from SpaceDock.common import *
 from SpaceDock.objects import *
 from SpaceDock.formatting import game_info, game_version_info
+import json
 
 class GameEndpoints:
     def __init__(self, cfg, db):
@@ -112,13 +113,13 @@ class GameEndpoints:
     @user_has('edit-game', params=['gameshort'])
     def edit_game(self, gameshort):
         """
-        Edits a game, based on the request parameters.
+        Edits a game, based on the request parameters. Required fields: data
         """
         if not Game.query.filter(Game.short == gameshort).first():
             return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
         # Get variables
-        parameters = request.form.to_dict()
+        parameters = json.loads(request.form['data'])
 
         # Get the matching game and edit it
         game = Game.query.filter(Game.short == gameshort).first()
@@ -127,3 +128,45 @@ class GameEndpoints:
 
     edit_game.api_path = '/api/games/<gameshort>/edit'
     edit_game.methods = ['POST']
+
+    @with_session
+    @user_has('add-game')
+    def add_game(self):
+        """
+        Adds a new game based on the request parameters. Required fields: name, pubid, short
+        """
+        name = request.form['name']
+        pubid = request.form['pubid']
+        short = request.form['short']
+
+        # Check if the publisher ID is valid
+        if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+            return {'error': True, 'reasons': ['The pubid is invalid.']}, 400
+
+        # Make a new game
+        game = Game(name, int(pubid), short)
+        self.db.add(game)
+        return {'error': False}
+
+    add_game.api_path = '/api/games/add'
+    add_game.methods = ['POST']
+
+    @with_session
+    @user_has('remove-game')
+    def remove_game(self):
+        """
+        Adds a new game based on the request parameters. Required fields: short
+        """
+        short = request.form['short']
+
+        # Check if the gameshort is valid
+        if not Game.query.filter(Game.short == short).first():
+            return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+
+        # Get the game and remove it
+        game = Game.query.filter(Game.short == short).first()
+        self.db.remove(game)
+        return {'error': False}
+
+    remove_game.api_path = '/api/games/remove'
+    remove_game.methods = ['POST']
