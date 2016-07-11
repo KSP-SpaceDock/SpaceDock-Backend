@@ -56,7 +56,7 @@ class API:
         self.register_api_endpoint(account_endpoints)
         game_endpoints = GameEndpoints(self.cfg, self.db)
         self.register_api_endpoint(game_endpoints)
-        publisher_endpoints = PublisherEndpoints()
+        publisher_endpoints = PublisherEndpoints(self.db)
         self.register_api_endpoint(publisher_endpoints)
         user_endpoints = UserEndpoints(self.cfg, self.db)
         self.register_api_endpoint(user_endpoints)
