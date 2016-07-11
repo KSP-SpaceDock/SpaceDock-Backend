@@ -69,6 +69,7 @@ class BlogPost(Base):
 
 class User(Base):
     __tablename__ = 'user'
+    __lock__ = ['id', 'username', 'password', 'confirmation', 'passwordReset', 'passwordResetExpiry', 'type', 'params']
     id = Column(Integer, primary_key = True)
     username = Column(String(128), nullable = False, index = True)
     email = Column(String(256), nullable = False, index = True)

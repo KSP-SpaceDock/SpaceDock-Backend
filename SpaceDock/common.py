@@ -73,12 +73,15 @@ def adminrequired(f):
     return wrapper
 
 def edit_object(object, patch):
+
     for field in patch:
         if field in dir(object):
-            if isinstance(getattr(object, field), (int, bool, str, float, NoneType)):
-                setattr(object, field, patch[field])
-            else:
-                setattr(object, field, edit_object(getattr(object, field), patch[field]))
+            if '__lock__' in dir(object):
+                if field in getattr(object, '__lock__') or field == '__lock__': # We might want a function to report theese guys
+                    continue
+            if not isinstance(getattr(object, field), Column):
+                continue
+            setattr(object, field, patch[field])
     return object
 
 def user_has(ability, **params):
@@ -106,6 +109,7 @@ def user_has(ability, **params):
         return inner
     return wrapper
 
+# This is not supported atm
 def user_is(*role):
     def wrapper(func):
         @wraps(func)
