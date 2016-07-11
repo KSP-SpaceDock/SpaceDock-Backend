@@ -42,7 +42,7 @@ def with_session(f):
         except:
             db.rollback()
             db.close()
-            raise
+            return {'error': True, 'reasons': ['An issue with the database occured. Please try it again later and contact the webmaster']}, 400 # I want to avoid the werkzeug thing.
     return wrapper
 
 def json(f):
