@@ -1,8 +1,10 @@
+from flask import request
 from flask_login import current_user
 from sqlalchemy import desc
 from SpaceDock.objects import *
 from SpaceDock.common import *
 from SpaceDock.formatting import user_info, admin_user_info
+import json
 
 class UserEndpoints:
     def __init__(self, cfg, db):
@@ -43,13 +45,13 @@ class UserEndpoints:
     @with_session
     def edit_user(self, userid):
         """
-        Edits a user, based on the request parameters.
+        Edits a user, based on the request parameters. Required fields: data
         """
         if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
             return {'error': True, 'reasons': ['The userid is invalid.']}, 400
 
         # Get variables
-        parameters = request.form.to_dict()
+        parameters = json.loads(request.form['data'])
 
         # Get the matching user and edit it
         user = User.query.filter(User.id == int(userid)).first()
@@ -57,3 +59,4 @@ class UserEndpoints:
         return {'error': False}
 
     edit_user.api_path = '/api/users/<userid>/edit'
+    edit_user.methods = ['POST']
