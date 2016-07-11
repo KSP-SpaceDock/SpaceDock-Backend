@@ -75,7 +75,11 @@ def adminrequired(f):
 def edit_object(object, patch):
     for field in patch:
         if field in dir(object):
-            setattr(object, field, patch[field])
+            if isinstance(getattr(object, field), (int, bool, str, float, NoneType)):
+                setattr(object, field, patch[field])
+            else:
+                setattr(object, field, edit_object(getattr(object, field), patch[field]))
+    return object
 
 def user_has(ability, **params):
     def wrapper(func):
