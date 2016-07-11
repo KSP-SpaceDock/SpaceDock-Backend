@@ -7,7 +7,7 @@ import os, sys
 sys.path.append(os.getcwd())
 
 from SpaceDock.config import Config
-from SpaceDock.database import Database 
+from SpaceDock.database import * 
 spacedock_cfg = Config()
 spacedock_database = Database(spacedock_cfg)
 from SpaceDock.objects import *
@@ -24,7 +24,7 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = SpaceDock.database.Base.metadata
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
