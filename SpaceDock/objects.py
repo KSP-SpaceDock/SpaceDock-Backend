@@ -112,13 +112,6 @@ class User(Base):
     # Permissions
     _roles = relationship('Role', secondary=user_role_table, backref='users')
     roles = association_proxy('_roles', 'name', creator=role_find_or_create)
-    type = Column(String(50))
-    params = Column(String(512))
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'usermixin',
-        'polymorphic_on': type
-    }
 
     def set_password(self, password):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -167,6 +160,33 @@ class User(Base):
         self.roles.extend([role for role in roles if role not in self.roles])
     def remove_roles(self, *roles):
         self.roles = [role for role in self.roles if role not in roles]
+
+
+class Role(Base):
+    __tablename__ = 'role'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(120), unique=True)
+    abilities = relationship('Ability', secondary=role_ability_table, backref='roles')
+    params = Column(String(512))
+
+    def __init__(self, name):
+        self.name = name.lower()
+
+    def add_abilities(self, *abilities):
+        for ability in abilities:
+            existing_ability = Ability.query.filter(Ability.name == ability).first()
+            if not existing_ability:
+                existing_ability = Ability(ability)
+                db.add(existing_ability)
+                db.commit()
+            self.abilities.append(existing_ability)
+
+    def remove_abilities(self, *abilities):
+        for ability in abilities:
+            existing_ability = Ability.query.filter(Ability.name == ability).first()
+            if existing_ability and existing_ability in self.abilities:
+                self.abilities.remove(existing_ability)
+
     def get_param(self, ability, param):
         p = json.loads(self.params)
         if ability in p.keys():
@@ -189,31 +209,6 @@ class User(Base):
                 if value in p[ability][param]:
                     p[ability][param].remove(value)
         self.params = json.dumps(p)
-
-
-class Role(Base):
-    __tablename__ = 'role'
-    id = Column(Integer(), primary_key=True)
-    name = Column(String(120), unique=True)
-    abilities = relationship('Ability', secondary=role_ability_table, backref='roles')
-
-    def __init__(self, name):
-        self.name = name.lower()
-
-    def add_abilities(self, *abilities):
-        for ability in abilities:
-            existing_ability = Ability.query.filter(Ability.name == ability).first()
-            if not existing_ability:
-                existing_ability = Ability(ability)
-                db.add(existing_ability)
-                db.commit()
-            self.abilities.append(existing_ability)
-
-    def remove_abilities(self, *abilities):
-        for ability in abilities:
-            existing_ability = Ability.query.filter(Ability.name == ability).first()
-            if existing_ability and existing_ability in self.abilities:
-                self.abilities.remove(existing_ability)
 
     def __repr__(self):
         return '<Role {}>'.format(self.name)

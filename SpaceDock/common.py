@@ -5,17 +5,25 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from SpaceDock.database import db, Base
 from SpaceDock.objects import Role, Ability
+from sqlalchemy import Column
 
 import urllib
 import requests
 import xml.etree.ElementTree as ET
 import re
+import json as jayson # Yes I could rename the function. But that would be tooo easy ;P
 
 def game_id(short):
     return Game.query.filter(Game.short == short).first().id
 
 def boolean(s):
     return s.lower() in ['true', 'yes', '1', 'y', 't']
+
+def get_param(ability, param, p):
+    if ability in p.keys():
+        if param in p[ability].keys():
+            return p[ability][param]
+    return None
 
 def re_in(itr, value):
     if itr == None:
@@ -90,15 +98,17 @@ def user_has(ability, **params):
         def inner(*args, **kwargs):
             desired_ability = Ability.query.filter(Ability.name == ability).first()
             user_abilities = []
+            user_params = {}
             if not current_user:
                 return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 400
             for role in current_user._roles:
                 user_abilities += role.abilities
+                user_params += jayson.loads(role.params)
             has = True
             if desired_ability in user_abilities:
                 if 'params' in params:
                     for p in params['params']:
-                        if not re_in(current_user.get_param(ability, p), kwargs[p]):
+                        if not re_in(get_param(ability, p, user_params), kwargs[p]):
                             has = False
                 if has:
                     return func(*args, **kwargs)

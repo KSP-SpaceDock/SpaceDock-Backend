@@ -1,6 +1,10 @@
 from flask import url_for
 from SpaceDock.objects import *
 
+def bulk(array, formatter):
+    for f in array:
+        yield formatter(f)
+
 def game_info(game):
     return {
         'id': game.id,
@@ -173,5 +177,17 @@ def user_info(user):
     #Password reset skipped
     'bgOffsetX': user.bgOffsetX,
     'bgOffsetY': user.bgOffsetY,
-    'dark_theme': user.dark_theme
+    'dark_theme': user.dark_theme,
+    'roles': roles_format(user._roles),
+    'params': json.loads(user.params) if not (user.params == None or user.params == '') else None
+    }
+
+def roles_format(roles):
+    for role in roles:
+        yield role.name
+
+def ability_format(ability):
+    return {
+        'id': ability.id,
+        'name': ability.name
     }

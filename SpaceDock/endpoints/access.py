@@ -1,15 +1,29 @@
 from flask import request
 from flask_login import current_user, login_user, logout_user
+from sqlalchemy import desc
 from datetime import datetime, timedelta
 from SpaceDock.objects import *
 from SpaceDock.common import *
-from SpaceDock.formatting import user_info
+from SpaceDock.formatting import *
+import json
 
 
 class AccessEndpoints:
     def __init__(self, cfg, db):
         self.cfg = cfg
         self.db = db.get_database()
+
+    @user_has('view-access')
+    def roles(self):
+        """
+        Displays  list of all roles with the matching abilities
+        """
+        roles = list()
+        for role in Role.query.order_by(desc(Role.id)).all():
+            roles.append({'id': role.id, 'name': role.name, 'abilities': bulk(role.abilities, ability_format), 'params': json.loads(role.params)})
+        return {'error': False, 'count': len(roles), 'data': roles}
+
+    roles.api_path = '/api/access'
 
     @user_has('edit-access')
     @with_session
@@ -91,7 +105,7 @@ class AccessEndpoints:
 
     @user_has('edit-access')
     @with_session
-    def add_params(self, userid):
+    def add_params(self, rolename):
         """
         Adds a parameter for an ability. Required parameters: abname, param, value
         """
@@ -99,40 +113,40 @@ class AccessEndpoints:
         param = request.form['param']
         value = request.form['value']
         errors = []
-        if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
-            errors.append('The userid is invalid.')
+        if not Role.query.filter(Role.name == rolename).first():
+            errors.append('The rolename is invalid.')
         if not Ability.query.filter(Ability.name == abname).first():
             errors.append('The ability does not exist.')
         if len(errors) > 0:
             return {'error': True, 'reasons': errors}, 400
-        user = User.query.filter(User.id == int(userid)).first()
-        user.add_param(abname, param, value)
+        role = Role.query.filter(Role.name == rolename).first()
+        role.add_param(abname, param, value)
         return {'error': False}
 
-    add_params.api_path = '/api/access/params/add/<userid>'
+    add_params.api_path = '/api/access/params/add/<rolename>'
     add_params.methods = ['POST']
 
     @user_has('edit-access')
     @with_session
-    def remove_params(self, userid):
+    def remove_params(self, rolename):
         """
-        Removes a parameter from an ability Required parameters: abname, param, value
+        Removes a parameter from an ability. Required parameters: abname, param, value
         """
         abname = request.form['abname']
         param = request.form['param']
         value = request.form['value']
         errors = []
-        if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
-            errors.append('The userid is invalid.')
+        if not Role.query.filter(Role.name == rolename).first():
+            errors.append('The rolename is invalid.')
         if not Ability.query.filter(Ability.name == abname).first():
             errors.append('The ability does not exist.')
         if len(errors) > 0:
             return {'error': True, 'reasons': errors}, 400
-        user = User.query.filter(User.id == int(userid)).first()
-        if not value in user.get_param(abname, param):
+        role = Role.query.filter(Role.name == rolename).first()
+        if not value in get_param(abname, param, json.loads(role.params)):
             return {'error': True, 'reasons': ['The parameter doesn\'t exist']}, 400
-        user.remove_param(abname, param, value)
+        role.remove_param(abname, param, value)
         return {'error': False}
 
-    remove_params.api_path = '/api/access/params/remove/<userid>'
+    remove_params.api_path = '/api/access/params/remove/<rolename>'
     remove_params.methods = ['POST']
