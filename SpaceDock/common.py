@@ -50,7 +50,7 @@ def with_session(f):
         except:
             db.rollback()
             db.close()
-            return {'error': True, 'reasons': ['An issue with the database occured. Please try it again later and contact the webmaster']}, 400 # I want to avoid the werkzeug thing.
+            raise
     return wrapper
 
 def json(f):
@@ -81,15 +81,15 @@ def adminrequired(f):
     return wrapper
 
 def edit_object(object, patch):
-
     for field in patch:
         if field in dir(object):
             if '__lock__' in dir(object):
                 if field in getattr(object, '__lock__') or field == '__lock__': # We might want a function to report theese guys
                     continue
-            if not isinstance(getattr(object, field), Column):
-                continue
-            setattr(object, field, patch[field])
+            if isinstance(getattr(object, field), (int, bool, str, float)):
+                setattr(object, field, patch[field])
+            else:
+                setattr(object, field, edit_object(getattr(object, field), patch[field]))
     return object
 
 def user_has(ability, **params):

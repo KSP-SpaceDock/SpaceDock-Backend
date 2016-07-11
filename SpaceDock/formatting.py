@@ -178,8 +178,7 @@ def user_info(user):
     'bgOffsetX': user.bgOffsetX,
     'bgOffsetY': user.bgOffsetY,
     'dark_theme': user.dark_theme,
-    'roles': roles_format(user._roles),
-    'params': json.loads(user.params) if not (user.params == None or user.params == '') else None
+    'roles': roles_format(user._roles)
     }
 
 def roles_format(roles):
