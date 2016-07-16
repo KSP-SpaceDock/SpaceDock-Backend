@@ -120,8 +120,8 @@ class AccountEndpoints:
         Login the user to use additional features
         Required fields: username, password
         """
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
         if not username or not password:
             return {'error': True, 'reasons': ['Missing username or password']}, 400
         if current_user:

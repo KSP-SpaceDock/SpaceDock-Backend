@@ -30,8 +30,8 @@ class AccessEndpoints:
         """
         Promotes a user for the given role. Required parameters: userid, rolename
         """
-        userid = request.form['userid']
-        rolename = request.form['rolename']
+        userid = request.form.get('userid')
+        rolename = request.form.get('rolename')
         if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
             return {'error': True, 'reasons': ['The userid is invalid.']}, 400
         user = User.query.filter(User.id == int(userid)).first()
@@ -47,8 +47,8 @@ class AccessEndpoints:
         """
         Removes a user from a group. Required parameters: userid, rolename
         """
-        userid = request.form['userid']
-        rolename = request.form['rolename']
+        userid = request.form.get('userid')
+        rolename = request.form.get('rolename')
         if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
             return {'error': True, 'reasons': ['The userid is invalid.']}, 400
         user = User.query.filter(User.id == int(userid)).first()
@@ -66,8 +66,8 @@ class AccessEndpoints:
         """
         Adds a permission to a group. Required parameters: rolename, abname
         """
-        rolename = request.form['rolename']
-        abname = request.form['abname']
+        rolename = request.form.get('rolename')
+        abname = request.form.get('abname')
         if not Role.query.filter(Role.name == rolename).first():
             return {'error': True, 'reasons': ['The role does not exist. Please add it to a user to create it internally.']}, 400
         r = Role.query.filter(Role.name == rolename).first()
@@ -83,8 +83,8 @@ class AccessEndpoints:
         """
         Removes a permission from a group. Required parameters: rolename, abname
         """
-        rolename = request.form['rolename']
-        abname = request.form['abname']
+        rolename = request.form.get('rolename')
+        abname = request.form.get('abname')
         errors = []
         if not Role.query.filter(Role.name == rolename).first():
             errors.append('The role does not exist.')
@@ -108,9 +108,9 @@ class AccessEndpoints:
         """
         Adds a parameter for an ability. Required parameters: abname, param, value
         """
-        abname = request.form['abname']
-        param = request.form['param']
-        value = request.form['value']
+        abname = request.form.get('abname')
+        param = request.form.get('param')
+        value = request.form.get('value')
         errors = []
         if not Role.query.filter(Role.name == rolename).first():
             errors.append('The rolename is invalid.')
@@ -131,9 +131,9 @@ class AccessEndpoints:
         """
         Removes a parameter from an ability. Required parameters: abname, param, value
         """
-        abname = request.form['abname']
-        param = request.form['param']
-        value = request.form['value']
+        abname = request.form.get('abname')
+        param = request.form.get('param')
+        value = request.form.get('value')
         errors = []
         if not Role.query.filter(Role.name == rolename).first():
             errors.append('The rolename is invalid.')

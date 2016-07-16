@@ -115,11 +115,16 @@ class GameEndpoints:
         """
         Edits a game, based on the request parameters. Required fields: data
         """
+        errors = list()
         if not Game.query.filter(Game.short == gameshort).first():
-            return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+            errors.append('The gameshort is invalid.')
+        if not request.form.get('data') or not is_json(request.form.get('data')):
+            errors.append('The patch data is invalid.')
+        if any(errors):
+            return {'error': True, 'reasons': errors}, 400
 
         # Get variables
-        parameters = json.loads(request.form['data'])
+        parameters = json.loads(request.form.get('data'))
 
         # Get the matching game and edit it
         game = Game.query.filter(Game.short == gameshort).first()
@@ -135,15 +140,19 @@ class GameEndpoints:
         """
         Adds a new game based on the request parameters. Required fields: name, pubid, short
         """
-        name = request.form['name']
-        pubid = request.form['pubid']
-        short = request.form['short']
+        name = request.form.get('name')
+        pubid = request.form.get('pubid')
+        short = request.form.get('short')
 
         errors = list()
 
         # Check if the publisher ID is valid
-        if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+        if not pubid or not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
             errors.append('The pubid is invalid.')
+        if not name:
+            errors.append('The name is invalid.')
+        if not short:
+            errors.append('The gameshort is invalid.')
 
         # Check if the game already exists
         if Game.query.filter(Game.short == short).first():
