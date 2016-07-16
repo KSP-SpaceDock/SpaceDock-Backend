@@ -6,8 +6,6 @@ bcrypt
 flask_json
 flask_login
 flask_oauthlib
-PyGithub
-Markdown
 pystache
 redis
 SQLAlchemy
