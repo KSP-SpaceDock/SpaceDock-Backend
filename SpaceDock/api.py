@@ -3,10 +3,11 @@ from functools import wraps
 from SpaceDock.common import json_output
 from SpaceDock.endpoints.access import AccessEndpoints
 from SpaceDock.endpoints.accounts import AccountEndpoints
+from SpaceDock.endpoints.admin import AdminEndpoints
 from SpaceDock.endpoints.api import ApiEndpoints
 from SpaceDock.endpoints.anonymous import AnonymousEndpoints
-from SpaceDock.endpoints.admin import AdminEndpoints
 from SpaceDock.endpoints.game import GameEndpoints
+from SpaceDock.endpoints.mods import ModEndpoints
 from SpaceDock.endpoints.publisher import PublisherEndpoints
 from SpaceDock.endpoints.user import UserEndpoints
 
@@ -21,7 +22,7 @@ class API:
         self.search = search
         self.register_endpoints()
 
-    #Decorate all API endpoints
+    # Decorate all API endpoints
     def decorate_function(self, member):
         if self.cfg.getb('profiler-histogram') or self.cfg.geti('profiler') != 0:
             member = self.profiler.profile_method(member)
@@ -44,19 +45,12 @@ class API:
     def register_endpoints(self):
         if self.cfg.getb('profiler-histogram'):
             self.register_api_endpoint(self.profiler)
-        access_endpoints = AccessEndpoints(self.cfg, self.db)
-        self.register_api_endpoint(access_endpoints)
-        admin_endpoints = AdminEndpoints(self.db, self.email)
-        self.register_api_endpoint(admin_endpoints)
-        anonymous_endpoints = AnonymousEndpoints(self.cfg, self.db, self.search)
-        self.register_api_endpoint(anonymous_endpoints)
-        api_endpoints = ApiEndpoints(self.cfg, self.db, self.email, self.search)
-        self.register_api_endpoint(api_endpoints)
-        account_endpoints = AccountEndpoints(self.cfg, self.db, self.email)
-        self.register_api_endpoint(account_endpoints)
-        game_endpoints = GameEndpoints(self.cfg, self.db)
-        self.register_api_endpoint(game_endpoints)
-        publisher_endpoints = PublisherEndpoints(self.db)
-        self.register_api_endpoint(publisher_endpoints)
-        user_endpoints = UserEndpoints(self.cfg, self.db)
-        self.register_api_endpoint(user_endpoints)
+        self.register_api_endpoint(AccessEndpoints(self.cfg, self.db))
+        self.register_api_endpoint(AccountEndpoints(self.cfg, self.db, self.email))
+        self.register_api_endpoint(AdminEndpoints(self.db, self.email))
+        # self.register_api_endpoint(AnonymousEndpoints(self.cfg, self.db, self.search))
+        # self.register_api_endpoint(ApiEndpoints(self.cfg, self.db, self.email, self.search))
+        self.register_api_endpoint(GameEndpoints(self.cfg, self.db))
+        self.register_api_endpoint(ModEndpoints(self.cfg, self.db))
+        self.register_api_endpoint(PublisherEndpoints(self.db))
+        self.register_api_endpoint(UserEndpoints(self.cfg, self.db))

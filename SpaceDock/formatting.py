@@ -77,7 +77,7 @@ def mod_info(mod):
         'bgOffsetY': mod.bgOffsetY,
         #'medias': mod.medias,
         'default_version_id': mod.default_version_id,
-        'versions': [mod_version_info(version) for version in mod.versions],
+        #'versions': [mod_version_info(version) for version in mod.versions],
         #'downloads': mod.downloads,
         #'follow_events': mod.follow_events,
         #'referrals': mod.referrals,
