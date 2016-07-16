@@ -84,6 +84,11 @@ class ModEndpoints:
 
         # Add new mod
         mod = Mod(name, current_user.id, game_id(short), license)
+        self.db.add(mod)
+        role = Role.query.filter(Role.name == current_user.username).first()
+        role.add_abilities('mods-edit', 'mods-remove')
+        role.add_param('mods-edit', 'modid', str(mod.id))
+        role.add_param('mods-remove', 'name', name)
         return {'error': False}
 
     add_mod.api_path = '/api/mods/add'
@@ -113,6 +118,11 @@ class ModEndpoints:
         # Add new mod
         mod = Mod.query.filter(Mod.name == name).filter(Mod.game_id == game_id(short)).first()
         self.db.remove(mod)
+        role = Role.query.filter(Role.name == current_user.username).first()
+        if not any(current_user.mods):
+            role.remove_abilities('mods-edit', 'mods-remove')
+        role.remove_param('mods-edit', 'modid', str(mod.id))
+        role.remove_param('mods-remove', 'name', name)
         return {'error': False}
 
     remove_mod.api_path = '/api/mods/remove'

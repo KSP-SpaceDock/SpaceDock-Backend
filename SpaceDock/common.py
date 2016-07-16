@@ -112,12 +112,12 @@ def user_has(ability, **params):
             for role in current_user._roles:
                 user_abilities += role.abilities
                 user_params += json.loads(role.params)
-            has = True
+            has = False
             if desired_ability in user_abilities:
                 if 'params' in params:
                     for p in params['params']:
-                        if not re_in(get_param(ability, p, user_params), kwargs[p]) and not re_in(get_param(ability, p, user_params), request.form.get(p)):
-                            has = False
+                        if re_in(get_param(ability, p, user_params), kwargs[p]) or re_in(get_param(ability, p, user_params), request.form.get(p)):
+                            has = True
                 if has:
                     return func(*args, **kwargs)
                 else:
