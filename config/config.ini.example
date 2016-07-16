@@ -1,0 +1,61 @@
+[meta]
+# enviornment=prod for deployed instances
+environment=dev
+
+[dev]
+
+# Change this to the actual location of your site
+protocol=http
+domain=localhost:5000
+# Change this value to something random and secret
+secret-key=hello world
+
+# Enable offloading of downloads to the reverse proxy server. Make sure the reverse proxy is set up!
+# valid values are:
+# false - disable offloading
+# nginx - enable X-Accel headers
+# apache - enable X-Sendfile headers
+use-x-accel=false
+
+# Set this to False to disable registration
+registration=True
+
+# On the debug server, this lets you choose what to bind to
+debug-host=0.0.0.0
+debug-port=5000
+
+# To send emails, fill out these details
+smtp-host=
+smtp-port=
+smtp-user=
+smtp-password=
+smtp-tls=false
+# Exceptions are emailed here
+error-to=
+error-from=
+
+# SQL connection string
+connection-string=postgresql://postgres:somewhatsecretpassword@db/spacedock
+
+# Redis connection string
+# http://docs.celeryproject.org/en/3.0/getting-started/brokers/redis.html
+redis-connection=redis://redis:6379/0
+
+# Absolute path to the directory you want to store mods in
+storage=/opt/spacedock/storage
+
+# Redirect downloads to a CDN.
+
+# Thumbnail size in WxH format, leave blank to disable screenshots
+thumbnail_size=320x320
+
+# API Profiler
+# -1: Print all API times
+# 0: Profiler disabled
+# (positive number): Print API times longer than (number) milliseconds
+profiler=0
+
+# API Histogram Profiler
+# False: Disable histogram profiler and endpoint
+# True: Enable histogram profiler and endpoint
+profiler-histogram=false
