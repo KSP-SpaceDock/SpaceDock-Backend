@@ -52,6 +52,9 @@ class AdminEndpoints:
             return {'error': True, 'reasons': ['The userid is invalid']}, 400
         user = User.query.filter(User.id == int(userid)).first()
         user.confirmation = None
+        role.add_abilities('user-edit', 'mods-add')
+        role.add_param('user-edit', 'userid', user.id)
+        role.add_param('mods-add', 'gameshort', '*.')
         return {'error': False}
 
     manual_confirm.api_path = "/admin/manual-confirmation/<userid>"

@@ -135,7 +135,7 @@ class GameEndpoints:
     edit_game.methods = ['POST']
 
     @with_session
-    @user_has('game-add')
+    @user_has('game-add', params=['pubid'])
     def add_game(self):
         """
         Adds a new game based on the request parameters. Required fields: name, pubid, short
@@ -173,7 +173,7 @@ class GameEndpoints:
     add_game.methods = ['POST']
 
     @with_session
-    @user_has('game-remove')
+    @user_has('game-remove', params=['short'])
     def remove_game(self):
         """
         Removes a game from existence. Required fields: short

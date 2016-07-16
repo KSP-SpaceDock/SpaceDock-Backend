@@ -59,7 +59,6 @@ class AccountEndpoints:
         user = User(username, email, password)
         user.confirmation = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
         self.db.add(user)
-        user.add_param('edit-user', 'userid', user.id)
         self.db.commit() # We do this manually so that we're sure everything's hunky dory before the email leaves
         if followMod:
             self.email.send_confirmation(user, followMod)
@@ -106,6 +105,10 @@ class AccountEndpoints:
         user.confirmation = None
         login_user(user)
         user.add_roles('user')
+        role = Role.query.filter(Role.name == 'user').first()
+        role.add_abilities('user-edit', 'mods-add')
+        role.add_param('user-edit', 'userid', user.id)
+        role.add_param('mods-add', 'gameshort', '*.')
         f = request.args.get('f')
         if f:
             mod = Mod.query.filter(Mod.id == int(f)).first()
