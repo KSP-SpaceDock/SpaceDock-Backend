@@ -69,13 +69,13 @@ class BlogPost(Base):
 
 class User(Base):
     __tablename__ = 'user'
-    __lock__ = ['id', 'username', 'password', 'confirmation', 'passwordReset', 'passwordResetExpiry', 'type', 'params']
+    __lock__ = ['id', 'username', 'password', 'created', 'confirmation', 'passwordReset', 'passwordResetExpiry']
     id = Column(Integer, primary_key = True)
     username = Column(String(128), nullable = False, index = True)
     email = Column(String(256), nullable = False, index = True)
     showEmail = Column(Boolean())
     public = Column(Boolean())
-    admin = Column(Boolean())
+    admin = Column(Boolean()) # TODO(Thomas): Remove
     password = Column(String(128))
     description = Column(Unicode(10000))
     created = Column(DateTime)
@@ -134,7 +134,6 @@ class User(Base):
         self.bgOffsetX = 0
         self.bgOffsetY = 0
         self.dark_theme = False
-        self.params = '{}'
         if roles and isinstance(roles, basestring):
             roles = [roles]
         if roles and is_sequence(roles):
@@ -171,6 +170,7 @@ class Role(Base):
 
     def __init__(self, name):
         self.name = name.lower()
+        self.params = '{}'
 
     def add_abilities(self, *abilities):
         for ability in abilities:
@@ -301,6 +301,7 @@ class Review(Base):
 
 class Publisher(Base):
     __tablename__ = 'publisher'
+    __lock__ = ['id', 'created', 'updated']
     id = Column(Integer, primary_key = True)
     name = Column(Unicode(1024))
     short_description = Column(Unicode(1000))
@@ -323,6 +324,7 @@ class Publisher(Base):
 
 class Game(Base):
     __tablename__ = 'game'
+    __lock__ = ['id', 'rating', 'short', 'created', 'updated']
     id = Column(Integer, primary_key = True)
     name = Column(Unicode(1024))
     active = Column(Boolean())
@@ -425,29 +427,6 @@ class Mod(Base):
         if len(versions) == 0:
             return None
         return versions[0]
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            'game_id': self.game_id,
-            'name': self.name,
-            'description': self.description,
-            'short_Description': self.short_description,
-            'published': self.published,
-            'license': self.license,
-            'votes': self.votes,
-            'created': self.created,
-            'updated': self.updated,
-            'background': self.background,
-            #'thumbnail': self.background_thumb(),
-            'default_version_id': self.default_version_id,
-            'default_version': self.default_version().serialize(),
-            'download_count': self.download_count,
-            'follower_count': self.follower_count,
-            'score': self.total_score,
-            'rating_count': self.rating_count,
-            'ckan': self.ckan
-        }
 
     def __init__(self):
         self.created = datetime.now()

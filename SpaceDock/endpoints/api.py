@@ -18,19 +18,19 @@ import json
 import urllib.parse
 
 class ApiEndpoints:
-    
+
     def __init__(self, cfg, db, email, search):
         self.cfg = cfg
-        self.db = db
-        self.search = search        
+        self.db = db.get_database()
+        self.search = search
         self.default_description = """This is your mod listing! You can edit it as much as you like before you make it public.
 
         To edit **this** text, you can click on the "**Edit this Mod**" button up there.
 
         By the way, you have a lot of flexibility here. You can embed YouTube videos or screenshots. Be creative.
-        
+
         You can check out the SpaceDock [markdown documentation](/markdown) for tips.
-        
+
         Thanks for hosting your mod on SpaceDock!"""
 
     @as_json
@@ -79,7 +79,7 @@ class ApiEndpoints:
             a = mod_info(m)
             results.append(a)
         return results
-    
+
     typeahead_mod.api_path = "/api/typeahead/mod"
 
 
@@ -94,7 +94,7 @@ class ApiEndpoints:
             a = mod_info(m)
             results.append(a)
         return results
-    
+
     search_mod.api_path = "/api/search/mod"
 
 
@@ -113,7 +113,7 @@ class ApiEndpoints:
                 a['mods'].append(mod_info(m))
             results.append(a)
         return results
-    
+
     search_user.api_path = "/api/search/user"
 
 
@@ -128,7 +128,7 @@ class ApiEndpoints:
         #TODO: Fixme
         #info["description_html"] = str(current_app.jinja_env.filters['markdown'](mod.description))
         return info
-    
+
     mod.api_path = "/api/mod/<int:modid>"
 
 
@@ -150,7 +150,7 @@ class ApiEndpoints:
             return { 'error': True, 'reason': 'Version not found.' }, 404
         info = version_info(mod, v)
         return info
-    
+
     mod_version.api_path = "/api/mod/<int:modid>/<version>"
 
 
@@ -168,7 +168,7 @@ class ApiEndpoints:
         for m in mods:
             info['mods'].append(mod_info(m))
         return info
-    
+
     user.api_path = "/api/user/<username>"
 
 
@@ -207,7 +207,7 @@ class ApiEndpoints:
         f.save(path)
         mod.background = os.path.join(base_path, filename)
         return { 'path': '/content/' + mod.background }
-    
+
     update_mod_background.methods = ['POST']
     update_mod_background.api_path = "/api/mod/<mod_id>/update-bg"
 
@@ -237,7 +237,7 @@ class ApiEndpoints:
         f.save(path)
         user.backgroundMedia = os.path.join(base_path, filename)
         return { '/content/' + user.backgroundMedia }
-    
+
     update_user_background.methods = ['POST']
     update_user_background.api_path = "/api/user/<username>/update-bg"
 
@@ -274,7 +274,7 @@ class ApiEndpoints:
         db.commit()
         self.email.send_grant_notice(mod, new_user)
         return { 'error': False }, 200
-    
+
     grant_mod.methods = ['POST']
     grant_mod.api_path = "/api/mod/<mod_id>/grant"
 
@@ -295,7 +295,7 @@ class ApiEndpoints:
             return { 'error': True, 'reason': 'You do not have a pending authorship invite.' }, 200
         author.accepted = True
         return { 'error': False }, 200
-    
+
     accept_grant_mod.methods = ['POST']
     accept_grant_mod.api_path = "/api/mod/<mod_id>/accept_grant"
 
@@ -316,7 +316,7 @@ class ApiEndpoints:
         mod.shared_authors = [a for a in mod.shared_authors if a.user != current_user]
         db.delete(author)
         return { 'error': False }, 200
-    
+
     reject_grant_mod.methods = ['POST']
     reject_grant_mod.api_path = "/api/mod/<mod_id>/reject_grant"
 
@@ -349,7 +349,7 @@ class ApiEndpoints:
         mod.shared_authors = [a for a in mod.shared_authors if a.user != current_user]
         db.delete(author)
         return { 'error': False }, 200
-    
+
     revoke_mod.methods = ['POST']
     revoke_mod.api_path = "/api/mod/<mod_id>/revoke"
 
@@ -374,7 +374,7 @@ class ApiEndpoints:
             return { 'error': True, 'reason': 'This mod does not have the specified version.' }, 404
         mod.default_version_id = vid
         return { 'error': False }, 200
-    
+
     set_default_version.methods = ['POST']
     set_default_version.api_path = "/api/mod/<int:mid>/set-default/<int:vid>"
 
@@ -401,7 +401,7 @@ class ApiEndpoints:
         db.add(mod_list)
         db.commit()
         return { 'url': url_for("lists.view_list", list_id=mod_list.id, list_name=mod_list.name) }
-    
+
     create_list.methods = ['POST']
     create_list.api_path = "/api/pack/create"
 
@@ -481,7 +481,7 @@ class ApiEndpoints:
         session['game'] = ga.id;
         notify_ckan.delay(mod.id, 'create')
         return { 'url': url_for("mods.mod", id=mod.id, mod_name=mod.name), "id": mod.id, "name": mod.name }
-    
+
     create_mod.methods = ['POST']
     create_mod.api_path = "/api/mod/create"
 
@@ -534,7 +534,7 @@ class ApiEndpoints:
             if v.friendly_version == secure_filename(version):
                 return { 'error': True, 'reason': 'We already have this version. Did you mistype the version number?' }, 400
         if os.path.isfile(path):
-            os.remove(path)        
+            os.remove(path)
         zipball.save(path)
         if not zipfile.is_zipfile(path):
             os.remove(path)
@@ -556,6 +556,6 @@ class ApiEndpoints:
         db.commit()
         notify_ckan.delay(mod_id, 'update')
         return { 'url': url_for("mods.mod", id=mod.id, mod_name=mod.name), "id": version.id  }
-    
+
     update_mod.methods = ['POST']
     update_mod.api_path = "/api/mod/<mod_id>/update"

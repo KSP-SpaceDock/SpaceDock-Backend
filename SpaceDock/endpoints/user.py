@@ -9,7 +9,7 @@ import json
 class UserEndpoints:
     def __init__(self, cfg, db):
         self.cfg = cfg
-        self.db = db
+        self.db = db.get_database()
 
     def get_users(self):
         """

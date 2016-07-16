@@ -33,10 +33,9 @@ def re_in(itr, value):
             return True
     return False
 
-def dummy():
-    return None
-
 def has_ability(ability, **params): # HAX
+    def dummy():
+        return None
     f = user_has(ability, **params)(dummy)
     return f() == None
 
@@ -86,6 +85,8 @@ def edit_object(object, patch):
             if '__lock__' in dir(object):
                 if field in getattr(object, '__lock__') or field == '__lock__': # We might want a function to report theese guys
                     continue
+            if not type(getattr(object, field)) == Column:
+                continue
             if isinstance(getattr(object, field), (int, bool, str, float)):
                 setattr(object, field, patch[field])
             else:

@@ -4,10 +4,11 @@ from sqlalchemy import desc
 from SpaceDock.objects import *
 from SpaceDock.formatting import publisher_info
 from SpaceDock.common import with_session, user_has
+from datetime import datetime
 
 class PublisherEndpoints:
     def __init__(self, db):
-        self.db = db
+        self.db = db.get_database()
 
     def publishers_list(self):
         """
@@ -47,6 +48,7 @@ class PublisherEndpoints:
         # Get the matching game and edit it
         pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
         edit_object(pub, parameters)
+        pub.updated = datetime.now()
         return {'error': False}
 
     edit_publisher.api_path = '/api/publishers/<pubid>/edit'

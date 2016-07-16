@@ -6,7 +6,7 @@ from flask_login import current_user, login_user, logout_user
 
 class AdminEndpoints:
     def __init__(self, db, email):
-        self.db = db
+        self.db = db.get_database()
         self.email = email
 
     @user_has('admin-impersonate', params=['userid']) # I feel like adding this as a param could be useful
