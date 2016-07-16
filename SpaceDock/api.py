@@ -1,6 +1,6 @@
 from flask import jsonify
 from functools import wraps
-from SpaceDock.common import json
+from SpaceDock.common import json_output
 from SpaceDock.endpoints.access import AccessEndpoints
 from SpaceDock.endpoints.accounts import AccountEndpoints
 from SpaceDock.endpoints.api import ApiEndpoints
@@ -25,7 +25,7 @@ class API:
     def decorate_function(self, member):
         if self.cfg.getb('profiler-histogram') or self.cfg.geti('profiler') != 0:
             member = self.profiler.profile_method(member)
-        member = json(member)
+        member = json_output(member)
         return member
 
     def register_api_endpoint(self, endpoints):

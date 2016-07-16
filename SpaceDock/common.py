@@ -11,7 +11,7 @@ import urllib
 import requests
 import xml.etree.ElementTree as ET
 import re
-import json as jayson # Yes I could rename the function. But that would be tooo easy ;P
+import json
 
 def game_id(short):
     return Game.query.filter(Game.short == short).first().id
@@ -53,7 +53,7 @@ def with_session(f):
             raise
     return wrapper
 
-def json(f):
+def json_output(f):
     @wraps(f)
     def wrapper(*fargs, **fkwargs):
         if request.args.get('callback'):
@@ -103,7 +103,7 @@ def user_has(ability, **params):
                 return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 400
             for role in current_user._roles:
                 user_abilities += role.abilities
-                user_params += jayson.loads(role.params)
+                user_params += json.loads(role.params)
             has = True
             if desired_ability in user_abilities:
                 if 'params' in params:

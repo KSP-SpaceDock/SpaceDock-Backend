@@ -22,8 +22,7 @@ from SpaceDock.objects import User
 
 search = Search(db)
 email = Email(cfg)
-login_manager = LoginManager()
-login_manager.init_app(app)
+login_manager = LoginManager(app)
 api = API(app, documentation, cfg, db, email, profiler, search)
 
 @app.before_first_request
