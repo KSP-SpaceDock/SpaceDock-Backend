@@ -110,7 +110,7 @@ class GameEndpoints:
     game_modlists.api_path = '/api/games/<gameshort>/modlists'
 
     @with_session
-    @user_has('edit-game', params=['gameshort'])
+    @user_has('game-edit', params=['gameshort'])
     def edit_game(self, gameshort):
         """
         Edits a game, based on the request parameters. Required fields: data
@@ -130,7 +130,7 @@ class GameEndpoints:
     edit_game.methods = ['POST']
 
     @with_session
-    @user_has('add-game')
+    @user_has('game-add')
     def add_game(self):
         """
         Adds a new game based on the request parameters. Required fields: name, pubid, short
@@ -164,7 +164,7 @@ class GameEndpoints:
     add_game.methods = ['POST']
 
     @with_session
-    @user_has('remove-game')
+    @user_has('game-remove')
     def remove_game(self):
         """
         Removes a game from existence. Required fields: short

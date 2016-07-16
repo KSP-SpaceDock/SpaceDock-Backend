@@ -41,7 +41,7 @@ class UserEndpoints:
 
     get_user_info.api_path = '/api/users/<userid>'
 
-    @user_has('edit-user', params=['userid'])
+    @user_has('user-edit', params=['userid'])
     @with_session
     def edit_user(self, userid):
         """

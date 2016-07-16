@@ -7,13 +7,12 @@ from SpaceDock.common import *
 from SpaceDock.formatting import *
 import json
 
-
 class AccessEndpoints:
     def __init__(self, cfg, db):
         self.cfg = cfg
         self.db = db.get_database()
 
-    @user_has('view-access')
+    @user_has('access-view')
     def roles(self):
         """
         Displays  list of all roles with the matching abilities
@@ -25,7 +24,7 @@ class AccessEndpoints:
 
     roles.api_path = '/api/access'
 
-    @user_has('edit-access')
+    @user_has('access-edit')
     @with_session
     def add_role(self):
         """
@@ -42,7 +41,7 @@ class AccessEndpoints:
     add_role.api_path = '/api/access/roles/assign'
     add_role.methods = ['POST']
 
-    @user_has('edit-access')
+    @user_has('access-edit')
     @with_session
     def remove_role(self):
         """
@@ -61,7 +60,7 @@ class AccessEndpoints:
     remove_role.api_path = '/api/access/roles/remove'
     remove_role.methods = ['POST']
 
-    @user_has('edit-access')
+    @user_has('access-edit')
     @with_session
     def add_abilities(self):
         """
@@ -78,7 +77,7 @@ class AccessEndpoints:
     add_abilities.api_path = '/api/access/abilities/assign'
     add_abilities.methods = ['POST']
 
-    @user_has('edit-access')
+    @user_has('access-edit')
     @with_session
     def remove_abilities(self):
         """
@@ -103,7 +102,7 @@ class AccessEndpoints:
     remove_abilities.api_path = '/api/access/abilities/remove'
     remove_abilities.methods = ['POST']
 
-    @user_has('edit-access')
+    @user_has('access-edit')
     @with_session
     def add_params(self, rolename):
         """
@@ -126,7 +125,7 @@ class AccessEndpoints:
     add_params.api_path = '/api/access/params/add/<rolename>'
     add_params.methods = ['POST']
 
-    @user_has('edit-access')
+    @user_has('access-edit')
     @with_session
     def remove_params(self, rolename):
         """

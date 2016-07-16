@@ -33,7 +33,7 @@ class PublisherEndpoints:
     publisher_info.api_path = '/api/publishers/<pubid>'
 
     @with_session
-    @user_has('edit-publisher', params=['pubid'])
+    @user_has('publisher-edit', params=['pubid'])
     def edit_publisher(self, publid):
         """
         Edits a publisher, based on the request parameters. Required fields: data
@@ -53,7 +53,7 @@ class PublisherEndpoints:
     edit_publisher.methods = ['POST']
 
     @with_session
-    @user_has('add-publisher')
+    @user_has('publisher-add')
     def add_publisher(self):
         """
         Adds a publisher, based on the request parameters. Required fields: name
@@ -74,7 +74,7 @@ class PublisherEndpoints:
     add_publisher.methods = ['POST']
 
     @with_session
-    @user_has('remove-publisher')
+    @user_has('publisher-remove')
     def remove_publisher(self):
         """
         Removes a game from existence. Required fields: pubid
