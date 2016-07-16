@@ -19,9 +19,7 @@ class AccountEndpoints:
     @with_session
     def register(self):
         """
-        Registers a new useraccount.
-        Required parameters: email, username, password, repeatPassword
-        Optional parameters: follow-mod
+        Registers a new useraccount. Required parameters: email, username, password, repeatPassword. Optional parameters: follow-mod
         """
         if not self.cfg.getb('registration'):
             return {'error': True, 'reasons': ['Registrations are disabled']}, 400
@@ -120,8 +118,7 @@ class AccountEndpoints:
 
     def login(self):
         """
-        Login the user to use additional features
-        Required fields: username, password
+        Login the user to use additional features. Required fields: username, password
         """
         username = request.form.get('username')
         password = request.form.get('password')
@@ -156,8 +153,7 @@ class AccountEndpoints:
     @with_session
     def forgot_password(self):
         """
-        Sends you a confirmation key for resetting your password in case you forgot it
-        Required fields: email
+        Sends you a confirmation key for resetting your password in case you forgot it. Required fields: email
         """
         email = request.form.get('email')
         if not email:
@@ -177,8 +173,7 @@ class AccountEndpoints:
     @with_session
     def reset_password(self, username, confirmation):
         """
-        Allows you to reset your password with the key you got through /api/reset
-        Required parameters: password, password2
+        Allows you to reset your password with the key you got through /api/reset. Required parameters: password, password2
         """
         user = User.query.filter(User.username == username).first()
         if not user:
@@ -200,5 +195,5 @@ class AccountEndpoints:
         self.db.commit()
         return {'error': False}
 
-    reset_password.api_path = "/reset/<username>/<confirmation>"
+    reset_password.api_path = "/api/reset/<username>/<confirmation>"
     reset_password.methods = ['POST']

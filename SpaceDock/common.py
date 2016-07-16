@@ -33,6 +33,13 @@ def re_in(itr, value):
             return True
     return False
 
+def is_json(test):
+    try:
+        s = json.loads(test)
+        return True
+    except ValueError as e:
+        return False
+
 def has_ability(ability, **params): # HAX
     def dummy():
         return None

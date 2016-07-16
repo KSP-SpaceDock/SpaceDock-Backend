@@ -428,7 +428,11 @@ class Mod(Base):
             return None
         return versions[0]
 
-    def __init__(self):
+    def __init__(self, name, user_id, game_id, license):
+        self.name = name
+        self.user_id = user_id
+        self.game_id = game_id
+        self.license = license
         self.created = datetime.now()
         self.updated = datetime.now()
         self.approved = False

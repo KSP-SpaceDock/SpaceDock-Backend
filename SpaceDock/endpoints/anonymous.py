@@ -9,28 +9,30 @@ import os.path
 import math
 import json
 
+# TODO(Thomas): Burn this
+
 class AnonymousEndpoints:
-    
+
     def __init__(self, cfg, db, search):
         self.cfg = cfg
         self.db = db.get_database()
         self.search = search
-        
+
     def content(self, path):
         fullPath = self.cfg['storage'] + "/" +  path
         if not os.path.isfile(fullPath):
             abort(404)
         return send_from_directory(self.cfg['storage'] + "/", path)
-    
+
     content.api_path = "/content/<path:path>"
-    
+
     def get_default_game(self):
         current_game_short = self.cfg['default-game']
         game = Game.query.filter(Game.short == current_game_short).first()
         if not game:
             print('Please set a valid default-game in the config file!')
         return game
-    
+
     def get_default_or_current_game(self):
         game = None
         if not 'game' in session:
@@ -40,10 +42,10 @@ class AnonymousEndpoints:
             session['game'] = default_game.id
         current_game = session['game']
         return Game.query.filter(Game.id == current_game).first()
-    
+
     def set_default_game(self, game):
         session['game'] = game.id
-        
+
     def get_game_data(self, game):
         if not game:
             None
@@ -79,26 +81,26 @@ class AnonymousEndpoints:
         send_mods = {}
         for mod_entry in mods:
             send_mods[mod_entry] = mod_info(mods[mod_entry])
-                
+
         return({'featured': featured, 'top': top, 'new': new, 'recent': recent, 'user_count': user_count, 'mod_count': mod_count, 'yours': yours, 'mods': send_mods})
-    
+
     def current_game_data(self):
         game = self.get_default_or_current_game()
         if not game:
             return {'error': True, 'reason': 'No game selected and default game not found'}, 400
         return {'error': False, 'game_id': game.id, 'data': self.get_game_data(game)}
-    
+
     current_game_data.api_path = "/anon/game"
-    
+
     def game_data(self, gameid):
         game = Game.query.filter(Game.id == gameid).first()
         if not game:
             return {'error': True, 'reason': 'Game does not exist'}, 400
         self.set_default_game(game)
         return {'error': False, 'game_id': game.id, 'data': self.get_game_data(game)}
-    
+
     game_data.api_path = "/anon/game/<int:gameid>"
-    
+
     def browse_new(self):
         game = self.get_default_or_current_game()
         if not game:
@@ -116,14 +118,14 @@ class AnonymousEndpoints:
             page = 1
         mods = mods.offset(30 * (page - 1)).limit(30).all()
         return {'error': False, 'game_id': game.id, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods]}
-    
+
     browse_new.api_path = "/anon/game/new"
-    
+
     def browse_updated(self):
         game = self.get_default_or_current_game()
         if not game:
             return {'error': True, 'reason': 'No game selected and default game not found'}, 400
-        
+
         mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(desc(Mod.updated))
         total_pages = math.ceil(mods.count() / 30)
         page = request.args.get('page')
@@ -137,9 +139,9 @@ class AnonymousEndpoints:
             page = 1
         mods = mods.offset(30 * (page - 1)).limit(30).all()
         return {'error': False, 'game_id': game.id, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods]}
-    
+
     browse_updated.api_path = "/anon/game/updated"
-    
+
     def browse_top(self):
         game = self.get_default_or_current_game()
         if not game:
@@ -153,9 +155,9 @@ class AnonymousEndpoints:
             page = 1
         mods = mods.offset(30 * (page - 1)).limit(30).all()
         return {'error': False, 'game_id': game.id, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods]}
-    
+
     browse_top.api_path = "/anon/game/top"
-    
+
     def browse_featured(self):
         game = self.get_default_or_current_game()
         if not game:
@@ -175,8 +177,8 @@ class AnonymousEndpoints:
             mods = mods.offset(30 * (page - 1)).limit(30).all()
         mods = [mod_info(f.mod) for f in mods]
         return {'error': False, 'game_id': game.id, 'page_id': page, 'pages': total_pages, 'mods': mods}
-    
-    
+
+
     def browse_all(self):
         game = self.get_default_or_current_game()
         if not game:
@@ -190,7 +192,7 @@ class AnonymousEndpoints:
             page = 1
         mods = mods.offset(30 * (page - 1)).limit(30).all()
         return {'error': False, 'game_id': game.id, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods]}
-    
+
     browse_all.api_path = "/anon/game/all"
 
     def singlegame_browse_new(self, gameid):
@@ -210,9 +212,9 @@ class AnonymousEndpoints:
             page = 1
         mods = mods.offset(30 * (page - 1)).limit(30).all()
         return {'error': False, 'game_id': game.id, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods]}
-    
+
     singlegame_browse_new.api_path = "/anon/game/<int:gameid>/new"
-    
+
 #    @anonymous.route("/json/<gameshort>/browse/<path:r>")
 #    @json_output
 #    def json_singlegame_browse_new(gameshort,r):
@@ -267,21 +269,21 @@ class AnonymousEndpoints:
 #                page = total_pages
 #        else:
 #            page = 1
-#        
+#
 #        mods = mods.offset(30 * (page - 1)).limit(30)
 #        mods = [e.serialize() for e in mods.all()]
 #        #modsj = jsonify([e.serialize() for e in mods.all()])
 #        #return { 'mods':mods, 'page':page, 'total_pages':total_pages,'ga':ga,'url':'/browse/new', 'name':'Newest Mods', 'rss':'/browse/new.rss'}
 #        #return { 'mods':modsj, 'page':page, 'total_pages':total_pages,'ga':ga,'url':'/browse/new', 'name':'Newest Mods', 'rss':'/browse/new.rss'}
-#    
+#
 #        return jsonify({"page":page,"total_pages":total_pages,"url":ru, "name":na, "rss":rs,"mods":mods})
-#    
+#
 
     def singlegame_browse_updated(self, gameid):
         game = Game.query.filter(Game.id == gameid).first()
         if not game:
             return {'error': True, 'reason': 'Game does not exist'}, 400
-        
+
         mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(desc(Mod.updated))
         total_pages = math.ceil(mods.count() / 30)
         page = request.args.get('page')
@@ -295,14 +297,14 @@ class AnonymousEndpoints:
             page = 1
         mods = mods.offset(30 * (page - 1)).limit(30).all()
         return {'error': False, 'game_id': game.id, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods]}
-    
+
     singlegame_browse_updated.api_path = "/anon/game/<int:gameid>/updated"
-    
+
     def singlegame_browse_top(self, gameid):
         game = Game.query.filter(Game.id == gameid).first()
         if not game:
             return {'error': True, 'reason': 'Game does not exist'}, 400
-        
+
         mods = Mod.query.filter(Mod.game_id == game.id, Mod.published, ModVersion.query.filter(ModVersion.mod_id == Mod.id).count() > 0).order_by(desc(Mod.download_count))
         total_pages = math.ceil(mods.count() / 30)
         page = request.args.get('page')
@@ -316,14 +318,14 @@ class AnonymousEndpoints:
             page = 1
         mods = mods.offset(30 * (page - 1)).limit(30).all()
         return {'error': False, 'game_id': game.id, 'mods': [mod_info(mod) for mod in mods]}
-    
+
     singlegame_browse_top.api_path = "/anon/game/<int:gameid>/top"
-    
+
     def singlegame_browse_featured(self, gameid):
         game = Game.query.filter(Game.id == gameid).first()
         if not game:
             return {'error': True, 'reason': 'Game does not exist'}, 400
-        
+
         mods = [f.mod for f in Featured.query.outerjoin(Mod).filter(Mod.game_id == game.id).order_by(desc(Featured.created)).all()]
         total_pages = math.ceil(mods.count() / 30)
         page = request.args.get('page')
@@ -337,9 +339,9 @@ class AnonymousEndpoints:
             page = 1
         mods = [mod_info(f.mod) for f in mods.offset(30 * (page - 1)).limit(30).all()]
         return {'error': False, 'game_id': game.id, 'page_id': page, 'pages': total_pages, 'mods': mods}
-    
+
     singlegame_browse_featured.api_path = "/anon/game/<int:gameid>/featured"
-    
+
     def singlegame_browse_all(self, gameid):
         game = Game.query.filter(Game.id == gameid).first()
         if not game:
@@ -351,9 +353,9 @@ class AnonymousEndpoints:
         else:
             page = 1
         return {'error': False, 'game_id': game.id, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods.all()]}
-    
+
     singlegame_browse_all.api_path = "/anon/game/<int:gameid>/all"
-    
+
     def allgame_search(self):
         query = request.args.get('query')
         if not query:
@@ -384,6 +386,5 @@ class AnonymousEndpoints:
         for mod_entry in mods:
             send_mods[mod_entry.id] = mod_info(mod_entry)
         return {'error': False, 'page_id': page, 'pages': total_pages, 'mods': [mod_info(mod) for mod in mods]}
-    
+
     singlegame_search.api_path = "/anon/search/<int:gameid>"
-    
