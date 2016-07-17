@@ -1,8 +1,9 @@
+from sqlalchemy import desc
+from flask_login import current_user
 from SpaceDock.objects import *
 from SpaceDock.common import *
 from SpaceDock.formatting import mod_info
-from sqlalchemy import desc
-from flask_login import current_user
+
 import json
 
 class ModEndpoints:

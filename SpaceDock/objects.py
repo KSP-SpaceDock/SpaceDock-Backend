@@ -1,10 +1,10 @@
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, ForeignKey, Table, UnicodeText, Text, text,Float
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 from SpaceDock.database import Base, db
-import os.path
 
-from datetime import datetime
+import os.path
 import bcrypt
 import json
 import re

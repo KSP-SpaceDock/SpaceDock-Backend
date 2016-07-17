@@ -1,9 +1,8 @@
-from flask import request
-from flask.ext.login import current_user, login_user, logout_user
 from datetime import datetime, timedelta
+from flask import request
+from flask_login import current_user, login_user, logout_user
 from SpaceDock.objects import *
 from SpaceDock.common import *
-from SpaceDock.formatting import user_info
 
 import bcrypt
 import re

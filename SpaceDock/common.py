@@ -1,15 +1,11 @@
-from flask import session, request, Response, abort
+from flask import request
 from flask_json import as_json_p, as_json
 from flask_login import current_user
-from werkzeug.utils import secure_filename
 from functools import wraps
-from SpaceDock.database import db, Base
-from SpaceDock.objects import Role, Ability
 from sqlalchemy import Column
+from SpaceDock.database import db
+from SpaceDock.objects import Ability
 
-import urllib
-import requests
-import xml.etree.ElementTree as ET
 import re
 import json
 
@@ -60,31 +56,10 @@ def with_session(f):
     return wrapper
 
 def json_output(f):
-    @wraps(f)
-    def wrapper(*fargs, **fkwargs):
-        if request.args.get('callback'):
-            return as_json_p(f)(*fargs, **fkwargs)
-        else:
-            return as_json(f)(*fargs, **fkwargs)
-    return wrapper
-
-def loginrequired(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if not current_user or current_user.confirmation:
-            return {'error': True, 'accessErrors': 'You need to be logged in to access this page.'}, 401
-        else:
-            return f(*args, **kwargs)
-    return wrapper
-
-def adminrequired(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if not current_user or current_user.confirmation or not current_user.admin:
-            return {'error': True, 'accessErrors': 'You don\'t have the permission to access this page.'}, 401
-        else:
-            return f(*args, **kwargs)
-    return wrapper
+    if request.args.get('callback'):
+        return as_json_p(f)
+    else:
+        return as_json(f)
 
 def edit_object(object, patch):
     for field in patch:
@@ -104,42 +79,23 @@ def user_has(ability, **params):
     def wrapper(func):
         @wraps(func)
         def inner(*args, **kwargs):
+            # Get the specified ability
             desired_ability = Ability.query.filter(Ability.name == ability).first()
-            user_abilities = []
-            user_params = {}
+            user_abilities = [role.abilities for role in current_user._roles]
+            user_params = [json.loads(role.params) for role in current_user._roles]
+
+            # Check if the user is logged in
             if not current_user:
                 return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 400
-            for role in current_user._roles:
-                user_abilities += role.abilities
-                user_params += json.loads(role.params)
+
+            # Check whether the abilities match
             has = False
-            if desired_ability in user_abilities:
-                if 'params' in params:
-                    for p in params['params']:
-                        if re_in(get_param(ability, p, user_params), kwargs[p]) or re_in(get_param(ability, p, user_params), request.form.get(p)):
-                            has = True
+            if desired_ability in user_abilities and 'params' in params:
+                for p in params['params']:
+                    if re_in(get_param(ability, p, user_params), kwargs[p]) or re_in(get_param(ability, p, user_params), request.form.get(p)):
+                        has = True
                 if has:
                     return func(*args, **kwargs)
-                else:
-                    return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability]}, 400
-            else:
-                return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability]}, 400
-        return inner
-    return wrapper
-
-# This is not supported atm
-def user_is(*role):
-    def wrapper(func):
-        @wraps(func)
-        def inner(*args, **kwargs):
-            if not current_user:
-                return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 400
-            has = True
-            for r in role:
-                if not r in current_user.roles:
-                    has = False
-            if has:
-                return func(*args, **kwargs)
-            return {'error': True, 'reasons': ['You don\'t have access to this page You need to have the roles: ' + ','.join(role)]}, 400
+            return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability]}, 400
         return inner
     return wrapper

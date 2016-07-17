@@ -2,9 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-#Database used in wrapper functions in common.py
+# Database used in wrapper functions in common.py
 db = None
-#Python doesn't support passing types into modules so this shit has to be singleton in the module
+# Python doesn't support passing types into modules so this shit has to be singleton in the module
 Base = None
 
 class Database:
@@ -22,6 +22,6 @@ class Database:
 
     def init_db(self):
         Base.metadata.create_all(bind=self.engine)
-        
+
     def get_database(self):
         return self.db

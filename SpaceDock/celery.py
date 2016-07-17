@@ -1,16 +1,12 @@
-import smtplib
 from celery import Celery
 from email.mime.text import MIMEText
-import redis
-import requests
-import time
-import json
 from SpaceDock.config import Config
+
+import smtplib
 
 cfg = Config()
 
 app = Celery("tasks", broker=cfg["redis-connection"])
-donation_cache = redis.Redis(host=cfg['patreon-host'], port=cfg['patreon-port'], db=cfg['patreon-db'])
 
 def chunks(l, n):
     """ Yield successive n-sized chunks from l.
@@ -43,22 +39,3 @@ def send_mail(sender, recipients, subject, message, important=False):
         print("Sending email from {} to {} recipients".format(sender, len(group)))
         smtp.sendmail(sender, group, message.as_string())
     smtp.quit()
-    
-@app.task
-def notify_ckan(mod_id, event_type):
-    if self.cfg("notify-url") == "":
-        return
-    send_data = { 'mod_id': mod_id, 'event_type': event_type }
-    requests.post(self.cfg["notify-url"], send_data)
-
-@app.task
-def update_patreon():
-    donation_cache.set('patreon_update_time', time.time())
-    if cfg['patreon_user_id'] != '' and cfg['patreon_campaign'] != '':
-        r = requests.get("https://api.patreon.com/user/" + cfg['patreon_user_id'])
-        if r.status_code == 200:
-            patreon = json.loads(r.text)
-            for linked_data in patreon['linked']:
-                if 'creation_name' in linked_data and 'pledge_sum' in linked_data:
-                    if linked_data['creation_name'] == cfg['patreon_campaign']:
-                        donation_cache.set('patreon_donation_amount', linked_data['pledge_sum'])

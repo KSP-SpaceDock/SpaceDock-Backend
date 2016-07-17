@@ -3,6 +3,7 @@ from sqlalchemy import desc
 from SpaceDock.common import *
 from SpaceDock.objects import *
 from SpaceDock.formatting import game_info, game_version_info
+
 import json
 
 class GameEndpoints:

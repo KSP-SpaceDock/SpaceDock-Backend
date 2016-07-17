@@ -4,6 +4,11 @@ environment=dev
 
 [dev]
 
+# The displayed name of this site
+site-name=SpaceDock
+# The email where users who need help write to
+support-mail=support@spacedock.info
+
 # Change this to the actual location of your site
 protocol=http
 domain=localhost:5000

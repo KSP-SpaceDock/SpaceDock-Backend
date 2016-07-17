@@ -1,8 +1,7 @@
-from sqlalchemy import desc
-from SpaceDock.objects import User, Mod, GameVersion, Game, Publisher
+from flask_login import current_user, login_user
+from SpaceDock.objects import User
 from SpaceDock.common import *
 from SpaceDock.formatting import *
-from flask_login import current_user, login_user, logout_user
 
 class AdminEndpoints:
     def __init__(self, db, email):

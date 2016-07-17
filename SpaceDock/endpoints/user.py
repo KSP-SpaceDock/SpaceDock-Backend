@@ -4,6 +4,7 @@ from sqlalchemy import desc
 from SpaceDock.objects import *
 from SpaceDock.common import *
 from SpaceDock.formatting import user_info, admin_user_info
+
 import json
 
 class UserEndpoints:

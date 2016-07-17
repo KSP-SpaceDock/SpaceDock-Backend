@@ -20,6 +20,7 @@ from SpaceDock.search import Search
 from SpaceDock.api import API
 from SpaceDock.objects import User
 
+
 search = Search(db)
 email = Email(cfg)
 login_manager = LoginManager(app)
