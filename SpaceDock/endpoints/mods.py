@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from SpaceDock.common import *
 from SpaceDock.config import cfg
 from SpaceDock.database import db
+from SpaceDock.email import *
 from SpaceDock.formatting import mod_info, bulk, mod_version_info
 from SpaceDock.objects import *
 from SpaceDock.routing import route
@@ -35,10 +36,10 @@ def mods_info(modid):
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
-@route('/api/mods/<modid>/edit', methods=['POST'])
-@user_has('mods-edit', params=['modid'])
+@route('/api/mods/<gameshort>/<modid>/edit', methods=['POST'])
+@user_has('mods-edit', params=['gameshort', 'modid'])
 @with_session
-def mod_edit(modid):
+def mod_edit(gameshort, modid):
     """
     Edits a mod, based on the request parameters. Required fields: data
     """
@@ -92,6 +93,34 @@ def add_mod():
     role.add_param('mods-remove', 'name', name)
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
+@route('/api/mods/publish', methods=['POST'])
+@user_has('mods-edit', params=['gameshort', 'name'])
+@with_session
+def remove_mod():
+    """
+    Makes a mod public. Required fields: name, gameshort
+    """
+    # Get variables
+    name = request.form.get('name')
+    short = request.form.get('gameshort')
+
+    # Check the vars
+    errors = list()
+    if not name:
+        errors.append('Invalid mod name.')
+    if not short:
+        errors.append('Invalid gameshort.')
+    if name and short and not Mod.query.filter(Mod.name == name).filter(Mod.game_id == game_id(short)).first():
+        errors.append('A mod with theese parameters does not exist.')
+    if any(errors):
+        return {'error': True, 'reasons': errors}, 400
+
+    # Publish
+    mod = Mod.query.filter(Mod.name == name).filter(Mod.game_id == game_id(short)).first()
+    mod.published = True
+    mod.updated = datetime.now()
+    return {'error': False}
+
 @route('/api/mods/remove', methods=['POST'])
 @user_has('mods-remove', params=['gameshort', 'name']) # We might want to allow deletion of own mods. Gameshort is here to allow per-game moderators.
 @with_session
@@ -116,7 +145,7 @@ def remove_mod():
 
     # Add new mod
     mod = Mod.query.filter(Mod.name == name).filter(Mod.game_id == game_id(short)).first()
-    db.remove(mod)
+    db.delete(mod)
     role = Role.query.filter(Role.name == current_user.username).first()
     if not any(current_user.mods):
         role.remove_abilities('mods-edit', 'mods-remove')
@@ -124,10 +153,10 @@ def remove_mod():
     role.remove_param('mods-remove', 'name', name)
     return {'error': False}
 
-@route('/api/mods/<modid>/update-bg', methods=['POST'])
-@user_has('mods-edit', params=['modid'])
+@route('/api/mods/<gameshort>/<modid>/update-bg', methods=['POST'])
+@user_has('mods-edit', params=['gameshort', 'modid'])
 @with_session
-def mod_updateBG(modid):
+def mod_updateBG(gameshort, modid):
     """
     Updates a mod background. Required fields: image
     """
@@ -163,8 +192,8 @@ def mod_updateBG(modid):
 
 # Versions
 
-@route('/api/mods/<modid>/versions')
-def mod_versions(modid):
+@route('/api/mods/<gameshort>/<modid>/versions')
+def mod_versions(gameshort, modid):
     """
     Returns a list of mod versions including their data.
     """
@@ -174,10 +203,10 @@ def mod_versions(modid):
     versions = ModVersion.query.filter(ModVersion.mod_id == int(modid)).all()
     return {'error': False, 'count': len(versions), 'data': bulk(versions, mod_version_info)}
 
-@route('/api/mods/<modid>/update', methods=['POST'])
-@user_has('mods-edit', params=['modid'])
+@route('/api/mods/<gameshort>/<modid>/versions/add', methods=['POST'])
+@user_has('mods-edit', params=['gameshort', 'modid'])
 @with_session
-def mod_update(modid):
+def mod_update(gameshort, modid):
     """
     Releases a new version of your mod. Required fields: version, game-version, notify-followers, is-beta, zipball. Optional fields: changelog
     """
@@ -188,13 +217,15 @@ def mod_update(modid):
     beta = request.form.get('is-beta')
     zipball = request.files.get('zipball')
 
+    # Get the mod
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+
     # Process fields
     if not version or not game_version or not zipball:
-        # Client side validation means that they're just being pricks if they
-        # get here, so we don't need to show them a pretty error reason
-        # SMILIE: this doesn't account for "external" API use --> return a json error
         return {'error': True, 'reasons': ['All fields are required.']}, 400
-    test_gameversion = GameVersion.query.filter(GameVersion.game_id == Mod.game_id).filter(GameVersion.friendly_version == game_version).first()
+    test_gameversion = GameVersion.query.filter(GameVersion.game_id == mod.game_id).filter(GameVersion.friendly_version == game_version).first()
     if not test_gameversion:
         return {'error': True, 'reasons': ['Game version does not exist.']}, 400
     game_version_id = test_gameversion.id
@@ -230,3 +261,37 @@ def mod_update(modid):
     db.add(version)
     mod.default_version_id = version.id
     return {'error': False, 'count': 1, 'data': mod_version_info(version)}
+
+@route('/api/mods/<gameshort>/<modid>/versions/delete', methods=['POST'])
+@user_has('mods-edit', params=['gameshort', 'modid'])
+@with_session
+def delete_version(gameshort, modid):
+    """
+    Deletes a released version of the mod. Required fields: version-id
+    """
+    # Parameters
+    versionid = request.form.get('version-id')
+
+    # Error check
+    errors = list()
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        errors.append('The mod ID is invalid.')
+    if not versionid.isdigit() or not ModVersion.query.filter(ModVersion.id == int(versionid)).first():
+        errors.append('The version ID is invalid.')
+    if not any(errors) and not ModVersion.query.filter(ModVersion.mod_id == int(modid)).filter(ModVersion.id == int(versionid)).first():
+        errors.append('The mod ID and the version ID don\'t match.')
+    if any(errors):
+        return {'error': True, 'reasons': errors}, 400
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+    version = [v for v in mod.versions if v.id == int(versionid)]
+
+    # Checks
+    if len(mod.versions) == 1:
+        return {'error': True, 'reasons': ['There is only one version left. You cant delete this one.']}, 400
+    if len(version) == 0:
+        return {'error': True, 'reasons': ['Something went wrong.']}, 404
+    if version[0].id == mod.default_version_id:
+        return {'error': True, 'reasons': ['You cannot delete the default version of a mod.']}, 400
+    db.delete(version[0])
+    mod.versions = [v for v in mod.versions if v.id != int(version_id)]
+    return {'error': False}

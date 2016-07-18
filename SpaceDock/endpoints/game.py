@@ -178,5 +178,5 @@ def remove_game():
 
     # Get the game and remove it
     game = Game.query.filter(Game.short == short).first()
-    db.remove(game)
+    db.delete(game)
     return {'error': False}

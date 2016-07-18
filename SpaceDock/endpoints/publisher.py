@@ -82,5 +82,5 @@ def remove_publisher():
 
     # Get the publisher and remove it
     pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
-    db.remove(pub)
+    db.delete(pub)
     return {'error': False}
