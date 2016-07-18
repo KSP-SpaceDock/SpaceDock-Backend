@@ -57,11 +57,9 @@
     <Compile Include="SpaceDock\common.py" />
     <Compile Include="SpaceDock\config.py" />
     <Compile Include="SpaceDock\database.py" />
-    <Compile Include="SpaceDock\documentation.py" />
     <Compile Include="SpaceDock\email.py" />
     <Compile Include="SpaceDock\formatting.py" />
     <Compile Include="SpaceDock\objects.py" />
-    <Compile Include="SpaceDock\profiler.py" />
     <Compile Include="SpaceDock\routing.py" />
     <Compile Include="SpaceDock\app.py">
       <SubType>Code</SubType>
