@@ -4,6 +4,7 @@ from flask_login import LoginManager
 from SpaceDock.config import cfg
 from SpaceDock.database import init_db
 from SpaceDock.objects import User
+from SpaceDock.plugins import load_plugins
 
 # Create Flask
 app = Flask(__name__)
@@ -31,9 +32,8 @@ from SpaceDock.routing import add_wrapper
 # Register JSON output
 add_wrapper(json_output)
 
-# Should be moved to plugins
-import SpaceDock.documentation
-import SpaceDock.profiler
+# Load plugins
+load_plugins()
 
 # Register endpoints
 import SpaceDock.endpoints.access
