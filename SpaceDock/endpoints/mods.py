@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from SpaceDock.common import *
 from SpaceDock.config import cfg
 from SpaceDock.database import db
-from SpaceDock.formatting import mod_info
+from SpaceDock.formatting import mod_info, bulk, mod_version_info
 from SpaceDock.objects import *
 from SpaceDock.routing import route
 
@@ -24,7 +24,7 @@ def mod_list():
     return {'error': False, 'count': len(results), 'data': results}
 
 @route('/api/mods/<modid>')
-def mod_info(modid):
+def mods_info(modid):
     """
     Returns information for one mod
     """
@@ -123,10 +123,10 @@ def remove_mod():
     role.remove_param('mods-remove', 'name', name)
     return {'error': False}
 
-@route('/api/mods/<modid>/edit', methods=['POST'])
+@route('/api/mods/<modid>/update-bg', methods=['POST'])
 @user_has('mods-edit', params=['modid'])
 @with_session
-def mod_updateBG( modid):
+def mod_updateBG(modid):
     """
     Updates a mod background. Required fields: image
     """
@@ -159,3 +159,16 @@ def mod_updateBG( modid):
     f.save(path)
     mod.background = os.path.join(base_path, filename)
     return {'error': False}
+
+# Versions
+
+@route('/api/mods/<modid>/versions')
+def mod_versions(modid):
+    """
+    Returns a list of mod versions including their data.
+    """
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+    # Get the versions
+    versions = ModVersion.query.filter(ModVersion.mod_id == int(modid)).all()
+    return {'error': False, 'count': len(versions), 'data': bulk(versions, mod_version_info)}
