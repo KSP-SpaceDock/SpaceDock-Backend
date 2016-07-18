@@ -17,6 +17,7 @@ if cfg.get_environment() == 'dev':
 app.config['JSON_ADD_STATUS'] = False
 app.config['JSON_JSONP_OPTIONAL'] = False
 app.secret_key = cfg['secret-key']
+app.url_map.strict_slashes = False
 
 @login_manager.user_loader
 def load_user(username):
