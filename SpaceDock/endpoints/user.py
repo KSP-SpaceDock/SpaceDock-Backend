@@ -40,7 +40,7 @@ def get_user_info(userid):
 @route('/api/users/<userid>/edit', methods=['POST'])
 @user_has('user-edit', params=['userid'])
 @with_session
-def edit_user(self, userid):
+def edit_user(userid):
     """
     Edits a user, based on the request parameters. Required fields: data
     """

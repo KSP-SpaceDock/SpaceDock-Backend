@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>acafcd7b-8087-4554-afea-056bb886f791</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>app.py</StartupFile>
+    <StartupFile>SpaceDock.py</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>SpaceDock-Backend</Name>
@@ -34,7 +34,7 @@
     <Folder Include="SpaceDock\endpoints\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="app.py">
+    <Compile Include="SpaceDock.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SpaceDock\endpoints\access.py" />

@@ -40,7 +40,7 @@ def email():
 @route('/api/admin/manual-confirmation/<userid>')
 @user_has('admin-confirm')
 @with_session
-def manual_confirm(self, userid):
+def manual_confirm(userid):
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
         return {'error': True, 'reasons': ['The userid is invalid']}, 400
     user = User.query.filter(User.id == int(userid)).first()

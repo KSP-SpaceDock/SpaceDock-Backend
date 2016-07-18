@@ -94,7 +94,7 @@ def add_mod():
 @route('/api/mods/remove', methods=['POST'])
 @user_has('mods-remove', params=['gameshort', 'name']) # We might want to allow deletion of own mods. Gameshort is here to allow per-game moderators.
 @with_session
-def remove_mod(self):
+def remove_mod():
     """
     Removes a mod, based on the request parameters. Required fields: name, gameshort
     """
@@ -126,7 +126,7 @@ def remove_mod(self):
 @route('/api/mods/<modid>/edit', methods=['POST'])
 @user_has('mods-edit', params=['modid'])
 @with_session
-def mod_updateBG(self, modid):
+def mod_updateBG( modid):
     """
     Updates a mod background. Required fields: image
     """
