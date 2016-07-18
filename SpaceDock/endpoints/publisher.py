@@ -1,95 +1,86 @@
 from datetime import datetime
 from flask import request
 from sqlalchemy import desc
-from SpaceDock.objects import *
-from SpaceDock.formatting import publisher_info
 from SpaceDock.common import with_session, user_has
+from SpaceDock.database import db
+from SpaceDock.formatting import publisher_info
+from SpaceDock.objects import *
+from SpaceDock.routing import route
 
-class PublisherEndpoints:
-    def __init__(self, db):
-        self.db = db.get_database()
 
-    def publishers_list(self):
-        """
-        Outputs all publishers known by the application
-        """
-        results = dict()
-        for v in Publisher.query.order_by(desc(Publisher.id)).all():
-            results[v.id] = v.name
-        return {"error": False, 'count': len(results), 'data': results}
+@route('/api/publishers')
+def publishers_list():
+    """
+    Outputs all publishers known by the application
+    """
+    results = dict()
+    for v in Publisher.query.order_by(desc(Publisher.id)).all():
+        results[v.id] = v.name
+    return {"error": False, 'count': len(results), 'data': results}
 
-    publishers_list.api_path = "/api/publishers"
+@route('/api/publishers/<pubid>')
+def publisher_info(pubid):
+    """
+    Outputs detailed infos for one publisher
+    """
+    if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+        return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
+    # Return the info
+    pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
+    return {'error': False, 'count': 1, 'data': publisher_info(pub)}
 
-    def publisher_info(self, pubid):
-        """
-        Outputs detailed infos for one publisher
-        """
-        if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
-            return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
-        # Return the info
-        pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
-        return {'error': False, 'count': 1, 'data': publisher_info(pub)}
+@route('/api/publishers/<pubid>/edit', methods=['POST'])
+@user_has('publisher-edit', params=['pubid'])
+@with_session
+def edit_publisher(publid):
+    """
+    Edits a publisher, based on the request parameters. Required fields: data
+    """
+    if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+        return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
 
-    publisher_info.api_path = '/api/publishers/<pubid>'
+    # Get variables
+    parameters = json.loads(request.form['data'])
 
-    @with_session
-    @user_has('publisher-edit', params=['pubid'])
-    def edit_publisher(self, publid):
-        """
-        Edits a publisher, based on the request parameters. Required fields: data
-        """
-        if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
-            return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
+    # Get the matching game and edit it
+    pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
+    edit_object(pub, parameters)
+    pub.updated = datetime.now()
+    return {'error': False}
 
-        # Get variables
-        parameters = json.loads(request.form['data'])
+@route('/api/publishers/add', methods=['POST'])
+@user_has('publisher-add')
+@with_session
+def add_publisher():
+    """
+    Adds a publisher, based on the request parameters. Required fields: name
+    """
+    # Get variables
+    name = request.form['name']
 
-        # Get the matching game and edit it
-        pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
-        edit_object(pub, parameters)
-        pub.updated = datetime.now()
-        return {'error': False}
+    # Check for existence
+    if Publisher.query.filter(Publisher.name == name).first():
+        return {'error': True, 'reasons': ['A publisher with this name already exists.']}, 400
 
-    edit_publisher.api_path = '/api/publishers/<pubid>/edit'
-    edit_publisher.methods = ['POST']
+    # Get the matching game and edit it
+    pub = Publisher(name)
+    db.add(pub)
+    return {'error': False}
 
-    @with_session
-    @user_has('publisher-add')
-    def add_publisher(self):
-        """
-        Adds a publisher, based on the request parameters. Required fields: name
-        """
-        # Get variables
-        name = request.form['name']
+@route('/api/publishers/remove', methods=['POST'])
+@user_has('publisher-remove')
+@with_session
+def remove_publisher():
+    """
+    Removes a game from existence. Required fields: pubid
+    """
+    pubid = request.form['pubid']
 
-        # Check for existence
-        if Publisher.query.filter(Publisher.name == name).first():
-            return {'error': True, 'reasons': ['A publisher with this name already exists.']}, 400
+    # Check if the pubid is valid
+    if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+        return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
 
-        # Get the matching game and edit it
-        pub = Publisher(name)
-        self.db.add(pub)
-        return {'error': False}
-
-    add_publisher.api_path = '/api/publishers/add'
-    add_publisher.methods = ['POST']
-
-    @with_session
-    @user_has('publisher-remove')
-    def remove_publisher(self):
-        """
-        Removes a game from existence. Required fields: pubid
-        """
-        pubid = request.form['pubid']
-
-        # Check if the pubid is valid
-        if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
-            return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
-
-        # Get the publisher and remove it
-        pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
-        self.db.remove(pub)
-        return {'error': False}
-
-    remove_publisher.api_path = '/api/publishers/remove'
-    remove_publisher.methods = ['POST']
+    # Get the publisher and remove it
+    pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
+    db.remove(pub)
+    return {'error': False}

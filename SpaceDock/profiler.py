@@ -1,15 +1,17 @@
-from flask import jsonify
 from functools import wraps
 from time import perf_counter
+from SpaceDock.config import Config
+from SpaceDock.routing import add_wrapper, route
 
-class Profiler:
-    def __init__(self, cfg):
-        self.cfg = cfg
-        self.profiler_time = self.cfg.getf('profiler')
-        self.profiler_histogram = self.cfg.getb('profiler-histogram')
-        self.histogram_data = {}
+# Load the cfg
+cfg = Config('profiler.ini')
 
-    def profile_method(self, f):
+# Only register things if the profiler is enabled
+if cfg.getb('profiler-histogram'):
+    profiler_time = cfg.getf('profiler')
+    histogram_data = {}
+
+    def profile_method(f):
         @wraps(f)
         def profile_method_real(*args, **kwargs):
             profiler_name = f.__name__
@@ -19,20 +21,20 @@ class Profiler:
             result = f(*args, **kwargs)
             endTime = perf_counter()
             timeDelta = 1000 * (endTime - startTime)
-            if not self.profiler_time == 0 and timeDelta > self.profiler_time:
+            if not profiler_time == 0 and timeDelta > profiler_time:
                 print(profiler_name + " took " + str(timeDelta) + " ms")
-            if self.profiler_histogram:
-                if not profiler_name in self.histogram_data:
-                    self.histogram_data[profiler_name] = {}
-                timeDeltaInt = int(timeDelta)
-                f_histogram_data = self.histogram_data[profiler_name]
-                if not timeDeltaInt in f_histogram_data:
-                    f_histogram_data[timeDeltaInt] = 0
-                f_histogram_data[timeDeltaInt] = f_histogram_data[timeDeltaInt] + 1
+            if not profiler_name in histogram_data:
+                histogram_data[profiler_name] = {}
+            timeDeltaInt = int(timeDelta)
+            f_histogram_data = histogram_data[profiler_name]
+            if not timeDeltaInt in f_histogram_data:
+                f_histogram_data[timeDeltaInt] = 0
+            f_histogram_data[timeDeltaInt] = f_histogram_data[timeDeltaInt] + 1
             return result
         return profile_method_real
 
-    def histogram(self):
-        return jsonify(self.histogram_data)
+    add_wrapper(profile_method)
 
-    histogram.api_path = "/profiler/histogram"
+    @route('/profiler/histogram')
+    def histogram():
+        return histogram_data

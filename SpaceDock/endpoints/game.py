@@ -1,194 +1,182 @@
 from flask import request
 from sqlalchemy import desc
 from SpaceDock.common import *
-from SpaceDock.objects import *
+from SpaceDock.database import db
 from SpaceDock.formatting import game_info, game_version_info
+from SpaceDock.objects import *
+from SpaceDock.routing import route
 
 import json
 
-class GameEndpoints:
-    def __init__(self, cfg, db):
-        self.cfg = cfg
-        self.db = db.get_database()
 
-    def list_games(self):
-        """
-        Displays a list of all games in the database.
-        """
-        results = list()
-        includeInactive = False
-        if request.args.get('includeInactive'):
-            includeInactive = boolean(request.args.get('includeInactive'))
-        # Game.active or includeInactive refuses to work :-(
-        f = Game.active
-        if includeInactive:
-            f = True
-        for game in Game.query.order_by(desc(Game.name)).filter(f):
-            results.append(game_info(game))
-        return {'error': False, 'count': len(results), 'data': results}
+@route('/api/games')
+def list_games():
+    """
+    Displays a list of all games in the database.
+    """
+    results = list()
+    includeInactive = False
+    if request.args.get('includeInactive'):
+        includeInactive = boolean(request.args.get('includeInactive'))
+    # Game.active or includeInactive refuses to work :-(
+    f = Game.active
+    if includeInactive:
+        f = True
+    for game in Game.query.order_by(desc(Game.name)).filter(f):
+        results.append(game_info(game))
+    return {'error': False, 'count': len(results), 'data': results}
 
-    list_games.api_path = '/api/games'
+@route('/api/games/<gameshort>')
+def games_info(gameshort):
+    """
+    Displays information about a game.
+    """
+    # Get the games with the according gameshort
+    filter = Game.query.filter(Game.short == gameshort)
 
-    def game_info(self, gameshort):
-        """
-        Displays information about a game.
-        """
-        # Get the games with the according gameshort
-        filter = Game.query.filter(Game.short == gameshort)
+    # Game doesn't exist
+    if len(filter.all()) == 0:
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
-        # Game doesn't exist
-        if len(filter.all()) == 0:
-            return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    # Game does exist
+    game = filter.first()
+    return {'error': False, 'count': 1, 'data': game_info(game)}
 
-        # Game does exist
-        game = filter.first()
-        return {'error': False, 'count': 1, 'data': game_info(game)}
+@route('/api/games/<gameshort>/versions')
+def game_versions(gameshort):
+    """
+    Displays information about the versions of a game.
+    """
+    if not Game.query.filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
-    game_info.api_path = '/api/games/<gameshort>'
+    # Get the ID
+    gameid = game_id(gameshort)
 
-    def game_versions(self, gameshort):
-        """
-        Displays information about the versions of a game.
-        """
-        if not Game.query.filter(Game.short == gameshort).first():
-            return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    # get game versions
+    versions = GameVersion.query.filter(GameVersion.game_id == gameid).all()
 
-        # Get the ID
-        gameid = game_id(gameshort)
+    # Format them
+    results = list()
+    for version in versions:
+        results.append(game_version_info(version))
+    return {'error': False, 'count': len(results), 'data': results}
 
-        # get game versions
-        versions = GameVersion.query.filter(GameVersion.game_id == gameid).all()
+@route('/api/games/<gameshort>/mods')
+def game_mods(gameshort):
+    """
+    Displays a list of all mods added for this game.
+    """
+    if not Game.query.filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
-        # Format them
-        results = list()
-        for version in versions:
-            results.append(game_version_info(version))
-        return {'error': False, 'count': len(results), 'data': results}
+    # Get the ID
+    gameid = game_id(gameshort)
 
-    game_versions.api_path = '/api/games/<gameshort>/versions'
+    # Get mods
+    mods = Mod.query.filter(Mod.game_id == int(gameid)).all()
 
-    def game_mods(self, gameshort):
-        """
-        Displays a list of all mods added for this game.
-        """
-        if not Game.query.filter(Game.short == gameshort).first():
-            return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    # Format
+    result = dict()
+    for mod in mods:
+        result[str(mod.id)] = mod.name
+    return {'error': False, 'count': len(result), 'data': result}
 
-        # Get the ID
-        gameid = game_id(gameshort)
+@route('/api/games/<gameshort>/modlists')
+def game_modlists(gameshort):
+    """
+    Displays all mod lists this game knows.
+    """
+    if not Game.query.filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
-        # Get mods
-        mods = Mod.query.filter(Mod.game_id == int(gameid)).all()
+    # Get the ID
+    gameid = game_id(gameshort)
 
-        # Format
-        result = dict()
-        for mod in mods:
-            result[str(mod.id)] = mod.name
-        return {'error': False, 'count': len(result), 'data': result}
+    # Get mod lists
+    game = Game.query.filter(Game.id == int(gameid)).first()
+    modlists = ModList.query.filter(ModList.game_id == int(gameid)).all()
 
-    game_mods.api_path = '/api/games/<gameshort>/mods'
+    # Format
+    result = dict()
+    for ml in modlists:
+        result[str(ml.id)] = ml.name
+    return {'error': False, 'count': len(result), 'data': result}
 
-    def game_modlists(self, gameshort):
-        """
-        Displays all mod lists this game knows.
-        """
-        if not Game.query.filter(Game.short == gameshort).first():
-            return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
-        # Get the ID
-        gameid = game_id(gameshort)
+@route('/api/games/<gameshort>/edit', methods=['POST'])
+@user_has('game-edit', params=['gameshort'])
+@with_session
+def edit_game(gameshort):
+    """
+    Edits a game, based on the request parameters. Required fields: data
+    """
+    errors = list()
+    if not Game.query.filter(Game.short == gameshort).first():
+        errors.append('The gameshort is invalid.')
+    if not request.form.get('data') or not is_json(request.form.get('data')):
+        errors.append('The patch data is invalid.')
+    if any(errors):
+        return {'error': True, 'reasons': errors}, 400
 
-        # Get mod lists
-        game = Game.query.filter(Game.id == int(gameid)).first()
-        modlists = ModList.query.filter(ModList.game_id == int(gameid)).all()
+    # Get variables
+    parameters = json.loads(request.form.get('data'))
 
-        # Format
-        result = dict()
-        for ml in modlists:
-            result[str(ml.id)] = ml.name
-        return {'error': False, 'count': len(result), 'data': result}
+    # Get the matching game and edit it
+    game = Game.query.filter(Game.short == gameshort).first()
+    edit_object(game, parameters)
+    return {'error': False}
 
-    game_modlists.api_path = '/api/games/<gameshort>/modlists'
+@route('/api/games/add', methods=['POST'])
+@user_has('game-add', params=['pubid'])
+@with_session
+def add_game():
+    """
+    Adds a new game based on the request parameters. Required fields: name, pubid, short
+    """
+    name = request.form.get('name')
+    pubid = request.form.get('pubid')
+    short = request.form.get('short')
 
-    @with_session
-    @user_has('game-edit', params=['gameshort'])
-    def edit_game(self, gameshort):
-        """
-        Edits a game, based on the request parameters. Required fields: data
-        """
-        errors = list()
-        if not Game.query.filter(Game.short == gameshort).first():
-            errors.append('The gameshort is invalid.')
-        if not request.form.get('data') or not is_json(request.form.get('data')):
-            errors.append('The patch data is invalid.')
-        if any(errors):
-            return {'error': True, 'reasons': errors}, 400
+    errors = list()
 
-        # Get variables
-        parameters = json.loads(request.form.get('data'))
+    # Check if the publisher ID is valid
+    if not pubid or not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+        errors.append('The pubid is invalid.')
+    if not name:
+        errors.append('The name is invalid.')
+    if not short:
+        errors.append('The gameshort is invalid.')
 
-        # Get the matching game and edit it
-        game = Game.query.filter(Game.short == gameshort).first()
-        edit_object(game, parameters)
-        return {'error': False}
+    # Check if the game already exists
+    if Game.query.filter(Game.short == short).first():
+        errors.append('The gameshort already exists.')
+    if Game.query.filter(Game.name == name).first():
+        errors.append('The game name already exists.')
 
-    edit_game.api_path = '/api/games/<gameshort>/edit'
-    edit_game.methods = ['POST']
+    # Errors
+    if len(errors) > 0:
+        return {'error': True, 'reasons': errors}, 400
 
-    @with_session
-    @user_has('game-add', params=['pubid'])
-    def add_game(self):
-        """
-        Adds a new game based on the request parameters. Required fields: name, pubid, short
-        """
-        name = request.form.get('name')
-        pubid = request.form.get('pubid')
-        short = request.form.get('short')
+    # Make a new game
+    game = Game(name, int(pubid), short)
+    db.add(game)
+    return {'error': False}
 
-        errors = list()
+@route('/api/games/remove', methods=['POST'])
+@user_has('game-remove', params=['short'])
+@with_session
+def remove_game():
+    """
+    Removes a game from existence. Required fields: short
+    """
+    short = request.form.get('short')
 
-        # Check if the publisher ID is valid
-        if not pubid or not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
-            errors.append('The pubid is invalid.')
-        if not name:
-            errors.append('The name is invalid.')
-        if not short:
-            errors.append('The gameshort is invalid.')
+    # Check if the gameshort is valid
+    if not Game.query.filter(Game.short == short).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
-        # Check if the game already exists
-        if Game.query.filter(Game.short == short).first():
-            errors.append('The gameshort already exists.')
-        if Game.query.filter(Game.name == name).first():
-            errors.append('The game name already exists.')
-
-        # Errors
-        if len(errors) > 0:
-            return {'error': True, 'reasons': errors}, 400
-
-        # Make a new game
-        game = Game(name, int(pubid), short)
-        self.db.add(game)
-        return {'error': False}
-
-    add_game.api_path = '/api/games/add'
-    add_game.methods = ['POST']
-
-    @with_session
-    @user_has('game-remove', params=['short'])
-    def remove_game(self):
-        """
-        Removes a game from existence. Required fields: short
-        """
-        short = request.form['short']
-
-        # Check if the gameshort is valid
-        if not Game.query.filter(Game.short == short).first():
-            return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
-
-        # Get the game and remove it
-        game = Game.query.filter(Game.short == short).first()
-        self.db.remove(game)
-        return {'error': False}
-
-    remove_game.api_path = '/api/games/remove'
-    remove_game.methods = ['POST']
+    # Get the game and remove it
+    game = Game.query.filter(Game.short == short).first()
+    db.remove(game)
+    return {'error': False}

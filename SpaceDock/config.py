@@ -1,9 +1,9 @@
 from configparser import ConfigParser
 
 class Config:
-    def __init__(self):
+    def __init__(self, filename):
         self._config = ConfigParser()
-        self._config.readfp(open('config/config.ini'))
+        self._config.readfp(open('config/' + filename))
         self._env = self._config['meta']['environment']
 
     def get_environment(self):
@@ -43,3 +43,5 @@ class Config:
         Returns a string, indexer access
         """
         return self.get(key)
+
+cfg = Config('config.ini')

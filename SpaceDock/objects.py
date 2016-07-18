@@ -69,7 +69,7 @@ class BlogPost(Base):
 
 class User(Base):
     __tablename__ = 'user'
-    __lock__ = ['id', 'username', 'password', 'created', 'confirmation', 'passwordReset', 'passwordResetExpiry']
+    __lock__ = ['id', 'username', 'password', 'created', 'confirmation', 'passwordReset', 'passwordResetExpiry', 'backgroundMedia']
     id = Column(Integer, primary_key = True)
     username = Column(String(128), nullable = False, index = True)
     email = Column(String(256), nullable = False, index = True)
@@ -108,7 +108,7 @@ class User(Base):
     mods = relationship('Mod', order_by='Mod.created')
     packs = relationship('ModList', order_by='ModList.created')
     following = relationship('Mod', secondary=mod_followers, backref='user.id')
-    dark_theme = Column(Boolean())
+    theme = Column(String(24))
     # Permissions
     _roles = relationship('Role', secondary=user_role_table, backref='users')
     roles = association_proxy('_roles', 'name', creator=role_find_or_create)
@@ -301,7 +301,7 @@ class Review(Base):
 
 class Publisher(Base):
     __tablename__ = 'publisher'
-    __lock__ = ['id', 'created', 'updated']
+    __lock__ = ['id', 'created', 'updated', 'background']
     id = Column(Integer, primary_key = True)
     name = Column(Unicode(1024))
     short_description = Column(Unicode(1000))
@@ -324,7 +324,7 @@ class Publisher(Base):
 
 class Game(Base):
     __tablename__ = 'game'
-    __lock__ = ['id', 'rating', 'short', 'created', 'updated']
+    __lock__ = ['id', 'rating', 'short', 'created', 'updated', 'background']
     id = Column(Integer, primary_key = True)
     name = Column(Unicode(1024))
     active = Column(Boolean())
@@ -373,6 +373,7 @@ class Game(Base):
 
 class Mod(Base):
     __tablename__ = 'mod'
+    __lock__ = ['id', 'user_id', 'game_id', 'approved', 'votes', 'created', 'updated', 'background', 'follower_count', 'download_count', 'total_score', 'rating_count']
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship('User', backref=backref('mod', order_by=id))
@@ -407,7 +408,7 @@ class Mod(Base):
     review = relationship('Review', order_by='Review.created')
     total_score = Column(Float(), nullable=True)
     rating_count = Column(Integer, nullable=False, server_default=text('0'))
-    ckan = Column(Boolean)
+    meta = Column(String(128))
 
     def background_thumb(self):
         if (_cfg('thumbnail_size') == ''):
@@ -440,6 +441,7 @@ class Mod(Base):
         self.votes = 0
         self.follower_count = 0
         self.download_count = 0
+        self.meta = '[]'
 
     def __repr__(self):
         return '<Mod %r %r>' % (self.id, self.name)

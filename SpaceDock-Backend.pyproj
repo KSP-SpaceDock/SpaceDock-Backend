@@ -12,6 +12,7 @@
     <RootNamespace>SpaceDock-Backend</RootNamespace>
     <InterpreterId>{b262b887-eef9-452a-afec-b57da83111af}</InterpreterId>
     <InterpreterVersion>3.4</InterpreterVersion>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,12 +34,38 @@
     <Folder Include="SpaceDock\endpoints\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SpaceDock\endpoints\*.py" />
-    <Compile Include="SpaceDock\*.py" />
-    <Compile Include="*.py" />
+    <Compile Include="app.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SpaceDock\endpoints\access.py" />
+    <Compile Include="SpaceDock\endpoints\accounts.py" />
+    <Compile Include="SpaceDock\endpoints\admin.py" />
+    <Compile Include="SpaceDock\endpoints\anonymous.py" />
+    <Compile Include="SpaceDock\endpoints\api.py" />
+    <Compile Include="SpaceDock\endpoints\game.py" />
+    <Compile Include="SpaceDock\endpoints\mods.py" />
+    <Compile Include="SpaceDock\endpoints\publisher.py" />
+    <Compile Include="SpaceDock\endpoints\user.py" />
+    <Compile Include="SpaceDock\endpoints\__init__.py" />
+    <Compile Include="SpaceDock\routing.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SpaceDock\celery.py" />
+    <Compile Include="SpaceDock\common.py" />
+    <Compile Include="SpaceDock\config.py" />
+    <Compile Include="SpaceDock\database.py" />
+    <Compile Include="SpaceDock\documentation.py" />
+    <Compile Include="SpaceDock\email.py" />
+    <Compile Include="SpaceDock\formatting.py" />
+    <Compile Include="SpaceDock\objects.py" />
+    <Compile Include="SpaceDock\profiler.py" />
+    <Compile Include="SpaceDock\routing.py" />
+    <Compile Include="SpaceDock\app.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SpaceDock\__init__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SpaceDock\endpoints\__init__.py" />
     <Content Include="SpaceDock\__init__.py" />
   </ItemGroup>
   <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />

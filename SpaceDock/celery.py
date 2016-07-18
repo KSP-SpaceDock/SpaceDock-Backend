@@ -1,10 +1,8 @@
 from celery import Celery
 from email.mime.text import MIMEText
-from SpaceDock.config import Config
+from SpaceDock.app import cfg
 
 import smtplib
-
-cfg = Config()
 
 app = Celery("tasks", broker=cfg["redis-connection"])
 
