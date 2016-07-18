@@ -37,7 +37,7 @@ pip install -r requirements.txt
 
 To start the backend simply type
 ```
-python app.py
+python SpaceDock.py
 ```
 
 ### Requirements
