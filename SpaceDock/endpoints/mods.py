@@ -11,6 +11,7 @@ from SpaceDock.routing import route
 import json
 import os
 import time
+import zipfile
 
 
 @route('/api/mods')
@@ -55,7 +56,7 @@ def mod_edit(modid):
     # Get the matching mod and edit it
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     edit_object(mod, parameters)
-    return {'error': False}
+    return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 @route('/api/mods/add', methods=['POST'])
 @user_has('mods-add', params=['gameshort'])
@@ -89,7 +90,7 @@ def add_mod():
     role.add_abilities('mods-edit', 'mods-remove')
     role.add_param('mods-edit', 'modid', str(mod.id))
     role.add_param('mods-remove', 'name', name)
-    return {'error': False}
+    return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 @route('/api/mods/remove', methods=['POST'])
 @user_has('mods-remove', params=['gameshort', 'name']) # We might want to allow deletion of own mods. Gameshort is here to allow per-game moderators.
@@ -158,7 +159,7 @@ def mod_updateBG(modid):
         pass # who cares
     f.save(path)
     mod.background = os.path.join(base_path, filename)
-    return {'error': False}
+    return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 # Versions
 
@@ -172,3 +173,60 @@ def mod_versions(modid):
     # Get the versions
     versions = ModVersion.query.filter(ModVersion.mod_id == int(modid)).all()
     return {'error': False, 'count': len(versions), 'data': bulk(versions, mod_version_info)}
+
+@route('/api/mods/<modid>/update', methods=['POST'])
+@user_has('mods-edit', params=['modid'])
+@with_session
+def mod_update(modid):
+    """
+    Releases a new version of your mod. Required fields: version, game-version, notify-followers, is-beta, zipball. Optional fields: changelog
+    """
+    version = request.form.get('version')
+    changelog = request.form.get('changelog')
+    game_version = request.form.get('game-version')
+    notify = request.form.get('notify-followers')
+    beta = request.form.get('is-beta')
+    zipball = request.files.get('zipball')
+
+    # Process fields
+    if not version or not game_version or not zipball:
+        # Client side validation means that they're just being pricks if they
+        # get here, so we don't need to show them a pretty error reason
+        # SMILIE: this doesn't account for "external" API use --> return a json error
+        return {'error': True, 'reasons': ['All fields are required.']}, 400
+    test_gameversion = GameVersion.query.filter(GameVersion.game_id == Mod.game_id).filter(GameVersion.friendly_version == game_version).first()
+    if not test_gameversion:
+        return {'error': True, 'reasons': ['Game version does not exist.']}, 400
+    game_version_id = test_gameversion.id
+    notify = boolean(notify)
+
+    # Save the file
+    filename = secure_filename(mod.name) + '-' + secure_filename(version) + '.zip'
+    base_path = os.path.join(secure_filename(current_user.username) + '_' + str(current_user.id), secure_filename(mod.name))
+    full_path = os.path.join(cfg['storage'], base_path)
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+    path = os.path.join(full_path, filename)
+    for v in mod.versions:
+        if v.friendly_version == secure_filename(version):
+            return {'error': True, 'reasons': ['We already have this version. Did you mistype the version number?']}, 400
+    if os.path.isfile(path):
+        os.remove(path)
+    zipball.save(path)
+    if not zipfile.is_zipfile(path):
+        os.remove(path)
+        return {'error': True, 'reasons': ['This is not a valid zip file.']}, 400
+    version = ModVersion(secure_filename(version), game_version_id, os.path.join(base_path, filename))
+    version.changelog = changelog
+    # Assign a sort index
+    if len(mod.versions) == 0:
+        version.sort_index = 0
+    else:
+        version.sort_index = max([v.sort_index for v in mod.versions]) + 1
+    mod.versions.append(version)
+    mod.updated = datetime.now()
+    if notify:
+        send_update_notification(mod, version, current_user)
+    db.add(version)
+    mod.default_version_id = version.id
+    return {'error': False, 'count': 1, 'data': mod_version_info(version)}

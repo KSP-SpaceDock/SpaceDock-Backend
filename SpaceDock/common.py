@@ -59,7 +59,7 @@ def user_has(ability, **params):
         def inner(*args, **kwargs):
             # Check if the user is logged in
             if not current_user:
-                return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 400
+                return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 401
 
             # Get the specified ability
             desired_ability = Ability.query.filter(Ability.name == ability).first()
@@ -74,7 +74,7 @@ def user_has(ability, **params):
                         has = True
                 if has:
                     return func(*args, **kwargs)
-            return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability]}, 400
+            return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability]}, 401
         return inner
     return wrapper
 
@@ -97,6 +97,8 @@ def boolean(s):
     """
     Converts string to bool
     """
+    if s == None:
+        return False
     return s.lower() in ['true', 'yes', '1', 'y', 't']
 
 def get_param(ability, param, p):
