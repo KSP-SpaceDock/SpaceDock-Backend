@@ -91,6 +91,8 @@ def game_id(short):
     """
     Converts a game ID into a Gameshort
     """
+    if not Game.query.filter(Game.short == short).first():
+        return None
     return Game.query.filter(Game.short == short).first().id
 
 def boolean(s):
