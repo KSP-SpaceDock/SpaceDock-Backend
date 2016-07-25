@@ -39,6 +39,7 @@ load_plugins()
 import SpaceDock.endpoints.access
 import SpaceDock.endpoints.accounts
 import SpaceDock.endpoints.admin
+import SpaceDock.endpoints.featured
 import SpaceDock.endpoints.game
 import SpaceDock.endpoints.mods
 import SpaceDock.endpoints.publisher

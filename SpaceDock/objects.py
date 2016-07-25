@@ -45,8 +45,9 @@ class Featured(Base):
     mod = relationship('Mod', backref=backref('mod', order_by=id))
     created = Column(DateTime)
 
-    def __init__(self):
+    def __init__(self, modid):
         self.created = datetime.now()
+        self.mod_id = modid
 
 
     def __repr__(self):

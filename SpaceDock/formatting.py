@@ -180,6 +180,15 @@ def user_info(user):
     'roles': roles_format(user._roles)
     }
 
+def feature_info(feature):
+    return {
+        'id': feature.id,
+        'mod': feature.mod.name,
+        'mod_id': feature.mod_id,
+        'game': feature.mod.game.short,
+        'created': feature.created.isoformat() if not feature.created == None else None
+    }
+
 def roles_format(roles):
     for role in roles:
         yield role.name
