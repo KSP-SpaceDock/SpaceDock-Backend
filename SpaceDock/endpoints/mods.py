@@ -229,7 +229,7 @@ def mod_update(gameshort, modid):
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         return {'error': True, 'reasons': ['The modid is invalid']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
     mod = Mod.query.filter(Mod.id == int(modid)).first()
 
     # Process fields
