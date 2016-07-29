@@ -53,4 +53,59 @@ def edit_user(userid):
     # Get the matching user and edit it
     user = User.query.filter(User.id == int(userid)).first()
     edit_object(user, parameters)
-    return {'error': False}
+    return {'error': False, 'count': 1, 'data': user_info(user)}
+
+@route('/api/users/<userid>/update-bg', methods=['POST'])
+@user_has('user-edit', params=['userid'])
+@with_session
+def user_updateBG(userid):
+    """
+    Updates a users background. Required fields: image
+    """
+    errors = list()
+    if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
+        rerrors.append('The userid is invalid.')
+    if not request.files.get('image'):
+        errors.append('The background is invalid.')
+    if any(errors):
+        return {'error': True, 'reasons': errors}, 400
+
+    # Find the user
+    user = User.query.filter(User.id == int(userid)).first()
+
+    # Get the file and save it to disk
+    f = request.files['image']
+    filetype = os.path.splitext(os.path.basename(f.filename))[1]
+    if not filetype in ['.png', '.jpg']:
+        return {'error': True, 'reasons': ['This file type is not acceptable.']}, 400
+    filename = secure_filename(user.username) + filetype
+    base_path = os.path.join(secure_filename(user.username) + '-' + str(time.time()) + '_' + str(user.id))
+    full_path = os.path.join(cfg['storage'], base_path)
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+    path = os.path.join(full_path, filename)
+    try:
+        os.remove(os.path.join(cfg['storage'], user.backgroundMedia))
+    except:
+        pass # who cares
+    f.save(path)
+    user.backgroundMedia = os.path.join(base_path, filename)
+    return {'error': False, 'count': 1, 'data': user_info(user)}
+
+    f = request.files['image']
+    filetype = os.path.splitext(os.path.basename(f.filename))[1]
+    if not filetype in ['.png', '.jpg']:
+        return {'error': True, 'reasons': ['This file type is not acceptable.']}, 400
+    filename = secure_filename(mod.name) + '-' + str(time.time()) + filetype
+    base_path = os.path.join(secure_filename(user.username) + '_' + str(mod.user.id), secure_filename(mod.name))
+    full_path = os.path.join(cfg['storage'], base_path)
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+    path = os.path.join(full_path, filename)
+    try:
+        os.remove(os.path.join(cfg['storage'], user.backgroundMedia))
+    except:
+        pass # who cares
+    f.save(path)
+    user.backgroundMedia = os.path.join(base_path, filename)
+    return {'error': False, 'count': 1, 'data': user_info(user)}
