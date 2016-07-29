@@ -101,8 +101,6 @@ class User(Base, MetaObject):
     passwordReset = Column(String(128))
     passwordResetExpiry = Column(DateTime)
     backgroundMedia = Column(String(512))
-    bgOffsetX = Column(Integer)
-    bgOffsetY = Column(Integer)
     rating = relationship('Rating', order_by='Rating.created')
     review = relationship('Review', order_by='Review.created')
     mods = relationship('Mod', order_by='Mod.created')
@@ -131,8 +129,6 @@ class User(Base, MetaObject):
         self.ircNick = ''
         self.description = ''
         self.backgroundMedia = ''
-        self.bgOffsetX = 0
-        self.bgOffsetY = 0
         self.dark_theme = False
         if roles and isinstance(roles, basestring):
             roles = [roles]
@@ -309,8 +305,6 @@ class Publisher(Base, MetaObject):
     created = Column(DateTime)
     updated = Column(DateTime)
     background = Column(String(512))
-    bgOffsetX = Column(Integer)
-    bgOffsetY = Column(Integer)
     link = Column(Unicode(1024))
     games = relationship('Game', back_populates='publisher')
 
@@ -340,8 +334,6 @@ class Game(Base, MetaObject):
     created = Column(DateTime)
     updated = Column(DateTime)
     background = Column(String(512))
-    bgOffsetX = Column(Integer)
-    bgOffsetY = Column(Integer)
     link = Column(Unicode(1024))
     mods = relationship('Mod', back_populates='game')
     modlists = relationship('ModList', back_populates='game')
@@ -392,8 +384,6 @@ class Mod(Base, MetaObject):
     created = Column(DateTime)
     updated = Column(DateTime)
     background = Column(String(512))
-    bgOffsetX = Column(Integer)
-    bgOffsetY = Column(Integer)
     medias = relationship('Media')
     default_version_id = Column(Integer)
     versions = relationship('ModVersion', order_by="desc(ModVersion.sort_index)")
@@ -408,7 +398,6 @@ class Mod(Base, MetaObject):
     review = relationship('Review', order_by='Review.created')
     total_score = Column(Float(), nullable=True)
     rating_count = Column(Integer, nullable=False, server_default=text('0'))
-    meta = Column(String(128))
 
     def background_thumb(self):
         if (_cfg('thumbnail_size') == ''):
@@ -441,7 +430,6 @@ class Mod(Base, MetaObject):
         self.votes = 0
         self.follower_count = 0
         self.download_count = 0
-        self.meta = '[]'
 
     def __repr__(self):
         return '<Mod %r %r>' % (self.id, self.name)
