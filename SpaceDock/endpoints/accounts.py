@@ -104,7 +104,7 @@ def confirm(username, confirmation):
     role = Role.query.filter(Role.name == username).first()
     role.add_abilities('user-edit', 'mods-add')
     role.add_param('user-edit', 'userid', user.id)
-    role.add_param('mods-add', 'gameshort', '*.')
+    role.add_param('mods-add', 'gameshort', '.*')
     f = request.args.get('f')
     if f:
         mod = Mod.query.filter(Mod.id == int(f)).first()

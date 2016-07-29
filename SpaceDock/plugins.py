@@ -21,6 +21,7 @@ def load_file(path):
     # Dont load the file if it has no name
     if not name:
         print('Plugin file "' + path + '" has no name declaration. Please add one using the control header.')
+        return
             
     # Load deps
     for d in deps:
