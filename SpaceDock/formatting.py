@@ -189,6 +189,21 @@ def feature_info(feature):
         'created': feature.created.isoformat() if not feature.created == None else None
     }
 
+def pack_info(pack):
+    return {
+        'id': pack.id,
+        'user': pack.user.username,
+        'user_id': pack.user_id,
+        'created': pack.created.isoformat() if not pack.created == None else None,
+        'game': pack.game.short,
+        'game_id': pack.game_id,
+        'background': pack.background,
+        'description': pack.description,
+        'short_description': pack.short_description,
+        'name': pack.name,
+        'mods': [{'name': m.mod.name, 'id': m.mod.id, 'index': m.sort_index} for m in pack.mods]
+    }
+
 def roles_format(roles):
     for role in roles:
         yield role.name
