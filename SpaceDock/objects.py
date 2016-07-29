@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, ForeignKey, Table, UnicodeText, Text, text,Float
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
-from SpaceDock.database import Base, db
+from SpaceDock.database import Base, MetaObject, db
 
 import os.path
 import bcrypt
@@ -37,8 +37,7 @@ def is_sequence(arg):
             hasattr(arg, "__getitem__") or
             hasattr(arg, "__iter__"))
 
-
-class Featured(Base):
+class Featured(Base, MetaObject):
     __tablename__ = 'featured'
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
@@ -54,7 +53,7 @@ class Featured(Base):
         return '<Featured %r>' % self.id
 
 
-class BlogPost(Base):
+class BlogPost(Base, MetaObject):
     __tablename__ = 'blog'
     id = Column(Integer, primary_key = True)
     title = Column(Unicode(1024))
@@ -68,7 +67,7 @@ class BlogPost(Base):
         return '<Blog Post %r>' % self.id
 
 
-class User(Base):
+class User(Base, MetaObject):
     __tablename__ = 'user'
     __lock__ = ['id', 'username', 'password', 'created', 'confirmation', 'passwordReset', 'passwordResetExpiry', 'backgroundMedia']
     id = Column(Integer, primary_key = True)
@@ -162,7 +161,7 @@ class User(Base):
         self.roles = [role for role in self.roles if role not in roles]
 
 
-class Role(Base):
+class Role(Base, MetaObject):
     __tablename__ = 'role'
     id = Column(Integer(), primary_key=True)
     name = Column(String(120), unique=True)
@@ -218,7 +217,7 @@ class Role(Base):
         return self.name
 
 
-class Ability(Base):
+class Ability(Base, MetaObject):
     __tablename__ = 'ability'
     id = Column(Integer(), primary_key=True)
     name = Column(String(120), unique=True)
@@ -233,7 +232,7 @@ class Ability(Base):
         return self.name
 
 
-class UserAuth(Base):
+class UserAuth(Base, MetaObject):
     __tablename__ = 'user_auth'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=False, index=True)
@@ -253,7 +252,7 @@ class UserAuth(Base):
         return '<UserAuth %r, User %r>' % (self.provider, self.user_id)
 
 
-class Rating(Base):
+class Rating(Base, MetaObject):
     __tablename__ = 'rating'
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('user.id'))
@@ -273,7 +272,7 @@ class Rating(Base):
         return '<Rating %r %r>' % (self.id, self.score)
 
 
-class Review(Base):
+class Review(Base, MetaObject):
     __tablename__ = 'review'
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('user.id'))
@@ -300,7 +299,7 @@ class Review(Base):
         return '<Review %r %r>' % (self.id, self.review_title)
 
 
-class Publisher(Base):
+class Publisher(Base, MetaObject):
     __tablename__ = 'publisher'
     __lock__ = ['id', 'created', 'updated', 'background']
     id = Column(Integer, primary_key = True)
@@ -323,7 +322,7 @@ class Publisher(Base):
         return '<Publisher %r %r>' % (self.id, self.name)
 
 
-class Game(Base):
+class Game(Base, MetaObject):
     __tablename__ = 'game'
     __lock__ = ['id', 'rating', 'short', 'created', 'updated', 'background']
     id = Column(Integer, primary_key = True)
@@ -372,7 +371,7 @@ class Game(Base):
         return '<Game %r %r>' % (self.id, self.name)
 
 
-class Mod(Base):
+class Mod(Base, MetaObject):
     __tablename__ = 'mod'
     __lock__ = ['id', 'user_id', 'game_id', 'approved', 'votes', 'created', 'updated', 'background', 'follower_count', 'download_count', 'total_score', 'rating_count']
     id = Column(Integer, primary_key = True)
@@ -448,7 +447,7 @@ class Mod(Base):
         return '<Mod %r %r>' % (self.id, self.name)
 
 
-class ModList(Base):
+class ModList(Base, MetaObject):
     __tablename__ = 'modlist'
     id = Column(Integer, primary_key = True)
     user = relationship('User', backref=backref('modlist', order_by=id))
@@ -470,7 +469,7 @@ class ModList(Base):
         return '<ModList %r %r>' % (self.id, self.name)
 
 
-class ModListItem(Base):
+class ModListItem(Base, MetaObject):
     __tablename__ = 'modlistitem'
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
@@ -486,7 +485,7 @@ class ModListItem(Base):
         return '<ModListItem %r %r>' % (self.mod_id, self.mod_list_id)
 
 
-class SharedAuthor(Base):
+class SharedAuthor(Base, MetaObject):
     __tablename__ = 'sharedauthor'
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
@@ -502,7 +501,7 @@ class SharedAuthor(Base):
         return '<SharedAuthor %r>' % self.user_id
 
 
-class DownloadEvent(Base):
+class DownloadEvent(Base, MetaObject):
     __tablename__ = 'downloadevent'
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
@@ -520,7 +519,7 @@ class DownloadEvent(Base):
         return '<Download Event %r>' % self.id
 
 
-class FollowEvent(Base):
+class FollowEvent(Base, MetaObject):
     __tablename__ = 'followevent'
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
@@ -537,7 +536,7 @@ class FollowEvent(Base):
         return '<Download Event %r>' % self.id
 
 
-class ReferralEvent(Base):
+class ReferralEvent(Base, MetaObject):
     __tablename__ = 'referralevent'
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
@@ -554,7 +553,7 @@ class ReferralEvent(Base):
         return '<Download Event %r>' % self.id
 
 
-class ModVersion(Base):
+class ModVersion(Base, MetaObject):
     __tablename__ = 'modversion'
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
@@ -586,7 +585,7 @@ class ModVersion(Base):
         return '<Mod Version %r>' % self.id
 
 
-class Media(Base):
+class Media(Base, MetaObject):
     __tablename__ = 'media'
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
@@ -604,7 +603,7 @@ class Media(Base):
         return '<Media %r>' % self.hash
 
 
-class ReviewMedia(Base):
+class ReviewMedia(Base, MetaObject):
     __tablename__ = 'reviewmedia'
     id = Column(Integer, primary_key = True)
     review_id = Column(Integer, ForeignKey('review.id'))
@@ -622,7 +621,7 @@ class ReviewMedia(Base):
         return '<ReviewMedia %r>' % self.hash
 
 
-class GameVersion(Base):
+class GameVersion(Base, MetaObject):
     __tablename__ = 'gameversion'
     id = Column(Integer, primary_key = True)
     friendly_version = Column(String(128))
