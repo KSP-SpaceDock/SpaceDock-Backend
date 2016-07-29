@@ -42,6 +42,9 @@
     <Compile Include="SpaceDock\endpoints\admin.py" />
     <Compile Include="SpaceDock\endpoints\anonymous.py" />
     <Compile Include="SpaceDock\endpoints\api.py" />
+    <Compile Include="SpaceDock\endpoints\featured.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SpaceDock\endpoints\game.py" />
     <Compile Include="SpaceDock\endpoints\mods.py" />
     <Compile Include="SpaceDock\endpoints\publisher.py" />

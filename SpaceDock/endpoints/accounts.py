@@ -4,6 +4,7 @@ from flask_login import current_user, login_user, logout_user
 from SpaceDock.common import *
 from SpaceDock.config import cfg
 from SpaceDock.email import *
+from SpaceDock.formatting import *
 from SpaceDock.database import db
 from SpaceDock.routing import route
 from SpaceDock.objects import *
@@ -61,7 +62,7 @@ def register():
         send_confirmation(user, followMod)
     else:
         send_confirmation(user)
-    return {'error': False}
+    return {'error': False, 'count': 1, 'data': user_info(user)}
 
 def check_username_for_registration(username):
     if not username:

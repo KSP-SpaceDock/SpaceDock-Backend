@@ -46,7 +46,7 @@ def edit_publisher(publid):
     pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
     edit_object(pub, parameters)
     pub.updated = datetime.now()
-    return {'error': False}
+    return {'error': False, 'count': 1, 'data': publisher_info(pub)}
 
 @route('/api/publishers/add', methods=['POST'])
 @user_has('publisher-add')
@@ -65,7 +65,7 @@ def add_publisher():
     # Get the matching game and edit it
     pub = Publisher(name)
     db.add(pub)
-    return {'error': False}
+    return {'error': False, 'count': 1, 'data': publisher_info(pub)}
 
 @route('/api/publishers/remove', methods=['POST'])
 @user_has('publisher-remove')

@@ -125,7 +125,7 @@ def edit_game(gameshort):
     # Get the matching game and edit it
     game = Game.query.filter(Game.short == gameshort).first()
     edit_object(game, parameters)
-    return {'error': False}
+    return {'error': False, 'count': 1, 'data': game_info(game)}
 
 @route('/api/games/add', methods=['POST'])
 @user_has('game-add', params=['pubid'])
@@ -161,7 +161,7 @@ def add_game():
     # Make a new game
     game = Game(name, int(pubid), short)
     db.add(game)
-    return {'error': False}
+    return {'error': False, 'count': 1, 'data': game_info(game)}
 
 @route('/api/games/remove', methods=['POST'])
 @user_has('game-remove', params=['short'])
