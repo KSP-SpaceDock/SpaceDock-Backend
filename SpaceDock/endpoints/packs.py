@@ -57,7 +57,7 @@ def packs_add():
     list.game = Game.query.filter(Game.short == gameshort).first()
     list.user = current_user
     db.add(list)    
-    role = Role.query.filter(Role.name == current_user.username).first()
+    role = Role.query.filter(Role.name == current_user.username.lower()).first()
     role.add_abilities('packs-edit', 'mods-remove')
     role.add_param('packs-edit', 'packid', str(list.id))
     role.add_param('packs-remove', 'name', name)
