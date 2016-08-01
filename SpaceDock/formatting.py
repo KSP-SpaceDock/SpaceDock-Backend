@@ -21,8 +21,6 @@ def game_info(game):
         'created': game.created.isoformat() if not game.created == None else None,
         'updated': game.updated.isoformat() if not game.updated == None else None,
         'background': game.background,
-        'bgOffsetX': game.bgOffsetX,
-        'bgOffsetY': game.bgOffsetY,
         'link': game.link
     }
 
@@ -46,8 +44,6 @@ def publisher_info(publisher):
         'created': publisher.created.isoformat() if not publisher.created == None else None,
         'updated': publisher.updated.isoformat() if not publisher.updated == None else None,
         'background': publisher.background,
-        'bgOffsetX': publisher.bgOffsetX,
-        'bgOffsetY': publisher.bgOffsetY,
         'link': publisher.link,
         'games': games
     }
@@ -73,8 +69,6 @@ def mod_info(mod):
         'created': mod.created.isoformat() if not mod.created == None else None,
         'updated': mod.updated.isoformat() if not mod.updated == None else None,
         'background': mod.background,
-        'bgOffsetX': mod.bgOffsetX,
-        'bgOffsetY': mod.bgOffsetY,
         'medias': mod.medias,
         'default_version_id': mod.default_version_id,
         #'downloads': mod.downloads,
@@ -139,8 +133,6 @@ def admin_user_info(user):
     'showLocation': user.showLocation,
     'backgroundMedia': user.backgroundMedia,
     #Password reset skipped
-    'bgOffsetX': user.bgOffsetX,
-    'bgOffsetY': user.bgOffsetY,
     'dark_theme': user.dark_theme
     }
 
@@ -174,8 +166,6 @@ def user_info(user):
     'showLocation': user.showLocation,
     'backgroundMedia': user.backgroundMedia,
     #Password reset skipped
-    'bgOffsetX': user.bgOffsetX,
-    'bgOffsetY': user.bgOffsetY,
     'dark_theme': user.dark_theme,
     'roles': roles_format(user._roles)
     }
