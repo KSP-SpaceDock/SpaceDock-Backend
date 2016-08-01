@@ -60,8 +60,9 @@ def user_has(ability, **params):
             # Check if the user is logged in
             if not current_user:
                 return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 403
-            if not current_user.public:
-                return {'error': True, 'reasons': ['Only users with public profiles may access this page.']}, 403
+            if ('public' in params and params['public']) or not 'public' in params:
+                if not current_user.public:
+                    return {'error': True, 'reasons': ['Only users with public profiles may access this page.']}, 403
 
             # Get the specified ability
             desired_ability = Ability.query.filter(Ability.name == ability).first()

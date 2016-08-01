@@ -38,7 +38,7 @@ def get_user_info(userid):
         return {'error': True, 'reasons': ['The userid is invalid']}, 400
 
 @route('/api/users/<userid>/edit', methods=['POST'])
-@user_has('user-edit', params=['userid'])
+@user_has('user-edit', params=['userid'], public=False)
 @with_session
 def edit_user(userid):
     """
@@ -56,7 +56,7 @@ def edit_user(userid):
     return {'error': False, 'count': 1, 'data': user_info(user)}
 
 @route('/api/users/<userid>/update-bg', methods=['POST'])
-@user_has('user-edit', params=['userid'])
+@user_has('user-edit', params=['userid'], public=False)
 @with_session
 def user_updateBG(userid):
     """
