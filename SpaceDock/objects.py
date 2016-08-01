@@ -444,7 +444,6 @@ class ModList(Base, MetaObject):
     game_id = Column(Integer, ForeignKey('game.id'))
     game = relationship('Game', back_populates='modlists')
     background = Column(String(32))
-    bgOffsetY = Column(Integer)
     description = Column(Unicode(100000))
     short_description = Column(Unicode(1000))
     name = Column(Unicode(1024))

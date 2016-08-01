@@ -10,7 +10,7 @@ import json
 
 @route('/api/access')
 @user_has('access-view')
-def roles():
+def roles_list():
     """
     Displays  list of all roles with the matching abilities
     """
@@ -50,6 +50,17 @@ def remove_role():
         return {'error': True, 'reasons': ['The user doesn\'t have this role']}, 400
     user.remove_roles(rolename)
     return {'error': False}
+
+@route('/api/access/abilities')
+@user_has('access-view')
+def abilities_list():
+    """
+    Displays a list of all abilities.
+    """
+    abilities = list()
+    for ability in Ability.query.order_by(desc(Ability.id)).all():
+        abilities.append(ability_format(ability))
+    return {'error': False, 'count': len(abilities), 'data': abilities}
 
 @route('/api/access/abilities/assign', methods=['POST'])
 @user_has('access-edit')

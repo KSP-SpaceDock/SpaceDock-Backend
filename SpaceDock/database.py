@@ -17,6 +17,8 @@ class MetaObject():
         """
         Returns a metadata value
         """
+        if not test_is_json(self.meta):
+            data = '{}'
         data = json.loads(self.meta)
         if key in data:
             return data[key]
@@ -26,11 +28,23 @@ class MetaObject():
         """
         Sets a metadata value
         """
+        if not test_is_json(self.meta):
+            data = '{}'
         data = json.loads(self.meta)
         data[key] = value
         if value == None:
             del data[key]
         self.meta = json.dumps(data)
+
+def test_is_json(test):
+    """
+    Checks whether something is JSON formatted
+    """
+    try:
+        s = json.loads(test)
+        return True
+    except ValueError as e:
+        return False
         
 Base = declarative_base()
 Base.query = db.query_property()

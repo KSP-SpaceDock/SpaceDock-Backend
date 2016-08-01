@@ -78,6 +78,14 @@ def user_has(ability, **params):
                     return func(*args, **kwargs)
             return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability]}, 403
         return inner
+
+    # Make sure the ability exists
+    desired_ability = Ability.query.filter(Ability.name == ability).first()
+    if not desired_ability:
+        desired_ability = Ability(ability)
+        db.add(desired_ability)
+        db.commit()
+
     return wrapper
 
 def has_ability(ability, **params): # HAX
