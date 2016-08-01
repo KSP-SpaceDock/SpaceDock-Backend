@@ -41,6 +41,7 @@ import SpaceDock.endpoints.accounts
 import SpaceDock.endpoints.admin
 import SpaceDock.endpoints.featured
 import SpaceDock.endpoints.game
+import SpaceDock.endpoints.general
 import SpaceDock.endpoints.mods
 import SpaceDock.endpoints.publisher
 import SpaceDock.endpoints.user
