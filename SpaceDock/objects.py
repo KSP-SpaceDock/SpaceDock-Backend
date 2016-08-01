@@ -152,9 +152,13 @@ class User(Base, MetaObject):
 
     # Permissions
     def add_roles(self, *roles):
-        self.roles.extend([role for role in roles if role not in self.roles])
+        for r in roles:
+            if not r in self.roles:
+                self.roles.append(r)
     def remove_roles(self, *roles):
-        self.roles = [role for role in self.roles if role not in roles]
+        for r in roles:
+            if r in self.roles:
+                self.roles.remove(r)
 
 
 class Role(Base, MetaObject):
@@ -176,6 +180,11 @@ class Role(Base, MetaObject):
                 db.add(existing_ability)
                 db.commit()
             self.abilities.append(existing_ability)
+
+    def add_abilities_re(self, pattern):
+        for ability in Ability.query.all():
+            if re.match(pattern, ability.name) and not ability in self.abilities:
+                self.abilities.append(ability)
 
     def remove_abilities(self, *abilities):
         for ability in abilities:
