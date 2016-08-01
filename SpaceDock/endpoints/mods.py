@@ -259,6 +259,8 @@ def mod_update(gameshort, modid):
         return {'error': True, 'reasons': ['This is not a valid zip file.']}, 400
     version = ModVersion(secure_filename(version), game_version_id, os.path.join(base_path, filename))
     version.changelog = changelog
+    version.mod = mod
+    version.mod_id = mod.id
     # Assign a sort index
     if len(mod.versions) == 0:
         version.sort_index = 0

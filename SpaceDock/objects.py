@@ -570,6 +570,7 @@ class ModVersion(Base, MetaObject):
         self.friendly_version = friendly_version
         self.is_beta = is_beta
         self.gameversion_id = gameversion_id
+        self.gameversion = GameVersion.query.filter(GameVersion.id == gameversion_id).first()
         self.download_path = download_path
         self.created = datetime.now()
         self.sort_index = 0
