@@ -1,4 +1,5 @@
 from SpaceDock.celery import send_mail
+from SpaceDock.config import cfg
 from werkzeug.utils import secure_filename
 
 import pystache
