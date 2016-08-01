@@ -66,14 +66,19 @@ def user_has(ability, **params):
 
             # Get the specified ability
             desired_ability = Ability.query.filter(Ability.name == ability).first()
-            user_abilities = [role.abilities for role in current_user._roles]
-            user_params = [json.loads(role.params) for role in current_user._roles]
+            user_abilities = []
+            for role in current_user._roles:
+                for ability_ in role.abilities:
+                    user_abilities.append(ability_)
+            user_params = {}
+            for role in current_user._roles:
+                user_params.update(json.loads(role.params))
 
             # Check whether the abilities match
             has = False
             if desired_ability in user_abilities and 'params' in params:
                 for p in params['params']:
-                    if re_in(get_param(ability, p, user_params), kwargs[p]) or re_in(get_param(ability, p, user_params), request.form.get(p)):
+                    if re_in(get_param(ability, p, user_params), request.form.get(p)) or re_in(get_param(ability, p, user_params), kwargs[p]):
                         has = True
                 if has:
                     return func(*args, **kwargs)
