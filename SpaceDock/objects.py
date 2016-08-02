@@ -69,7 +69,7 @@ class BlogPost(Base, MetaObject):
 
 class User(Base, MetaObject):
     __tablename__ = 'user'
-    __lock__ = ['id', 'username', 'password', 'created', 'confirmation', 'passwordReset', 'passwordResetExpiry', 'backgroundMedia']
+    __lock__ = ['id', 'username', 'password', 'created', 'confirmation', 'passwordReset', 'passwordResetExpiry', 'backgroundMedia', 'rating', 'review', 'mods', 'packs', 'following', '_roles', 'roles']
     id = Column(Integer, primary_key = True)
     username = Column(String(128), nullable = False, index = True)
     email = Column(String(256), nullable = False, index = True)
@@ -305,7 +305,7 @@ class Review(Base, MetaObject):
 
 class Publisher(Base, MetaObject):
     __tablename__ = 'publisher'
-    __lock__ = ['id', 'created', 'updated', 'background']
+    __lock__ = ['id', 'created', 'updated', 'background', 'games']
     id = Column(Integer, primary_key = True)
     name = Column(Unicode(1024))
     short_description = Column(Unicode(1000))
@@ -326,7 +326,7 @@ class Publisher(Base, MetaObject):
 
 class Game(Base, MetaObject):
     __tablename__ = 'game'
-    __lock__ = ['id', 'rating', 'short', 'created', 'updated', 'background']
+    __lock__ = ['id', 'rating', 'short', 'publisher_id', 'publisher', 'mods', 'modlists' 'version', 'created', 'updated', 'background']
     id = Column(Integer, primary_key = True)
     name = Column(Unicode(1024))
     active = Column(Boolean())
@@ -373,7 +373,8 @@ class Game(Base, MetaObject):
 
 class Mod(Base, MetaObject):
     __tablename__ = 'mod'
-    __lock__ = ['id', 'user_id', 'game_id', 'approved', 'votes', 'created', 'updated', 'background', 'follower_count', 'download_count', 'total_score', 'rating_count']
+    __lock__ = ['id', 'user_id', 'user', 'game_id', 'game', 'shared_authors', 'approved', 'votes', 'created', 'updated', 'background', 'medias', 'versions', 
+                'downloads', 'follow_events', 'referrals', 'followers', 'rating', 'review', 'follower_count', 'download_count', 'total_score', 'rating_count']
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship('User', backref=backref('mod', order_by=id))
@@ -447,7 +448,7 @@ class Mod(Base, MetaObject):
 
 class ModList(Base, MetaObject):
     __tablename__ = 'modlist'
-    __lock__ = ['id', 'user_id', 'created', 'game_id', 'background']
+    __lock__ = ['id', 'user_id', 'user', 'created', 'game_id', 'game', 'background', 'mods']
     id = Column(Integer, primary_key = True)
     user = relationship('User', backref=backref('modlist', order_by=id))
     user_id = Column(Integer, ForeignKey('user.id'))
@@ -469,7 +470,7 @@ class ModList(Base, MetaObject):
 
 class ModListItem(Base, MetaObject):
     __tablename__ = 'modlistitem'
-    __lock__ = ['id', 'mod_id', 'mod_list_id']
+    __lock__ = ['id', 'mod_id', 'mod', 'mod_list_id', 'mod_list']
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
     mod = relationship('Mod', viewonly=True, backref=backref('modlistitem'))
@@ -554,7 +555,7 @@ class ReferralEvent(Base, MetaObject):
 
 class ModVersion(Base, MetaObject):
     __tablename__ = 'modversion'
-    __lock__ = ['id', 'mod_id', 'friendly_version', 'created', 'download_path', 'file_size']
+    __lock__ = ['id', 'mod_id', 'mod', 'friendly_version', 'gameversion_id', 'gameversion', 'created', 'download_path', 'file_size']
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
     mod = relationship('Mod', viewonly=True, backref=backref('modversion', order_by="desc(ModVersion.created)"))
@@ -624,7 +625,7 @@ class ReviewMedia(Base, MetaObject):
 
 class GameVersion(Base, MetaObject):
     __tablename__ = 'gameversion'
-    __lock__ = ['id', 'friendly_version', 'game_id']
+    __lock__ = ['id', 'friendly_version', 'game_id', 'game']
     id = Column(Integer, primary_key = True)
     friendly_version = Column(String(128))
     is_beta = Column(Boolean())
