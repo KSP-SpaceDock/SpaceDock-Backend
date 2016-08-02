@@ -14,7 +14,7 @@ def new_user(name, password, email, admin):
     user.add_roles(name)
     db.commit()
     role = Role.query.filter(Role.name == name.lower()).first()
-    role.add_abilities('user-edit', 'mods-add')
+    role.add_abilities('user-edit', 'mods-add', 'logged-in')
     role.add_param('user-edit', 'userid', user.id)
     role.add_param('mods-add', 'gameshort', '.*')
     role.add_param('packs-add', 'gameshort', '.*')
