@@ -89,7 +89,7 @@ def user_has(ability, **params):
             has = False
             if desired_ability in user_abilities and 'params' in params:
                 for p in params['params']:
-                    if re_in(get_param(ability, p, user_params), request.form.get(p)) or re_in(get_param(ability, p, user_params), kwargs[p]):
+                    if re_in(get_param(ability, p, user_params), request.form.get(p)) or re_in(get_param(ability, p, user_params), kwargs.get(p)):
                         has = True
                 if has:
                     return func(*args, **kwargs)
