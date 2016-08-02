@@ -75,7 +75,6 @@ class User(Base, MetaObject):
     email = Column(String(256), nullable = False, index = True)
     showEmail = Column(Boolean())
     public = Column(Boolean())
-    admin = Column(Boolean()) # TODO(Thomas): Remove
     password = Column(String(128))
     description = Column(Unicode(10000))
     created = Column(DateTime)
@@ -448,6 +447,7 @@ class Mod(Base, MetaObject):
 
 class ModList(Base, MetaObject):
     __tablename__ = 'modlist'
+    __lock__ = ['id', 'user_id', 'created', 'game_id', 'background']
     id = Column(Integer, primary_key = True)
     user = relationship('User', backref=backref('modlist', order_by=id))
     user_id = Column(Integer, ForeignKey('user.id'))
@@ -469,6 +469,7 @@ class ModList(Base, MetaObject):
 
 class ModListItem(Base, MetaObject):
     __tablename__ = 'modlistitem'
+    __lock__ = ['id', 'mod_id', 'mod_list_id']
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
     mod = relationship('Mod', viewonly=True, backref=backref('modlistitem'))
@@ -553,6 +554,7 @@ class ReferralEvent(Base, MetaObject):
 
 class ModVersion(Base, MetaObject):
     __tablename__ = 'modversion'
+    __lock__ = ['id', 'mod_id', 'friendly_version', 'created', 'download_path', 'file_size']
     id = Column(Integer, primary_key = True)
     mod_id = Column(Integer, ForeignKey('mod.id'))
     mod = relationship('Mod', viewonly=True, backref=backref('modversion', order_by="desc(ModVersion.created)"))
@@ -622,12 +624,12 @@ class ReviewMedia(Base, MetaObject):
 
 class GameVersion(Base, MetaObject):
     __tablename__ = 'gameversion'
+    __lock__ = ['id', 'friendly_version', 'game_id']
     id = Column(Integer, primary_key = True)
     friendly_version = Column(String(128))
     is_beta = Column(Boolean())
     game_id = Column(Integer, ForeignKey('game.id'))
     game = relationship('Game', back_populates='version')
-
 
     def __init__(self, friendly_version, game_id, is_beta):
         self.friendly_version = friendly_version
@@ -636,11 +638,3 @@ class GameVersion(Base, MetaObject):
 
     def __repr__(self):
         return '<Game Version %r>' % self.friendly_version
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            'is_beta': self.is_beta,
-            'friendly_version': self.friendly_version,
-            'game_id': self.game_id,
-        }
