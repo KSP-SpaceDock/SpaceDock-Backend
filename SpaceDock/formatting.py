@@ -76,9 +76,9 @@ def mod_info(mod):
         'background': mod.background,
         'medias': mod.medias,
         'default_version_id': mod.default_version_id,
-        #'downloads': mod.downloads,
-        #'follow_events': mod.follow_events,
-        #'referrals': mod.referrals,
+        'downloads': dumb_object(mod.downloads),
+        'follow_events': dumb_object(mod.follow_events),
+        'referrals': dumb_object(mod.referrals),
         'source_link': mod.source_link,
         'follower_count': mod.follower_count,
         'download_count': mod.download_count,
@@ -212,3 +212,13 @@ def ability_format(ability):
         'name': ability.name,
         'meta': json.loads(ability.meta)
     }
+
+def dumb_object(model):
+    if type(model) is list:
+        return [dumb_object(x) for x in model]
+    result = {}
+    for col in model._sa_class_manager.mapper.mapped_table.columns:
+        a = getattr(model, col.name)
+        if not isinstance(a, Base):
+            result[col.name] = a
+    return result

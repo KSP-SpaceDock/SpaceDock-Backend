@@ -316,3 +316,80 @@ def delete_version(gameshort, modid):
     db.delete(version[0])
     mod.versions = [v for v in mod.versions if v.id != int(version_id)]
     return {'error': False}
+
+@route('/api/mods/<gameshort>/<modid>/follow')
+@user_has('logged-in', public=False)
+@with_session
+def mods_follow(gameshort, modid):
+    """
+    Registers a user for automated email sending when a new mod version is released
+    """
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+    if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 
+    if any(m.id == int(modid) for m in current_user.following):
+        return {'error': True, 'reasons': ['You are already following this mod.']}, 400
+
+    # Get the mod
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+
+    # Follow
+    event = FollowEvent.query\
+            .filter(FollowEvent.mod_id == mod.id)\
+            .order_by(desc(FollowEvent.created))\
+            .first()
+    # Events are aggregated hourly
+    if not event or ((datetime.now() - event.created).seconds / 60 / 60) >= 1:
+        event = FollowEvent()
+        event.mod = mod
+        event.delta = 1
+        event.events = 1
+        db.add(event)
+        mod.follow_events.append(event)
+    else:
+        event.delta += 1
+        event.events += 1
+    mod.follower_count += 1
+    current_user.following.append(mod)
+    return {'error': False}
+
+@route('/api/mods/<gameshort>/<modid>/unfollow')
+@user_has('logged-in', public=False)
+@with_session
+def mods_follow(gameshort, modid):
+    """
+    Unregisters a user for automated email sending when a new mod version is released
+    """
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+    if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 
+    if not any(m.id == int(modid) for m in current_user.following):
+        return {'error': True, 'reasons': ['You are not following this mod.']}, 400
+
+    # Get the mod
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+
+    # Follow
+    event = FollowEvent.query\
+            .filter(FollowEvent.mod_id == mod.id)\
+            .order_by(desc(FollowEvent.created))\
+            .first()
+    # Events are aggregated hourly
+    if not event or ((datetime.now() - event.created).seconds / 60 / 60) >= 1:
+        event = FollowEvent()
+        event.mod = mod
+        event.delta = -1
+        event.events = 1
+        mod.follow_events.append(event)
+        db.add(event)
+    else:
+        event.delta -= 1
+        event.events += 1
+    mod.follower_count -= 1
+    current_user.following = [m for m in current_user.following if m.id != int(modid)]
+    current_user.following.append(mod)
+    return {'error': False}
+
+    
