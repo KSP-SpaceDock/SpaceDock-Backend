@@ -1,4 +1,5 @@
 from sqlalchemy import desc
+from flask import redirect
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 from SpaceDock.common import *
@@ -37,6 +38,44 @@ def mods_info(gameshort, modid):
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
+
+@route('/api/mods/<gameshort>/<modid>/download/<version>')
+@with_session
+def mods_download(gameshort, modid, versionname):
+    """
+    Downloads the latest non-beta version of the mod
+    """
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+    if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    if not ModVersion.query.filter(ModVersion.mod_id == int(modid)).filter(ModVersion.friendly_version == versionname).first():
+        return {'error': True, 'reasons': ['The version is invalid.']}, 400
+    # Get the mod
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+    version = ModVersion.query.filter(ModVersion.mod_id == mod_id).filter(ModVersion.friendly_version == versionname).first()
+    download = DownloadEvent.query\
+            .filter(DownloadEvent.mod_id == mod.id and DownloadEvent.version_id == version.id)\
+            .order_by(desc(DownloadEvent.created))\
+            .first()
+
+    # Check whether the path exists
+    if not os.path.isfile(os.path.join(cfg['storage'], version.download_path)):
+        return {'error': True, 'reasons': ['The file you tried to access doesn\'t exist.']}, 404
+
+    if not 'Range' in request.headers:
+        # Events are aggregated hourly
+        if not download or ((datetime.now() - download.created).seconds / 60 / 60) >= 1:
+            download = DownloadEvent()
+            download.mod = mod
+            download.version = version
+            download.downloads = 1
+            db.add(download)
+            mod.downloads.append(download)
+        else:
+            download.downloads += 1
+        mod.download_count += 1
+    return redirect('/content/' + version.download_path)
 
 @route('/api/mods/<gameshort>/<modid>/edit', methods=['POST'])
 @user_has('mods-edit', params=['gameshort', 'modid'])
@@ -357,7 +396,7 @@ def mods_follow(gameshort, modid):
 @route('/api/mods/<gameshort>/<modid>/unfollow')
 @user_has('logged-in', public=False)
 @with_session
-def mods_follow(gameshort, modid):
+def mods_unfollow(gameshort, modid):
     """
     Unregisters a user for automated email sending when a new mod version is released
     """
