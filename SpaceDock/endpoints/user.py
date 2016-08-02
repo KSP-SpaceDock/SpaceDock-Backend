@@ -52,8 +52,15 @@ def edit_user(userid):
 
     # Get the matching user and edit it
     user = User.query.filter(User.id == int(userid)).first()
-    edit_object(user, parameters)
-    return {'error': False, 'count': 1, 'data': user_info(user)}
+    code = edit_object(user, parameters)
+
+    # Error check
+    if code == 2:
+        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
+    elif code == 1:
+        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
+    else:
+        return {'error': False, 'count': 1, 'data': user_info(user)}
 
 @route('/api/users/<userid>/update-bg', methods=['POST'])
 @user_has('user-edit', params=['userid'], public=False)

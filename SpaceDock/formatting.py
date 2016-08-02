@@ -116,7 +116,6 @@ def admin_user_info(user):
         'email': user.email,
         'showEmail': user.showEmail,
         'public': user.public,
-        'admin': user.admin,
         #Password skipped
         'description': user.description,
         'created': user.created.isoformat() if not user.created == None else None,
@@ -149,7 +148,6 @@ def user_info(user):
         'id': user.id,
         'username': user.username,
         'public': user.public,
-        'admin': user.admin,
         #Email skipped
         #Password skipped
         'description': user.description,

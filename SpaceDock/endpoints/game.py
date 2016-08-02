@@ -124,8 +124,15 @@ def edit_game(gameshort):
 
     # Get the matching game and edit it
     game = Game.query.filter(Game.short == gameshort).first()
-    edit_object(game, parameters)
-    return {'error': False, 'count': 1, 'data': game_info(game)}
+    code = edit_object(game, parameters)
+
+    # Error check
+    if code == 2:
+        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
+    elif code == 1:
+        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
+    else:
+        return {'error': False, 'count': 1, 'data': game_info(game)}
 
 @route('/api/games/add', methods=['POST'])
 @user_has('game-add', params=['pubid'])

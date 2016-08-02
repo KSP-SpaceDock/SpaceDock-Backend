@@ -82,8 +82,15 @@ def packs_edit(gameshort, packid):
 
     # Get the list
     list = ModList.query.filter(ModList.id == int(packid)).first()
-    edit_object(list, parameters)
-    return {'error': False, 'count': 1, 'data': pack_info(list)}
+    code = edit_object(list, parameters)
+
+    # Error check
+    if code == 2:
+        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
+    elif code == 1:
+        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
+    else:
+        return {'error': False, 'count': 1, 'data': pack_info(list)}
 
 
     

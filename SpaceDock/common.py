@@ -34,21 +34,32 @@ def json_output(f):
             return as_json(f)(*args, **kwargs)
     return wrapper
 
+# Return codes:
+#   0: Everything is ok
+#   1: Tried to edit a field that is listed in __lock__
+#   2: Tried to patch a field that doesnt exist
 def edit_object(object, patch):
     """
-    Edits an object using a patch dictionary. Edits only Column based fields, and only fields that aren't listed in __lock__
+    Edits an object using a patch dictionary. Edits only fields that aren't listed in __lock__
     """
+    patched_patch = {}
     for field in patch:
         if field in dir(object):
             if '__lock__' in dir(object) and field in getattr(object, '__lock__') or field == '__lock__':
-                continue
-            if not type(getattr(object, field)) == Column:
-                continue
-            if isinstance(getattr(object, field), (int, bool, str, float)):
-                setattr(object, field, patch[field])
-            else:
-                setattr(object, field, edit_object(getattr(object, field), patch[field]))
-    return object
+                return 1
+        else:
+            return 2
+        if isinstance(getattr(object, field), (int, bool, str, float)):
+            patched_patch[field] = patch[field]
+        else:
+            o = getattr(object, field)
+            code = edit_object(o, patch[field])
+            if not code == 0:
+                return code
+            patched_patch[field] = o
+    for field2 in patched_patch:
+        setattr(object, field, patched_patch[field])
+    return 0
 
 def user_has(ability, **params):
     """
@@ -133,6 +144,8 @@ def re_in(itr, value):
     Check whether a value is in a list using regex
     """
     if itr == None:
+        return False
+    if value == None:
         return False
     for v in itr:
         if not re.match(str(v), value) == None:
