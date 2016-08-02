@@ -10,7 +10,7 @@ db = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for database objects, to support metadata (plugins)
 class MetaObject():
-    meta = Column(String(512))
+    meta = Column(String(512), default='{}')
 
     # Adds a new metadata, or updates an existing one
     def __getitem__(self, key):

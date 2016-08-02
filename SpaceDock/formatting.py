@@ -1,6 +1,8 @@
 from flask import url_for
 from SpaceDock.objects import *
 
+import json
+
 def bulk(array, formatter):
     for f in array:
         yield formatter(f)
@@ -21,14 +23,16 @@ def game_info(game):
         'created': game.created.isoformat() if not game.created == None else None,
         'updated': game.updated.isoformat() if not game.updated == None else None,
         'background': game.background,
-        'link': game.link
+        'link': game.link,
+        'meta': json.loads(game.meta)
     }
 
 def game_version_info(version):
     return {
         'id': version.id,
         'friendly_version': version.friendly_version,
-        'is_beta': version.is_beta
+        'is_beta': version.is_beta,
+        'meta': json.loads(version.meta)
     }
 
 def publisher_info(publisher):
@@ -45,7 +49,8 @@ def publisher_info(publisher):
         'updated': publisher.updated.isoformat() if not publisher.updated == None else None,
         'background': publisher.background,
         'link': publisher.link,
-        'games': games
+        'games': games,
+        'meta': json.loads(publisher.meta)
     }
 
 def mod_info(mod):
@@ -82,6 +87,7 @@ def mod_info(mod):
         #'review': mod.review,
         'total_score': mod.total_score,
         'rating_count': mod.rating_count,
+        'meta': json.loads(mod.meta)
     }
 
 def mod_version_info(modversion):
@@ -98,75 +104,78 @@ def mod_version_info(modversion):
         #'download_path': url_for('mods.download', mod_id=modversion.mod.id, mod_name=modversion.mod.name, version=modversion.friendly_version),
         'changelog': modversion.changelog,
         'sort_index': modversion.sort_index,
-        'file_size': modversion.file_size
+        'file_size': modversion.file_size,
+        'meta': json.loads(modversion.meta)
     }
 
 #WARNING: Some of this stuff is sensitive, make sure it comes from admin only access!
 def admin_user_info(user):
     return {
-    'id': user.id,
-    'username': user.username,
-    'email': user.email,
-    'showEmail': user.showEmail,
-    'public': user.public,
-    'admin': user.admin,
-    #Password skipped
-    'description': user.description,
-    'created': user.created.isoformat() if not user.created == None else None,
-    'showCreated': user.showCreated,
-    'forumUsername': user.forumUsername,
-    'showForumName': user.showForumName,
-    'forumId': user.forumId,
-    'ircNick': user.ircNick,
-    'showIRCName': user.showIRCName,
-    'twitterUsername': user.twitterUsername,
-    'showTwitterName': user.showTwitterName,
-    'redditUsername': user.redditUsername,
-    'showRedditName': user.showRedditName,
-    'youtubeUsername': user.youtubeUsername,
-    'showYoutubeName': user.showYoutubeName,
-    'twitchUsername': user.twitchUsername,
-    'showTwitchName': user.showTwitchName,
-    'facebookUsername': user.facebookUsername,
-    'showFacebookName': user.showFacebookName,
-    'location': user.location,
-    'showLocation': user.showLocation,
-    'backgroundMedia': user.backgroundMedia,
-    #Password reset skipped    
-    'roles': roles_format(user._roles)
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'showEmail': user.showEmail,
+        'public': user.public,
+        'admin': user.admin,
+        #Password skipped
+        'description': user.description,
+        'created': user.created.isoformat() if not user.created == None else None,
+        'showCreated': user.showCreated,
+        'forumUsername': user.forumUsername,
+        'showForumName': user.showForumName,
+        'forumId': user.forumId,
+        'ircNick': user.ircNick,
+        'showIRCName': user.showIRCName,
+        'twitterUsername': user.twitterUsername,
+        'showTwitterName': user.showTwitterName,
+        'redditUsername': user.redditUsername,
+        'showRedditName': user.showRedditName,
+        'youtubeUsername': user.youtubeUsername,
+        'showYoutubeName': user.showYoutubeName,
+        'twitchUsername': user.twitchUsername,
+        'showTwitchName': user.showTwitchName,
+        'facebookUsername': user.facebookUsername,
+        'showFacebookName': user.showFacebookName,
+        'location': user.location,
+        'showLocation': user.showLocation,
+        'backgroundMedia': user.backgroundMedia,
+        #Password reset skipped    
+        'roles': roles_format(user._roles),
+        'meta': json.loads(user.meta)
     }
 
 def user_info(user):
     return {
-    'id': user.id,
-    'username': user.username,
-    'public': user.public,
-    'admin': user.admin,
-    #Email skipped
-    #Password skipped
-    'description': user.description,
-    'created': user.created.isoformat() if not user.created == None else None,
-    'showCreated': user.showCreated,
-    'forumUsername': user.forumUsername,
-    'showForumName': user.showForumName,
-    'forumId': user.forumId,
-    'ircNick': user.ircNick,
-    'showIRCName': user.showIRCName,
-    'twitterUsername': user.twitterUsername,
-    'showTwitterName': user.showTwitterName,
-    'redditUsername': user.redditUsername,
-    'showRedditName': user.showRedditName,
-    'youtubeUsername': user.youtubeUsername,
-    'showYoutubeName': user.showYoutubeName,
-    'twitchUsername': user.twitchUsername,
-    'showTwitchName': user.showTwitchName,
-    'facebookUsername': user.facebookUsername,
-    'showFacebookName': user.showFacebookName,
-    'location': user.location,
-    'showLocation': user.showLocation,
-    'backgroundMedia': user.backgroundMedia,
-    #Password reset skipped
-    'roles': roles_format(user._roles)
+        'id': user.id,
+        'username': user.username,
+        'public': user.public,
+        'admin': user.admin,
+        #Email skipped
+        #Password skipped
+        'description': user.description,
+        'created': user.created.isoformat() if not user.created == None else None,
+        'showCreated': user.showCreated,
+        'forumUsername': user.forumUsername,
+        'showForumName': user.showForumName,
+        'forumId': user.forumId,
+        'ircNick': user.ircNick,
+        'showIRCName': user.showIRCName,
+        'twitterUsername': user.twitterUsername,
+        'showTwitterName': user.showTwitterName,
+        'redditUsername': user.redditUsername,
+        'showRedditName': user.showRedditName,
+        'youtubeUsername': user.youtubeUsername,
+        'showYoutubeName': user.showYoutubeName,
+        'twitchUsername': user.twitchUsername,
+        'showTwitchName': user.showTwitchName,
+        'facebookUsername': user.facebookUsername,
+        'showFacebookName': user.showFacebookName,
+        'location': user.location,
+        'showLocation': user.showLocation,
+        'backgroundMedia': user.backgroundMedia,
+        #Password reset skipped
+        'roles': roles_format(user._roles),
+        'meta': json.loads(user.meta)
     }
 
 def feature_info(feature):
@@ -175,7 +184,8 @@ def feature_info(feature):
         'mod': feature.mod.name,
         'mod_id': feature.mod_id,
         'game': feature.mod.game.short,
-        'created': feature.created.isoformat() if not feature.created == None else None
+        'created': feature.created.isoformat() if not feature.created == None else None,
+        'meta': json.loads(feature.meta)
     }
 
 def pack_info(pack):
@@ -190,7 +200,8 @@ def pack_info(pack):
         'description': pack.description,
         'short_description': pack.short_description,
         'name': pack.name,
-        'mods': [{'name': m.mod.name, 'id': m.mod.id, 'index': m.sort_index} for m in pack.mods]
+        'mods': [{'name': m.mod.name, 'id': m.mod.id, 'index': m.sort_index} for m in pack.mods],
+        'meta': json.loads(pack.meta)
     }
 
 def roles_format(roles):
@@ -200,5 +211,6 @@ def roles_format(roles):
 def ability_format(ability):
     return {
         'id': ability.id,
-        'name': ability.name
+        'name': ability.name,
+        'meta': json.loads(ability.meta)
     }
