@@ -132,8 +132,8 @@ def admin_user_info(user):
     'location': user.location,
     'showLocation': user.showLocation,
     'backgroundMedia': user.backgroundMedia,
-    #Password reset skipped
-    'dark_theme': user.dark_theme
+    #Password reset skipped    
+    'roles': roles_format(user._roles)
     }
 
 def user_info(user):
@@ -166,7 +166,6 @@ def user_info(user):
     'showLocation': user.showLocation,
     'backgroundMedia': user.backgroundMedia,
     #Password reset skipped
-    'dark_theme': user.dark_theme,
     'roles': roles_format(user._roles)
     }
 
