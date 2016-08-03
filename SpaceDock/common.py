@@ -161,3 +161,13 @@ def is_json(test):
         return True
     except ValueError as e:
         return False
+
+def clamp_number(min_value, max_value, num):
+	"""
+	Clamps a number between a minimum and maximum value
+	"""
+	try:
+		result = max(min(num, max_value), min_value)
+		return result
+	except TypeError as e:
+		return -1
