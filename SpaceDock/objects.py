@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, Fore
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 from SpaceDock.database import Base, MetaObject, db
+from SpaceDock.common import clamp_number
 
 import os.path
 import bcrypt
@@ -69,7 +70,7 @@ class BlogPost(Base, MetaObject):
 
 class User(Base, MetaObject):
     __tablename__ = 'user'
-    __lock__ = ['id', 'username', 'password', 'created', 'confirmation', 'passwordReset', 'passwordResetExpiry', 'backgroundMedia', 'rating', 'review', 'mods', 'packs', 'following', '_roles', 'roles']
+    __lock__ = ['id', 'username', 'password', 'created', 'confirmation', 'passwordReset', 'passwordResetExpiry', 'backgroundMedia', 'ratings', 'review', 'mods', 'packs', 'following', '_roles', 'roles']
     id = Column(Integer, primary_key = True)
     username = Column(String(128), nullable = False, index = True)
     email = Column(String(256), nullable = False, index = True)
@@ -100,7 +101,7 @@ class User(Base, MetaObject):
     passwordReset = Column(String(128))
     passwordResetExpiry = Column(DateTime)
     backgroundMedia = Column(String(512))
-    rating = relationship('Rating', order_by='Rating.created')
+    ratings = relationship('Rating', order_by='Rating.created')
     review = relationship('Review', order_by='Review.created')
     mods = relationship('Mod', order_by='Mod.created')
     packs = relationship('ModList', order_by='ModList.created')
@@ -267,10 +268,14 @@ class Rating(Base, MetaObject):
     created = Column(DateTime)
     updated = Column(DateTime)
 
-    def __init__(self,score):
+    def __init__(self, user_id, user, mod_id, mod, score):
+        self.user_id = user_id
+        self.user = user
+        self.mod_id = mod_id
+        self.mod = mod
+        self.score = clamp_number(0, 5, score)
         self.created = datetime.now()
         self.updated = datetime.now()
-        self.score = score
 
     def __repr__(self):
         return '<Rating %r %r>' % (self.id, self.score)

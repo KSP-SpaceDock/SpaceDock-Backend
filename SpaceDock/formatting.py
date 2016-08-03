@@ -172,6 +172,7 @@ def user_info(user):
         'showLocation': user.showLocation,
         'backgroundMedia': user.backgroundMedia,
         #Password reset skipped
+		'ratings': user.ratings,
         'roles': roles_format(user._roles),
         'meta': json.loads(user.meta)
     }
@@ -201,6 +202,19 @@ def pack_info(pack):
         'mods': [{'name': m.mod.name, 'id': m.mod.id, 'index': m.sort_index} for m in pack.mods],
         'meta': json.loads(pack.meta)
     }
+
+def rating_info(rating):
+	return {
+		'id': rating.id,
+		'user_id': rating.user_id,
+		'user': rating.user.username,
+		'mod_id': rating.mod_id,
+		'mod': rating.mod.name,
+		'score': rating.score,
+		'created': rating.created.isoformat() if not rating.created == None else None,
+		'updated': rating.updated.isoformat() if not rating.created == None else None,
+		'meta': json.loads(rating.meta)
+	}
 
 def roles_format(roles):
     for role in roles:

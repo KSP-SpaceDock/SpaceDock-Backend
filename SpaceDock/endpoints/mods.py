@@ -6,7 +6,7 @@ from SpaceDock.common import *
 from SpaceDock.config import cfg
 from SpaceDock.database import db
 from SpaceDock.email import *
-from SpaceDock.formatting import mod_info, bulk, mod_version_info
+from SpaceDock.formatting import mod_info, bulk, mod_version_info, rating_info
 from SpaceDock.objects import *
 from SpaceDock.routing import route
 
@@ -431,4 +431,66 @@ def mods_unfollow(gameshort, modid):
     current_user.following.append(mod)
     return {'error': False}
 
-    
+@route('/api/mods/<gameshort>/<modid>/ratings/add')
+@user_has('logged-in', public=False)
+@with_session
+def mods_rate(gameshort, modid):
+	"""
+	Rates a mod. Required fields: rating
+	"""
+	# Get variables
+	score = request.form.get('rating')
+
+	errors = list()
+	if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+		errors.append('The Mod ID is invalid.')
+	if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+		errors.append('The gameshort is invalid.')
+	if not score or not score.isdigit():
+		 errors.append('The score is invalid.')
+	if Rating.query.filter(Rating.mod_id == int(modid)).filter(Rating.user_id == current_user.id).first():
+		errors.append('You already have a rating for this mod.')
+	if any(errors):
+		return {'error': True, 'reasons': errors}, 400
+
+	# Find the mod
+	mod = Mod.query.filter(Mod.id == int(modid)).first()
+	# Create rating
+	rating = Rating(current_user.id, current_user, mod.id, mod, int(score))
+	db.add(rating)
+
+	# Add rating to user and increase mod rating count
+	current_user.ratings.append(rating)
+	mod.rating_count += 1
+
+	return {'error': False, 'count': 1, 'data': rating_info(rating)}
+
+@route('/api/mods/<gameshort>/<modid>/ratings/remove')
+@user_has('logged-in', public=False)
+@with_session
+def mods_unrate(gameshort, modid):
+	"""
+	Removes a rating for a mod.
+	"""
+	
+	errors = list()
+	if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+		errors.append('The Mod ID is invalid.')
+	if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+		errors.append('The gameshort is invalid.')
+	if not Rating.query.filter(Rating.mod_id == int(modid)).filter(Rating.user_id == current_user.id).first():
+		errors.append('You can\'t remove a rating you don\'t have, right?')
+	if any(errors):
+		return {'error': True, 'reasons': errors}, 400
+
+	# Find the mod
+	mod = Mod.query.filter(Mod.id == int(modid)).first()
+
+	# Find the rating
+	rating = Rating.query.filter(Rating.mod_id == mod.id).filter(Rating.user_id == current_user.id).first()
+
+	# Remove the rating
+	current_user.ratings.remove(rating)
+	mod.rating_count -= 1
+
+	return {'error': False}
