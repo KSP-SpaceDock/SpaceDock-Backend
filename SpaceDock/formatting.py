@@ -1,4 +1,5 @@
 from flask import url_for
+from sqlalchemy import desc
 from SpaceDock.objects import *
 
 import json
@@ -76,9 +77,9 @@ def mod_info(mod):
         'background': mod.background,
         'medias': mod.medias,
         'default_version_id': mod.default_version_id,
-        'downloads': dumb_object(mod.downloads),
-        'follow_events': dumb_object(mod.follow_events),
-        'referrals': dumb_object(mod.referrals),
+        'downloads': [download_event_format(d) for d in DownloadEvent.query.filter(DownloadEvent.mod_id == mod.id).order_by(DownloadEvent.created).all()],
+        'follow_events': [follow_event_format(f) for f in FollowEvent.query.filter(FollowEvent.mod_id == mod.id).order_by(FollowEvent.created).all()],
+        'referrals': [referral_event_format(r) for r in ReferralEvent.query.filter(ReferralEvent.mod_id == mod.id).order_by(ReferralEvent.created).all()],
         'source_link': mod.source_link,
         'follower_count': mod.follower_count,
         'download_count': mod.download_count,
@@ -227,12 +228,33 @@ def ability_format(ability):
         'meta': json.loads(ability.meta)
     }
 
-def dumb_object(model):
-    if type(model) is list:
-        return [dumb_object(x) for x in model]
-    result = {}
-    for col in model._sa_class_manager.mapper.mapped_table.columns:
-        a = getattr(model, col.name)
-        if not isinstance(a, Base):
-            result[col.name] = a
-    return result
+def download_event_format(event):
+    return {
+        'id': event.id,
+        'mod': event.mod.name,
+        'mod_id': event.mod_id,
+        'version': event.version.friendly_version,
+        'version_id': event.version_id,
+        'downloads': event.downloads,
+        'created': event.created.isoformat() if not event.created == None else None
+    }
+
+def follow_event_format(event):
+    return {
+        'id': event.id,
+        'mod': event.mod.name,
+        'mod_id': event.mod_id,
+        'events': event.events,
+        'delta': event.delta,
+        'created': event.created.isoformat() if not event.created == None else None
+    }
+
+def referral_event_format(event):
+    return {
+        'id': event.id,
+        'mod': event.mod.name,
+        'mod_id': event.mod_id,
+        'events': event.events,
+        'host': event.host,
+        'created': event.created.isoformat() if not event.created == None else None
+    }
