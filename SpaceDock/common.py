@@ -162,6 +162,9 @@ def is_json(test):
     except ValueError as e:
         return False
 
+def redirect(url, status=301):
+    return None, status, {'Location': url}
+
 def clamp_number(min_value, max_value, num):
 	"""
 	Clamps a number between a minimum and maximum value

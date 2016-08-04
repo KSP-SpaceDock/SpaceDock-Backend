@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, Fore
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 from SpaceDock.database import Base, MetaObject, db
+from SpaceDock.config import cfg
 
 import os.path
 import bcrypt
@@ -353,14 +354,14 @@ class Game(Base, MetaObject):
     version = relationship('GameVersion', back_populates='game')
 
     def background_thumb(self):
-        if (_cfg('thumbnail_size') == ''):
+        if (cfg['thumbnail_size'] == ''):
             return self.background
-        thumbnailSizesStr = _cfg('thumbnail_size').split('x')
+        thumbnailSizesStr = cfg['thumbnail_size'].split('x')
         thumbnailSize = (int(thumbnailSizesStr[0]), int(thumbnailSizesStr[1]))
         split = os.path.split(self.background)
         thumbPath = os.path.join(split[0], 'thumb_' + split[1])
-        fullThumbPath = os.path.join(os.path.join(_cfg('storage'), thumbPath.replace('/content/', '')))
-        fullImagePath = os.path.join(_cfg('storage'), self.background.replace('/content/', ''))
+        fullThumbPath = os.path.join(os.path.join(cfg['storage'], thumbPath.replace('/content/', '')))
+        fullImagePath = os.path.join(cfg['storage'], self.background.replace('/content/', ''))
         if not os.path.exists(fullThumbPath):
             thumbnail.create(fullImagePath, fullThumbPath, thumbnailSize)
         return thumbPath
@@ -414,14 +415,14 @@ class Mod(Base, MetaObject):
     rating_count = Column(Integer, nullable=False, server_default=text('0'))
 
     def background_thumb(self):
-        if (_cfg('thumbnail_size') == ''):
+        if (cfg['thumbnail_size'] == ''):
             return self.background
-        thumbnailSizesStr = _cfg('thumbnail_size').split('x')
+        thumbnailSizesStr = cfg['thumbnail_size'].split('x')
         thumbnailSize = (int(thumbnailSizesStr[0]), int(thumbnailSizesStr[1]))
         split = os.path.split(self.background)
         thumbPath = os.path.join(split[0], 'thumb_' + split[1])
-        fullThumbPath = os.path.join(os.path.join(_cfg('storage'), thumbPath.replace('/content/', '')))
-        fullImagePath = os.path.join(_cfg('storage'), self.background.replace('/content/', ''))
+        fullThumbPath = os.path.join(os.path.join(cfg['storage'], thumbPath.replace('/content/', '')))
+        fullImagePath = os.path.join(cfg['storage'], self.background.replace('/content/', ''))
         if not os.path.exists(fullThumbPath):
             thumbnail.create(fullImagePath, fullThumbPath, thumbnailSize)
         return thumbPath
@@ -574,7 +575,7 @@ class ModVersion(Base, MetaObject):
     sort_index = Column(Integer)
     file_size = Column(Integer)
 
-    def __init__(self, friendly_version, gameversion_id, download_path,is_beta):
+    def __init__(self, mod_id, friendly_version, gameversion_id, download_path,is_beta):
         self.friendly_version = friendly_version
         self.is_beta = is_beta
         self.gameversion_id = gameversion_id
@@ -583,9 +584,11 @@ class ModVersion(Base, MetaObject):
         self.created = datetime.now()
         self.sort_index = 0
         self.file_size = 0
-
+        self.mod_id = mod_id
+        self.mod = Mod.query.filter(Mod.id == mod_id).first()
+        
         if self.download_path:
-            file_path = os.path.join(_cfg('storage'), download_path)
+            file_path = os.path.join(cfg['storage'], download_path)
             if os.path.isfile(file_path): self.file_size = os.path.getsize(file_path)
 
     def __repr__(self):

@@ -1,5 +1,4 @@
 from sqlalchemy import desc
-from flask import redirect
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 from SpaceDock.common import *
@@ -39,7 +38,7 @@ def mods_info(gameshort, modid):
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
-@route('/api/mods/<gameshort>/<modid>/download/<version>')
+@route('/api/mods/<gameshort>/<modid>/download/<versionname>')
 @with_session
 def mods_download(gameshort, modid, versionname):
     """
@@ -53,7 +52,7 @@ def mods_download(gameshort, modid, versionname):
         return {'error': True, 'reasons': ['The version is invalid.']}, 400
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
-    version = ModVersion.query.filter(ModVersion.mod_id == mod_id).filter(ModVersion.friendly_version == versionname).first()
+    version = ModVersion.query.filter(ModVersion.mod_id == modid).filter(ModVersion.friendly_version == versionname).first()
     download = DownloadEvent.query\
             .filter(DownloadEvent.mod_id == mod.id and DownloadEvent.version_id == version.id)\
             .order_by(desc(DownloadEvent.created))\
@@ -306,10 +305,8 @@ def mod_update(gameshort, modid):
     if not zipfile.is_zipfile(path):
         os.remove(path)
         return {'error': True, 'reasons': ['This is not a valid zip file.']}, 400
-    version = ModVersion(secure_filename(version), game_version_id, os.path.join(base_path, filename))
+    version = ModVersion(mod.id, secure_filename(version), game_version_id, os.path.join(base_path, filename))
     version.changelog = changelog
-    version.mod = mod
-    version.mod_id = mod.id
     # Assign a sort index
     if len(mod.versions) == 0:
         version.sort_index = 0

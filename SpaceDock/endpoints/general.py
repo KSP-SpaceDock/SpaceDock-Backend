@@ -1,11 +1,12 @@
-from flask import redirect, make_response
+from flask import redirect, make_response, send_file
+from SpaceDock.app import app
 from SpaceDock.routing import route
 from SpaceDock.config import cfg
 
 import mimetypes
 import os.path
 
-@route('/content/<url>')
+@app.route('/content/<path:url>')
 def download(url):
     """
     Downloads a file from the storage.
@@ -16,16 +17,16 @@ def download(url):
 
     # Check for X-Sendfile
     response = None
-    if _cfg("use-x-accel") == 'nginx':
+    if cfg["use-x-accel"] == 'nginx':
         response = make_response("")
-        response.headers['Content-Type'] = mimetypes.guess_type(os.path.join(_cfg('storage'), url))[0]
+        response.headers['Content-Type'] = mimetypes.guess_type(os.path.join(cfg['storage'], url))[0]
         response.headers['Content-Disposition'] = 'attachment; filename=' + os.path.basename(url)
         response.headers['X-Accel-Redirect'] = '/internal/' + url
-    if _cfg("use-x-accel") == 'apache':
+    if cfg["use-x-accel"] == 'apache':
         response = make_response("")
-        response.headers['Content-Type'] = mimetypes.guess_type(os.path.join(_cfg('storage'), url))[0]
+        response.headers['Content-Type'] = mimetypes.guess_type(os.path.join(cfg['storage'], url))[0]
         response.headers['Content-Disposition'] = 'attachment; filename=' + os.path.basename(url)
-        response.headers['X-Sendfile'] = os.path.join(_cfg('storage'), url)
+        response.headers['X-Sendfile'] = os.path.join(cfg['storage'], url)
     if response is None:
-        response = make_response(send_file(os.path.join(_cfg('storage'), url), as_attachment = True))
+        response = make_response(send_file(os.path.join(cfg['storage'], url), as_attachment = True))
     return response
