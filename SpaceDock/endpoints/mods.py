@@ -137,10 +137,12 @@ def add_mod():
     # Add new mod
     mod = Mod(name, current_user.id, game_id(short), license)
     db.add(mod)
-    role = Role.query.filter(Role.name == current_user.username.lower()).first()
+    current_user.add_roles(name)
+    role = Role.query.filter(Role.name == name).first()
     role.add_abilities('mods-edit', 'mods-remove')
     role.add_param('mods-edit', 'modid', str(mod.id))
     role.add_param('mods-remove', 'name', name)
+    db.add(role)
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 @route('/api/mods/publish', methods=['POST'])
@@ -196,11 +198,12 @@ def remove_mod():
     # Add new mod
     mod = Mod.query.filter(Mod.name == name).filter(Mod.game_id == game_id(short)).first()
     db.delete(mod)
-    role = Role.query.filter(Role.name == current_user.username.lower()).first()
-    if not any(current_user.mods):
-        role.remove_abilities('mods-edit', 'mods-remove')
+    current_user.remove_roles(name)
+    role = Role.query.filter(Role.name == name).first()
+    role.remove_abilities('mods-edit', 'mods-remove')
     role.remove_param('mods-edit', 'modid', str(mod.id))
     role.remove_param('mods-remove', 'name', name)
+    db.delete(role)
     return {'error': False}
 
 @route('/api/mods/<gameshort>/<modid>/update-bg', methods=['POST'])

@@ -56,11 +56,13 @@ def packs_add():
     list.name = name
     list.game = Game.query.filter(Game.short == gameshort).first()
     list.user = current_user
-    db.add(list)    
-    role = Role.query.filter(Role.name == current_user.username.lower()).first()
+    db.add(list)
+    current_user.add_roles(name)    
+    role = Role.query.filter(Role.name == name).first()
     role.add_abilities('packs-edit', 'mods-remove')
     role.add_param('packs-edit', 'packid', str(list.id))
-    role.add_param('packs-remove', 'name', name)
+    role.add_param('packs-remove', 'name', name)    
+    db.add(role)
     return {'error': False, 'count': 1, 'data': pack_info(list)}
 
 @route('/api/packs/<gameshort>/<packid>/edit', methods=['POST'])

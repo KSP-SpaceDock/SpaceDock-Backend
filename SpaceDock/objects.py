@@ -168,7 +168,7 @@ class Role(Base, MetaObject):
     params = Column(String(512))
 
     def __init__(self, name):
-        self.name = name.lower()
+        self.name = name
         self.params = '{}'
 
     def add_abilities(self, *abilities):
@@ -227,7 +227,7 @@ class Ability(Base, MetaObject):
     name = Column(String(120), unique=True)
 
     def __init__(self, name):
-        self.name = name.lower()
+        self.name = name
 
     def __repr__(self):
         return '<Ability {}>'.format(self.name)
