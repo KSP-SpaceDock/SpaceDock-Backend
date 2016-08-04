@@ -3,7 +3,6 @@ from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, Fore
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 from SpaceDock.database import Base, MetaObject, db
-from SpaceDock.common import clamp_number
 
 import os.path
 import bcrypt
@@ -258,17 +257,18 @@ class UserAuth(Base, MetaObject):
 
 
 class Rating(Base, MetaObject):
-    __tablename__ = 'rating'
+    __tablename__ = 'ratings'
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship('User', back_populates='rating')
+    user = relationship('User', back_populates='ratings')
     mod_id = Column(Integer, ForeignKey('mod.id'))
-    mod = relationship('Mod', back_populates='rating')
+    mod = relationship('Mod', back_populates='ratings')
     score = Column(Float(), nullable=False, server_default=text('5'))
     created = Column(DateTime)
     updated = Column(DateTime)
 
     def __init__(self, user_id, user, mod_id, mod, score):
+        from SpaceDock.common import clamp_number
         self.user_id = user_id
         self.user = user
         self.mod_id = mod_id
@@ -408,7 +408,7 @@ class Mod(Base, MetaObject):
     follower_count = Column(Integer, nullable=False, server_default=text('0'))
     download_count = Column(Integer, nullable=False, server_default=text('0'))
     followers = relationship('User', viewonly=True, secondary=mod_followers, backref='mod.id')
-    rating = relationship('Rating', order_by='Rating.created')
+    ratings = relationship('Rating', order_by='Rating.created')
     review = relationship('Review', order_by='Review.created')
     total_score = Column(Float(), nullable=True)
     rating_count = Column(Integer, nullable=False, server_default=text('0'))
