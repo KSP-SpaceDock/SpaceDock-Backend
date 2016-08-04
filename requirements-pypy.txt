@@ -1,0 +1,14 @@
+Flask
+requests
+Werkzeug
+Pillow
+bcrypt
+flask_json
+flask_login
+flask_oauthlib
+pystache
+redis
+SQLAlchemy
+psycopg2cffi
+celery
+flask_cache

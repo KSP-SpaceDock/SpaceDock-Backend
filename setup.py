@@ -1,5 +1,6 @@
 # Sets up a barebone instance of SpaceDock Backend
 
+import SpaceDock.app
 from werkzeug.utils import secure_filename
 from SpaceDock.config import cfg
 from SpaceDock.database import db
@@ -8,7 +9,6 @@ from SpaceDock.objects import *
 from zipfile import ZipFile
 
 import os.path
-import SpaceDock.app
 
 # Makes a new User
 def new_user(name, password, email, admin):

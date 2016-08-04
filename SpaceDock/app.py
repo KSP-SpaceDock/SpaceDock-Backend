@@ -1,3 +1,9 @@
+# Pypy compatibility
+import sys
+if '__pypy__' in sys.builtin_module_names:
+    from psycopg2cffi import compat
+    compat.register()
+
 from flask import Flask, jsonify
 from flask_json import FlaskJSON
 from flask_login import LoginManager
