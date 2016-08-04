@@ -106,6 +106,7 @@ def confirm(username, confirmation):
     role.add_param('user-edit', 'userid', user.id)
     role.add_param('mods-add', 'gameshort', '.*')
     role.add_param('packs-add', 'gameshort', '.*')
+    db.add(role)
     f = request.args.get('f')
     if f:
         mod = Mod.query.filter(Mod.id == int(f)).first()

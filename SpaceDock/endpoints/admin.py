@@ -50,4 +50,5 @@ def manual_confirm(userid):
     role.add_abilities('user-edit', 'mods-add', 'logged-in')
     role.add_param('user-edit', 'userid', user.id)
     role.add_param('mods-add', 'gameshort', '*.')
+    db.add(role)
     return {'error': False}

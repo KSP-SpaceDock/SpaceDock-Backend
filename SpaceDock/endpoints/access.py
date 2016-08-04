@@ -32,6 +32,7 @@ def add_role():
         return {'error': True, 'reasons': ['The userid is invalid.']}, 400
     user = User.query.filter(User.id == int(userid)).first()
     user.add_roles(rolename)
+    db.add(Role.query.filter(Role.name == rolename).first())
     return {'error': False}
 
 @route('/api/access/roles/remove', methods=['POST'])
@@ -49,6 +50,7 @@ def remove_role():
     if not rolename in user._roles:
         return {'error': True, 'reasons': ['The user doesn\'t have this role']}, 400
     user.remove_roles(rolename)
+    db.delete(Role.query.filter(Role.name == rolename).first())
     return {'error': False}
 
 @route('/api/access/abilities')
