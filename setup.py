@@ -28,6 +28,7 @@ def new_user(name, password, email, admin):
         user.add_roles('admin')
         admin_role = Role.query.filter(Role.name == 'admin').first()
         admin_role.add_abilities_re('.*')
+        admin_role.add_abilities('mods-invite')
 
         # Params
         admin_role.add_param('admin-impersonate', 'userid', '.*')
@@ -85,6 +86,7 @@ def new_game_admin(name, password, email, game):
     game_role = Role.query.filter(Role.name == game).first()
     game_role.add_abilities('game-edit')
     game_role.add_abilities_re('mods-.*')
+    game_role.add_abilities('mods-invite')
     game_role.add_abilities_re('packs-.*')
 
     # Params

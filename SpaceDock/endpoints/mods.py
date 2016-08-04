@@ -496,7 +496,7 @@ def mods_unrate(gameshort, modid):
 	return {'error': False}
 
 @route('/api/mods/<gameshort>/<modid>/grant', methods=['POST'])
-@user_has('mods-invite', params=['gameshort', 'modid'])
+@user_has('logged-in')
 @with_session
 def mods_grant(gameshort, modid):
     """
@@ -522,7 +522,7 @@ def mods_grant(gameshort, modid):
         return {'error': True, 'reasons': ['This user has already been added.']}, 400
     if not user.public:
         return {'error': True, 'reasons': ['This user has not made their profile public.']}, 400
-    if not mod.user == current_user:
+    if not mod.user == current_user and not has_ability('mods-invite'):
         return {'error': True, 'reasons': ['You dont have the permission to add new authors.']}, 400
     author = SharedAuthor()
     author.mod = mod
@@ -579,7 +579,7 @@ def mods_reject_grant(gameshort, modid):
     return {'error': False}
 
 @api.route('/api/mods/<gameshort>/<modid>/revoke', methods=['POST'])
-@user_has('mods-invite', params=['gameshort', 'modid'])
+@user_has('logged-in')
 @with_session
 def mods_revoke(gameshort, modid):
     """
@@ -599,10 +599,10 @@ def mods_revoke(gameshort, modid):
     user = User.query.filter(User.username == username).first()
 
     # More checks
-    if not mod.user == current_user:
+    if not mod.user == current_user and not has_ability('mods-invite'):
         return {'error': True, 'reasons': ['You dont have the permission to remove authors.']}, 400
-    if current_user == user:
-        return {'error': True, 'reasons': ['You can\'t remove yourself.']}, 400
+    if mod.user == user:
+        return {'error': True, 'reasons': ['You can\'t remove this user.']}, 400
     if not any(m.user == user for m in mod.shared_authors):
         return { 'error': True, 'reason': 'This user is not an author.' }, 400
 
