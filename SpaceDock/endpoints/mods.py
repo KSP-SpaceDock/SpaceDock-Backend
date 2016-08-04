@@ -494,3 +494,122 @@ def mods_unrate(gameshort, modid):
 	mod.rating_count -= 1
 
 	return {'error': False}
+
+@route('/api/mods/<gameshort>/<modid>/grant', methods=['POST'])
+@user_has('mods-invite', params=['gameshort', 'modid'])
+@with_session
+def mods_grant(gameshort, modid):
+    """
+    Adds a new author to a mod. Required fields: username
+    """
+    username = request.form.get('username')
+
+    # Check params
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+    if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    if not User.query.filter(User.username == username).first():
+        return {'error': true, 'reasons': ['The username is invalid']}, 400
+    # Get the mod
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+    user = User.query.filter(User.username == username).first()
+
+    # More checks
+    if mod.user == user:
+        return {'error': True, 'reasons': ['This user has already been added.']}, 400
+    if any(m.user == user for m in mod.shared_authors):
+        return {'error': True, 'reasons': ['This user has already been added.']}, 400
+    if not user.public:
+        return {'error': True, 'reasons': ['This user has not made their profile public.']}, 400
+    if not mod.user == current_user:
+        return {'error': True, 'reasons': ['You dont have the permission to add new authors.']}, 400
+    author = SharedAuthor()
+    author.mod = mod
+    author.user = new_user
+    mod.shared_authors.append(author)
+    db.add(author)
+    db.commit()
+    send_grant_notice(mod, new_user)
+    return {'error': False, 'count': 1, 'data': mod_info(mod)}
+
+@route('/api/mods/<gameshort>/<modid>/accept_grant', methods=['POST'])
+@user_has('logged-in')
+@with_session
+def mods_accept_grant(gameshort, modid):
+    """
+    Accepts a pending authorship grant for a mod. 
+    """
+    # Check params
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+    if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+
+    # Get the mod
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+    author = [a for a in mod.shared_authors if a.user == current_user and a.accepted]
+    if len(author) == 0:
+        return {'error': True, 'reasons': ['You do not have a pending authorship invite.']}, 400
+    author = author[0]
+    author.accepted = True
+    current_user.add_role(mod.name)
+    return {'error': False, 'count': 1, 'data': mod_info(mod)}
+
+@route('/api/mods/<gameshort>/<modid>/reject_grant', methods=['POST'])
+@user_has('logged-in')
+@with_session
+def mods_reject_grant(gameshort, modid):
+    """
+    Rejects a pending authorship grant for a mod. 
+    """
+    # Check params
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+    if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+
+    # Get the mod
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+    author = [a for a in mod.shared_authors if a.user == current_user and a.accepted]
+    if len(author) == 0:
+        return {'error': True, 'reasons': ['You do not have a pending authorship invite.']}, 400
+    mod.shared_authors = [a for a in mod.shared_authors if a.user != current_user]
+    db.delete(author)
+    return {'error': False}
+
+@api.route('/api/mods/<gameshort>/<modid>/revoke', methods=['POST'])
+@user_has('mods-invite', params=['gameshort', 'modid'])
+@with_session
+def mods_revoke(gameshort, modid):
+    """
+    Removes an author from a mod. Required fields: username
+    """
+    username = request.form.get('username')
+
+    # Check params
+    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+    if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    if not User.query.filter(User.username == username).first():
+        return {'error': true, 'reasons': ['The username is invalid']}, 400
+    # Get the mod
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+    user = User.query.filter(User.username == username).first()
+
+    # More checks
+    if not mod.user == current_user:
+        return {'error': True, 'reasons': ['You dont have the permission to remove authors.']}, 400
+    if current_user == user:
+        return {'error': True, 'reasons': ['You can\'t remove yourself.']}, 400
+    if not any(m.user == user for m in mod.shared_authors):
+        return { 'error': True, 'reason': 'This user is not an author.' }, 400
+
+    # Remove
+    author = [a for a in mod.shared_authors if a.user == new_user][0]
+    mod.shared_authors = [a for a in mod.shared_authors if a.user != current_user]
+    user.remove_role(mod.name)
+    db.delete(author)
+    return {'error': False}
+
