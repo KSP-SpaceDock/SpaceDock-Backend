@@ -578,7 +578,7 @@ def mods_reject_grant(gameshort, modid):
     db.delete(author)
     return {'error': False}
 
-@api.route('/api/mods/<gameshort>/<modid>/revoke', methods=['POST'])
+@route('/api/mods/<gameshort>/<modid>/revoke', methods=['POST'])
 @user_has('logged-in')
 @with_session
 def mods_revoke(gameshort, modid):
