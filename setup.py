@@ -8,6 +8,7 @@ from SpaceDock.objects import *
 from zipfile import ZipFile
 
 import os.path
+import SpaceDock.app
 
 # Makes a new User
 def new_user(name, password, email, admin):
