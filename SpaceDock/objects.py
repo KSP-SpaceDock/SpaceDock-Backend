@@ -409,7 +409,7 @@ class Mod(Base, MetaObject):
     follower_count = Column(Integer, nullable=False, server_default=text('0'))
     download_count = Column(Integer, nullable=False, server_default=text('0'))
     followers = relationship('User', viewonly=True, secondary=mod_followers, backref='mod.id')
-    ratings = relationship('Rating', order_by='Rating.created')
+    rating = relationship('Rating', order_by='Rating.created')
     review = relationship('Review', order_by='Review.created')
     total_score = Column(Float(), nullable=True)
     rating_count = Column(Integer, nullable=False, server_default=text('0'))
