@@ -431,7 +431,7 @@ def mods_unfollow(gameshort, modid):
     current_user.following.append(mod)
     return {'error': False}
 
-@route('/api/mods/<gameshort>/<modid>/ratings/add')
+@route('/api/mods/<gameshort>/<modid>/ratings/add', methods=['POST'])
 @user_has('logged-in', public=False)
 @with_session
 def mods_rate(gameshort, modid):
