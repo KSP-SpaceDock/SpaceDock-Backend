@@ -142,6 +142,7 @@ def add_mod():
     role.add_param('mods-edit', 'modid', str(mod.id))
     role.add_param('mods-remove', 'name', name)
     db.add(role)
+    db.commit()
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 @route('/api/mods/publish', methods=['POST'])
@@ -318,6 +319,7 @@ def mod_update(gameshort, modid):
         send_update_notification(mod, version, current_user)
     db.add(version)
     mod.default_version_id = version.id
+    db.commit()
     return {'error': False, 'count': 1, 'data': mod_version_info(version)}
 
 @route('/api/mods/<gameshort>/<modid>/versions/delete', methods=['POST'])

@@ -168,6 +168,7 @@ def add_game():
     # Make a new game
     game = Game(name, int(pubid), short)
     db.add(game)
+    db.commit()
     return {'error': False, 'count': 1, 'data': game_info(game)}
 
 @route('/api/games/remove', methods=['POST'])

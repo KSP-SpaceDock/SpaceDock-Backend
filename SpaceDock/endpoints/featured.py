@@ -51,6 +51,7 @@ def add_feature(gameshort):
     # Everything's fine, let's feature the mod
     feature = Featured(int(modid))
     db.add(feature)
+    db.commit()
     return {'error': False, 'count': 1, 'data': feature_info(feature)}
 
 @route('/api/mods/featured/remove/<gameshort>', methods=['POST'])
