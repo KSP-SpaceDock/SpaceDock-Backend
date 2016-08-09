@@ -494,6 +494,7 @@ def mods_unrate(gameshort, modid):
 	# Remove the rating
 	current_user.ratings.remove(rating)
 	mod.rating_count -= 1
+	mod.ratings.remove(rating)
 
 	return {'error': False}
 
