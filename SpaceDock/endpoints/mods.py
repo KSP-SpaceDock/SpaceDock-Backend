@@ -458,10 +458,12 @@ def mods_rate(gameshort, modid):
 	# Create rating
 	rating = Rating(current_user.id, current_user, mod.id, mod, int(score))
 	db.add(rating)
+	db.commit()
 
 	# Add rating to user and increase mod rating count
 	current_user.ratings.append(rating)
 	mod.rating_count += 1
+	mod.ratings.append(rating)
 
 	return {'error': False, 'count': 1, 'data': rating_info(rating)}
 
