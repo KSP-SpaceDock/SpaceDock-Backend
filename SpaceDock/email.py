@@ -2,31 +2,45 @@ from SpaceDock.celery import send_mail
 from SpaceDock.config import cfg
 from werkzeug.utils import secure_filename
 
-import pystache
-import html.parser
-
 def send_confirmation(user, followMod=None):
     with open("emails/confirm-account") as f:
+        confirmation = ""
         if followMod != None:
-            message = pystache.render(f.read(), { 'user': user, 'site-name': cfg['site-name'], "domain": cfg["domain"],\
-                'confirmation': user.confirmation + "?f=" + followMod })
+            confirmation = user.confirmation + "?f=" + followMod
         else:
-            message = html.parser.HTMLParser().unescape(\
-            pystache.render(f.read(), { 'user': user, 'site-name': cfg['site-name'], "domain": cfg["domain"], 'confirmation': user.confirmation }))
-    send_mail.delay(cfg['support-mail'], [ user.email ], "Welcome to " + cfg['site-name'] + "!", message, important=True)
+            confirmation = user.confirmation
+        message = f.read().format(
+            { 
+                'site-name': cfg['site-name'], 
+                'username': user.username, 
+                'domain': cfg['domain'],
+                'confirmation': user.confirmation + "?f=" + followMod 
+            })
+        send_mail.delay(cfg['support-mail'], [ user.email ], "Welcome to " + cfg['site-name'] + "!", message, important=True)
 
 def send_reset(user):
     with open("emails/password-reset") as f:
-        message = html.parser.HTMLParser().unescape(\
-        pystache.render(f.read(), { 'user': user, 'site-name': cfg['site-name'], "domain": cfg["domain"], 'confirmation': user.passwordReset }))
-    send_mail.delay(cfg['support-mail'], [ user.email ], "Reset your password on " + cfg['site-name'], message, important=True)
+        message = f.read().format(
+            { 
+                'site-name': cfg['site-name'], 
+                'username': user.username, 
+                'domain': cfg['domain'], 
+                'confirmation': user.passwordReset 
+             })
+        send_mail.delay(cfg['support-mail'], [ user.email ], "Reset your password on " + cfg['site-name'], message, important=True)
 
 def send_grant_notice(mod, user):
     with open("emails/grant-notice") as f:
-        message = html.parser.HTMLParser().unescape(\
-        pystache.render(f.read(), { 'user': user, 'site-name': cfg['site-name'], "domain": cfg["domain"],\
-            'mod': mod, 'url': url_for('mods.mod', id=mod.id, mod_name=mod.name) }))
-    send_mail.delay(cfg['support-mail'], [ user.email ], "You've been asked to co-author a mod on " + cfg['site-name'], message, important=True)
+        message = f.read().format(
+            { 
+                'username': user.username, 
+                'mod_username': mod.user.username,
+                'mod_name': mod.name,
+                'site-name': cfg['site-name'], 
+                "domain": cfg["domain"],
+                'url': url_for('mods.mod', id=mod.id, mod_name=mod.name) 
+            })
+        send_mail.delay(cfg['support-mail'], [ user.email ], "You've been asked to co-author a mod on " + cfg['site-name'], message, important=True)
 
 def send_update_notification(mod, version, user):
     followers = [u.email for u in mod.followers]
@@ -40,18 +54,20 @@ def send_update_notification(mod, version, user):
     if len(targets) == 0:
             return
     with open("emails/mod-updated") as f:
-        message = html.parser.HTMLParser().unescape(pystache.render(f.read(),
+        message = f.read().format(
             {
-                'mod': mod,
-                'user': user,
+                'username': user.username,
+                'friendly_version': version.friendly_version,
+                'mod_name': mod.name,
                 'site-name': cfg['site-name'],
+                'changelog': changelog,
                 'domain': cfg["domain"],
-                'latest': version,
                 'url': '/mod/' + str(mod.id) + '/' + secure_filename(mod.name)[:64],
-                'changelog': changelog
-            }))
-    subject = user.username + " has just updated " + mod.name + "!"
-    send_mail.delay(cfg['support-mail'], targets, subject, message)
+                'game_name': version.gameversion.game.name,
+                'gameversion': version.gameversion.friendly_version
+            })
+        subject = user.username + " has just updated " + mod.name + "!"
+        send_mail.delay(cfg['support-mail'], targets, subject, message)
 
 def send_autoupdate_notification(mod):
     followers = [u.email for u in mod.followers]
@@ -65,17 +81,18 @@ def send_autoupdate_notification(mod):
     if len(targets) == 0:
         return
     with open("emails/mod-autoupdated") as f:
-        message = html.parser.HTMLParser().unescape(pystache.render(f.read(),
+        message = f.read().format(
             {
-                'mod': mod,
+                'username': mod.user.username,
+                'friendly_version': mod.default_version().friendly_version,
+                'mod_name': mod.name,
+                'game_name': mod.game.name,
+                'gameversion': mod.default_version().gameversion.friendly_version,
                 'domain': cfg["domain"],
-                'site-name': cfg['site-name'],
-                'latest': mod.default_version(),
-                'url': '/mod/' + str(mod.id) + '/' + secure_filename(mod.name)[:64],
-                'changelog': changelog
-            }))
-    subject = mod.name + " is compatible with Game " + mod.versions[0].gameversion.friendly_version + "!"
-    send_mail.delay(cfg['support-mail'], targets, subject, message)
+                'url': '/mod/' + str(mod.id) + '/' + secure_filename(mod.name)[:64]
+            })
+        subject = mod.name + " is compatible with " + mod.game.name + " " + mod.versions[0].gameversion.friendly_version + "!"
+        send_mail.delay(cfg['support-mail'], targets, subject, message)
 
 def send_bulk_email(users, subject, body):
     targets = list()

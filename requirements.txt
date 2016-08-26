@@ -6,7 +6,6 @@ bcrypt
 flask_json
 flask_login
 flask_oauthlib
-pystache
 redis
 SQLAlchemy
 psycopg2

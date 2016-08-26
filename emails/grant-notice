@@ -1,7 +1,7 @@
-Hello, {{user.username}}. {{mod.user.username}} has asked you to co-author {{mod.name}} on {{ site_name }}.
+Hello, {username}. {mod_username} has asked you to co-author {mod_name} on {site_name}.
 
 To accept or reject this invitation, you should log in and visit the mod's page here:
 
-http://{{domain}}{{url}}
+http://{domain}{url}
 
 Thanks!
