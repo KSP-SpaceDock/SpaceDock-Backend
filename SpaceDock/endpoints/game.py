@@ -72,13 +72,13 @@ def edit_game(gameshort):
     errors = list()
     if not Game.query.filter(Game.short == gameshort).first():
         errors.append('The gameshort is invalid.')
-    if not request.form.get('data') or not is_json(request.form.get('data')):
+    if not request.json.get('data') or not is_json(request.json.get('data')):
         errors.append('The patch data is invalid.')
     if any(errors):
         return {'error': True, 'reasons': errors}, 400
 
     # Get variables
-    parameters = json.loads(request.form.get('data'))
+    parameters = json.loads(request.json.get('data'))
 
     # Get the matching game and edit it
     game = Game.query.filter(Game.short == gameshort).first()
@@ -99,9 +99,9 @@ def add_game():
     """
     Adds a new game based on the request parameters. Required fields: name, pubid, short
     """
-    name = request.form.get('name')
-    pubid = request.form.get('pubid')
-    short = request.form.get('short')
+    name = request.json.get('name')
+    pubid = request.json.get('pubid')
+    short = request.json.get('short')
 
     errors = list()
 
@@ -136,7 +136,7 @@ def remove_game():
     """
     Removes a game from existence. Required fields: short
     """
-    short = request.form.get('short')
+    short = request.json.get('short')
 
     # Check if the gameshort is valid
     if not Game.query.filter(Game.short == short).first():

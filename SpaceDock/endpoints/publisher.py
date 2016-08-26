@@ -40,7 +40,7 @@ def edit_publisher(publid):
         return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
 
     # Get variables
-    parameters = json.loads(request.form['data'])
+    parameters = json.loads(request.json['data'])
 
     # Get the matching game and edit it
     pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
@@ -56,7 +56,7 @@ def add_publisher():
     Adds a publisher, based on the request parameters. Required fields: name
     """
     # Get variables
-    name = request.form['name']
+    name = request.json['name']
 
     # Check for existence
     if Publisher.query.filter(Publisher.name == name).first():
@@ -75,7 +75,7 @@ def remove_publisher():
     """
     Removes a game from existence. Required fields: pubid
     """
-    pubid = request.form['pubid']
+    pubid = request.json['pubid']
 
     # Check if the pubid is valid
     if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():

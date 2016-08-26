@@ -108,13 +108,13 @@ def mod_edit(gameshort, modid):
         errors.append('The Mod ID is invalid.')
     if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
        errors.append('The gameshort is invalid.')
-    if not request.form.get('data') or not is_json(request.form.get('data')):
+    if not request.json.get('data') or not is_json(request.json.get('data')):
         errors.append('The patch data is invalid.')
     if any(errors):
         return {'error': True, 'reasons': errors}, 400
 
     # Get variables
-    parameters = json.loads(request.form.get('data'))
+    parameters = json.loads(request.json.get('data'))
 
     # Get the matching mod and edit it
     mod = Mod.query.filter(Mod.id == int(modid)).first()
@@ -136,9 +136,9 @@ def add_mod():
     Adds a mod, based on the request parameters. Required fields: name, gameshort, license
     """
     # Get variables
-    name = request.form.get('name')
-    short = request.form.get('gameshort')
-    license = request.form.get('license')
+    name = request.json.get('name')
+    short = request.json.get('gameshort')
+    license = request.json.get('license')
 
     # Check the vars
     errors = list()
@@ -173,8 +173,8 @@ def publish_mod():
     Makes a mod public. Required fields: name, gameshort
     """
     # Get variables
-    name = request.form.get('name')
-    short = request.form.get('gameshort')
+    name = request.json.get('name')
+    short = request.json.get('gameshort')
 
     # Check the vars
     errors = list()
@@ -201,8 +201,8 @@ def remove_mod():
     Removes a mod, based on the request parameters. Required fields: name, gameshort
     """
     # Get variables
-    name = request.form.get('name')
-    short = request.form.get('gameshort')
+    name = request.json.get('name')
+    short = request.json.get('gameshort')
 
     # Check the vars
     errors = list()
@@ -287,11 +287,11 @@ def mod_update(gameshort, modid):
     """
     Releases a new version of your mod. Required fields: version, game-version, notify-followers, is-beta, zipball. Optional fields: changelog
     """
-    version = request.form.get('version')
-    changelog = request.form.get('changelog')
-    game_version = request.form.get('game-version')
-    notify = request.form.get('notify-followers')
-    beta = request.form.get('is-beta')
+    version = request.json.get('version')
+    changelog = request.json.get('changelog')
+    game_version = request.json.get('game-version')
+    notify = request.json.get('notify-followers')
+    beta = request.json.get('is-beta')
     zipball = request.files.get('zipball')
 
     # Get the mod
@@ -350,7 +350,7 @@ def delete_version(gameshort, modid):
     Deletes a released version of the mod. Required fields: version-id
     """
     # Parameters
-    versionid = request.form.get('version-id')
+    versionid = request.json.get('version-id')
 
     # Error check
     errors = list()
@@ -461,7 +461,7 @@ def mods_rate(gameshort, modid):
 	Rates a mod. Required fields: rating
 	"""
 	# Get variables
-	score = request.form.get('rating')
+	score = request.json.get('rating')
 
 	errors = list()
 	if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
@@ -527,7 +527,7 @@ def mods_grant(gameshort, modid):
     """
     Adds a new author to a mod. Required fields: username
     """
-    username = request.form.get('username')
+    username = request.json.get('username')
 
     # Check params
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
@@ -610,7 +610,7 @@ def mods_revoke(gameshort, modid):
     """
     Removes an author from a mod. Required fields: username
     """
-    username = request.form.get('username')
+    username = request.json.get('username')
 
     # Check params
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():

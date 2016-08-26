@@ -48,7 +48,7 @@ def edit_user(userid):
         return {'error': True, 'reasons': ['The userid is invalid.']}, 400
 
     # Get variables
-    parameters = json.loads(request.form['data'])
+    parameters = json.loads(request.json['data'])
 
     # Get the matching user and edit it
     user = User.query.filter(User.id == int(userid)).first()

@@ -37,8 +37,8 @@ def packs_add():
     """
     Creates a new modlist. Required fields: name, gameshort
     """
-    name = request.form.get('name')
-    gameshort = request.form.get('gameshort')
+    name = request.json.get('name')
+    gameshort = request.json.get('gameshort')
 
     # Check the vars
     errors = list()
@@ -77,11 +77,11 @@ def packs_edit(gameshort, packid):
         return {'error': True, 'reasons': ['The pack ID is invalid']}, 400
     if not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
-    if not request.form.get('data') or not is_json(request.form.get('data')):
+    if not request.json.get('data') or not is_json(request.json.get('data')):
         return {'error': True, 'reasons': ['The patch data is invalid.']}, 400
 
     # Get variables
-    parameters = json.loads(request.form.get('data'))
+    parameters = json.loads(request.json.get('data'))
 
     # Get the list
     list = ModList.query.filter(ModList.id == int(packid)).first()

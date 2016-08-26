@@ -24,9 +24,9 @@ def email():
     """
     Emails everyone. Required fields: subject, body. Optional fields: modders (on/off)
     """
-    subject = request.form.get('subject')
-    body = request.form.get('body')
-    modders_only = request.form.get('modders-only') == 'on'
+    subject = request.json.get('subject')
+    body = request.json.get('body')
+    modders_only = request.json.get('modders-only') == 'on'
     if not subject or not body:
         return {'error': True, 'reason': 'Required fields are missing'}
     if subject == '' or body == '':

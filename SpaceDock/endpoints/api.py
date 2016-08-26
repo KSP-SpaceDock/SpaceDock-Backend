@@ -256,7 +256,7 @@ class ApiEndpoints:
                 editable = True
         if not editable:
             return { 'error': True, 'reason': 'Not enought rights.' }, 401
-        new_user = request.form.get('user')
+        new_user = request.json.get('user')
         new_user = User.query.filter(User.username.ilike(new_user)).first()
         if new_user == None:
             return { 'error': True, 'reason': 'The specified user does not exist.' }, 400
@@ -337,7 +337,7 @@ class ApiEndpoints:
                 editable = True
         if not editable:
             return { 'error': True, 'reason': 'Not enought rights.' }, 401
-        new_user = request.form.get('user')
+        new_user = request.json.get('user')
         new_user = User.query.filter(User.username.ilike(new_user)).first()
         if new_user == None:
             return { 'error': True, 'reason': 'The specified user does not exist.' }, 404
@@ -386,10 +386,10 @@ class ApiEndpoints:
             return { 'error': True, 'reason': 'You are not logged in.' }, 401
         if not current_user.public:
             return { 'error': True, 'reason': 'Only users with public profiles may create mod packs.' }, 403
-        name = request.form.get('name')
+        name = request.json.get('name')
         if not name:
             return { 'error': True, 'reason': 'All fields are required.' }, 400
-        game = request.form.get('game')
+        game = request.json.get('game')
         if not game:
             return {'error': True, 'reason': 'Please select a game.'}, 400
         if len(name) > 100:
@@ -413,13 +413,13 @@ class ApiEndpoints:
             return { 'error': True, 'reason': 'You are not logged in.' }, 401
         if not current_user.public:
             return { 'error': True, 'reason': 'Only users with public profiles may create mods.' }, 403
-        name = request.form.get('name')
-        game = request.form.get('game')
-        short_description = request.form.get('short-description')
-        version = request.form.get('version')
-        game_version = request.form.get('game-version')
-        license = request.form.get('license')
-        ckan = request.form.get('ckan')
+        name = request.json.get('name')
+        game = request.json.get('game')
+        short_description = request.json.get('short-description')
+        version = request.json.get('version')
+        game_version = request.json.get('game-version')
+        license = request.json.get('license')
+        ckan = request.json.get('ckan')
         zipball = request.files.get('zipball')
         # Validate
         if not name \
@@ -504,10 +504,10 @@ class ApiEndpoints:
                 editable = True
         if not editable:
             return { 'error': True, 'reason': 'Not enought rights.' }, 401
-        version = request.form.get('version')
-        changelog = request.form.get('changelog')
-        game_version = request.form.get('game-version')
-        notify = request.form.get('notify-followers')
+        version = request.json.get('version')
+        changelog = request.json.get('changelog')
+        game_version = request.json.get('game-version')
+        notify = request.json.get('notify-followers')
         zipball = request.files.get('zipball')
         if not version \
             or not game_version \

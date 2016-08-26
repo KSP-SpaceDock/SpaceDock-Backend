@@ -26,8 +26,8 @@ def add_role():
     """
     Promotes a user for the given role. Required parameters: userid, rolename
     """
-    userid = request.form.get('userid')
-    rolename = request.form.get('rolename')
+    userid = request.json.get('userid')
+    rolename = request.json.get('rolename')
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
         return {'error': True, 'reasons': ['The userid is invalid.']}, 400
     user = User.query.filter(User.id == int(userid)).first()
@@ -42,8 +42,8 @@ def remove_role():
     """
     Removes a user from a group. Required parameters: userid, rolename
     """
-    userid = request.form.get('userid')
-    rolename = request.form.get('rolename')
+    userid = request.json.get('userid')
+    rolename = request.json.get('rolename')
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
         return {'error': True, 'reasons': ['The userid is invalid.']}, 400
     user = User.query.filter(User.id == int(userid)).first()
@@ -71,8 +71,8 @@ def add_abilities():
     """
     Adds a permission to a group. Required parameters: rolename, abname
     """
-    rolename = request.form.get('rolename')
-    abname = request.form.get('abname')
+    rolename = request.json.get('rolename')
+    abname = request.json.get('abname')
     if not Role.query.filter(Role.name == rolename).first():
         return {'error': True, 'reasons': ['The role does not exist. Please add it to a user to create it internally.']}, 400
     r = Role.query.filter(Role.name == rolename).first()
@@ -86,8 +86,8 @@ def remove_abilities():
     """
     Removes a permission from a group. Required parameters: rolename, abname
     """
-    rolename = request.form.get('rolename')
-    abname = request.form.get('abname')
+    rolename = request.json.get('rolename')
+    abname = request.json.get('abname')
     errors = []
     if not Role.query.filter(Role.name == rolename).first():
         errors.append('The role does not exist.')
@@ -109,9 +109,9 @@ def add_params(rolename):
     """
     Adds a parameter for an ability. Required parameters: abname, param, value
     """
-    abname = request.form.get('abname')
-    param = request.form.get('param')
-    value = request.form.get('value')
+    abname = request.json.get('abname')
+    param = request.json.get('param')
+    value = request.json.get('value')
     errors = []
     if not Role.query.filter(Role.name == rolename).first():
         errors.append('The rolename is invalid.')
@@ -130,9 +130,9 @@ def remove_params(rolename):
     """
     Removes a parameter from an ability. Required parameters: abname, param, value
     """
-    abname = request.form.get('abname')
-    param = request.form.get('param')
-    value = request.form.get('value')
+    abname = request.json.get('abname')
+    param = request.json.get('param')
+    value = request.json.get('value')
     errors = []
     if not Role.query.filter(Role.name == rolename).first():
         errors.append('The rolename is invalid.')

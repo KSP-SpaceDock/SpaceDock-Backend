@@ -39,7 +39,7 @@ def add_feature(gameshort):
     """
     Features a mod for this game. Required fields: modid
     """
-    modid = request.form.get('modid')
+    modid = request.json.get('modid')
 
     # Errorcheck
     errors = list()
@@ -63,7 +63,7 @@ def remove_feature(gameshort):
     """
     Unfeatures a mod for this game. Required fields: modid
     """
-    modid = request.form.get('modid')
+    modid = request.json.get('modid')
 
     # Errorcheck
     errors = list()

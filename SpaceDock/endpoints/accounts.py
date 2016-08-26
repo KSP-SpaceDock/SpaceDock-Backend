@@ -24,11 +24,11 @@ def register():
     if not cfg.getb('registration'):
         return {'error': True, 'reasons': ['Registrations are disabled']}, 400
 
-    followMod = request.form.get('follow-mod')
-    email = request.form.get('email')
-    username = request.form.get('username')
-    password = request.form.get('password')
-    confirmPassword = request.form.get('repeatPassword')
+    followMod = request.json.get('follow-mod')
+    email = request.json.get('email')
+    username = request.json.get('username')
+    password = request.json.get('password')
+    confirmPassword = request.json.get('repeatPassword')
 
     errors = []
 
@@ -119,8 +119,8 @@ def login():
     """
     Login the user to use additional features. Required fields: username, password
     """
-    username = request.form.get('username')
-    password = request.form.get('password')
+    username = request.json.get('username')
+    password = request.json.get('password')
     if not username or not password:
         return {'error': True, 'reasons': ['Missing username or password']}, 400
     if current_user:
@@ -151,7 +151,7 @@ def forgot_password():
     """
     Sends you a confirmation key for resetting your password in case you forgot it. Required fields: email
     """
-    email = request.form.get('email')
+    email = request.json.get('email')
     if not email:
         return {'error': True, 'reasons': ['No email address']}, 400
     user = User.query.filter(User.email == email).first()
@@ -176,8 +176,8 @@ def reset_password(username, confirmation):
         return {'error': True, 'reasons': ['Password reset invalid']}, 400
     if user.passwordReset != confirmation:
         return {'error': True, 'reasons': ['Password reset invalid']}, 400
-    password = request.form.get('password')
-    password2 = request.form.get('password2')
+    password = request.json.get('password')
+    password2 = request.json.get('password2')
     if not password or not password2:
         return {'error': True, 'reasons': ['Passwords not provided']}, 400
     if password != password2:
