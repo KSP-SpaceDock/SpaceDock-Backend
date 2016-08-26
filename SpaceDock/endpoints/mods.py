@@ -113,12 +113,9 @@ def mod_edit(gameshort, modid):
     if any(errors):
         return {'error': True, 'reasons': errors}, 400
 
-    # Get variables
-    parameters = json.loads(request.json.get('data'))
-
     # Get the matching mod and edit it
     mod = Mod.query.filter(Mod.id == int(modid)).first()
-    code = edit_object(mod, parameters)
+    code = edit_object(mod, request.json)
 
     # Error check
     if code == 2:

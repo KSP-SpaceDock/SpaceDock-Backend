@@ -39,12 +39,9 @@ def edit_publisher(publid):
     if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
         return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
 
-    # Get variables
-    parameters = json.loads(request.json['data'])
-
     # Get the matching game and edit it
     pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
-    edit_object(pub, parameters)
+    edit_object(pub, request.json)
     pub.updated = datetime.now()
     return {'error': False, 'count': 1, 'data': publisher_info(pub)}
 

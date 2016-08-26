@@ -47,12 +47,9 @@ def edit_user(userid):
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
         return {'error': True, 'reasons': ['The userid is invalid.']}, 400
 
-    # Get variables
-    parameters = json.loads(request.json['data'])
-
     # Get the matching user and edit it
     user = User.query.filter(User.id == int(userid)).first()
-    code = edit_object(user, parameters)
+    code = edit_object(user, request.json)
 
     # Error check
     if code == 2:

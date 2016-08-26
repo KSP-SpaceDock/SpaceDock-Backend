@@ -80,12 +80,9 @@ def packs_edit(gameshort, packid):
     if not request.json.get('data') or not is_json(request.json.get('data')):
         return {'error': True, 'reasons': ['The patch data is invalid.']}, 400
 
-    # Get variables
-    parameters = json.loads(request.json.get('data'))
-
     # Get the list
     list = ModList.query.filter(ModList.id == int(packid)).first()
-    code = edit_object(list, parameters)
+    code = edit_object(list, request.json)
 
     # Error check
     if code == 2:

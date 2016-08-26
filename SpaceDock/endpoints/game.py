@@ -77,12 +77,9 @@ def edit_game(gameshort):
     if any(errors):
         return {'error': True, 'reasons': errors}, 400
 
-    # Get variables
-    parameters = json.loads(request.json.get('data'))
-
     # Get the matching game and edit it
     game = Game.query.filter(Game.short == gameshort).first()
-    code = edit_object(game, parameters)
+    code = edit_object(game, request.json)
 
     # Error check
     if code == 2:
