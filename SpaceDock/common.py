@@ -61,7 +61,7 @@ def edit_object(object, patch):
         setattr(object, field, patched_patch[field])
     return 0
 
-def user_has(ability, **params):
+def user_has(ability, params=None):
     """
     Checks whether the user has the ability to view this site. Decorator function
     """
@@ -88,8 +88,8 @@ def user_has(ability, **params):
             # Check whether the abilities match
             has = False
             if desired_ability in user_abilities:
-                if 'params' in params:
-                    for p in params['params']:
+                if params:
+                    for p in params:
                         if re_in(get_param(ability, p, user_params), request.form.get(p)) or re_in(get_param(ability, p, user_params), kwargs.get(p)):
                             has = True
                 else:
