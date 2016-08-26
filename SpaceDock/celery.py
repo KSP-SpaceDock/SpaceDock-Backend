@@ -16,8 +16,8 @@ def chunks(l, n):
 def send_mail(sender, recipients, subject, message, important=False):
     if cfg["smtp-host"] == "":
         return
-    smtp = smtplib.SMTP(host=cfg["smtp-host"], port=_cfgi("smtp-port"))
-    if _cfgb("smtp-tls"):
+    smtp = smtplib.SMTP(host=cfg["smtp-host"], port=cfg.geti("smtp-port"))
+    if cfg.getb("smtp-tls"):
         smtp.starttls()
     if cfg["smtp-user"] != "":
         smtp.login(cfg["smtp-user"], cfg["smtp-password"])
