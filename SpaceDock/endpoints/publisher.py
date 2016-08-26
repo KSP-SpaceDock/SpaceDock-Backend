@@ -53,7 +53,7 @@ def add_publisher():
     Adds a publisher, based on the request parameters. Required fields: name
     """
     # Get variables
-    name = request.json['name']
+    name = request.json.get('name')
 
     # Check for existence
     if Publisher.query.filter(Publisher.name == name).first():
@@ -72,7 +72,7 @@ def remove_publisher():
     """
     Removes a game from existence. Required fields: pubid
     """
-    pubid = request.json['pubid']
+    pubid = request.json.get('pubid')
 
     # Check if the pubid is valid
     if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
