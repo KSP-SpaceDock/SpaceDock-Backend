@@ -77,8 +77,6 @@ def packs_edit(gameshort, packid):
         return {'error': True, 'reasons': ['The pack ID is invalid']}, 400
     if not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
-    if not request.json.get('data') or not is_json(request.json.get('data')):
-        return {'error': True, 'reasons': ['The patch data is invalid.']}, 400
 
     # Get the list
     list = ModList.query.filter(ModList.id == int(packid)).first()

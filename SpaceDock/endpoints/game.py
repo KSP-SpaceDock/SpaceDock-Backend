@@ -72,8 +72,6 @@ def edit_game(gameshort):
     errors = list()
     if not Game.query.filter(Game.short == gameshort).first():
         errors.append('The gameshort is invalid.')
-    if not request.json.get('data') or not is_json(request.json.get('data')):
-        errors.append('The patch data is invalid.')
     if any(errors):
         return {'error': True, 'reasons': errors}, 400
 

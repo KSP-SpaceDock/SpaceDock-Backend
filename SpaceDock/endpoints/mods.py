@@ -108,8 +108,6 @@ def mod_edit(gameshort, modid):
         errors.append('The Mod ID is invalid.')
     if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
        errors.append('The gameshort is invalid.')
-    if not request.json.get('data') or not is_json(request.json.get('data')):
-        errors.append('The patch data is invalid.')
     if any(errors):
         return {'error': True, 'reasons': errors}, 400
 
