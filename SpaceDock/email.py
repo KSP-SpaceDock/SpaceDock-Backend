@@ -38,7 +38,7 @@ def send_grant_notice(mod, user):
                 'mod_name': mod.name,
                 'site-name': cfg['site-name'], 
                 "domain": cfg["domain"],
-                'url': url_for('mods.mod', id=mod.id, mod_name=mod.name) 
+                'url': create_mod_url(mod.id, mod.name) 
             })
         send_mail.delay(cfg['support-mail'], [ user.email ], "You've been asked to co-author a mod on " + cfg['site-name'], message, important=True)
 
@@ -62,7 +62,7 @@ def send_update_notification(mod, version, user):
                 'site-name': cfg['site-name'],
                 'changelog': changelog,
                 'domain': cfg["domain"],
-                'url': '/mod/' + str(mod.id) + '/' + secure_filename(mod.name)[:64],
+                'url': create_mod_url(mod.id, secure_filename(mod.name)[:64]),
                 'game_name': version.gameversion.game.name,
                 'gameversion': version.gameversion.friendly_version
             })
@@ -89,7 +89,7 @@ def send_autoupdate_notification(mod):
                 'game_name': mod.game.name,
                 'gameversion': mod.default_version().gameversion.friendly_version,
                 'domain': cfg["domain"],
-                'url': '/mod/' + str(mod.id) + '/' + secure_filename(mod.name)[:64]
+                'url': create_mod_url(mod.id, secure_filename(mod.name)[:64])
             })
         subject = mod.name + " is compatible with " + mod.game.name + " " + mod.versions[0].gameversion.friendly_version + "!"
         send_mail.delay(cfg['support-mail'], targets, subject, message)
@@ -99,3 +99,7 @@ def send_bulk_email(users, subject, body):
     for u in users:
         targets.append(u)
     send_mail.delay(cfg['support-mail'], targets, subject, body)
+
+def create_mod_url(id, name):
+    route = cfg['mod-url']
+    return route.replace('{id}', str(id)).replace('{name}', name) # Using manual replacement here, so users dont need to use both values
