@@ -61,7 +61,7 @@ def edit_object(object, patch):
         setattr(object, field, patched_patch[field])
     return 0
 
-def user_has(ability, params=None):
+def user_has(ability, public=True, params=None):
     """
     Checks whether the user has the ability to view this site. Decorator function
     """
@@ -71,9 +71,8 @@ def user_has(ability, params=None):
             # Check if the user is logged in
             if not current_user:
                 return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 403
-            if ('public' in params and params['public']) or not 'public' in params:
-                if not current_user.public:
-                    return {'error': True, 'reasons': ['Only users with public profiles may access this page.']}, 403
+            if public and not current_user.public:
+                return {'error': True, 'reasons': ['Only users with public profiles may access this page.']}, 403
 
             # Get the specified ability
             desired_ability = Ability.query.filter(Ability.name == ability).first()
