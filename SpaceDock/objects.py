@@ -446,6 +446,7 @@ class Mod(Base, MetaObject):
         self.download_count = 0
         self.user = User.query.filter(User.id == user_id).first()
         self.game = Game.query.filter(Game.id == game_id).first()
+        self.description = ""
 
     def __repr__(self):
         return '<Mod %r %r>' % (self.id, self.name)

@@ -46,7 +46,7 @@ def edit_object(object, patch):
     Edits an object using a patch dictionary. Edits only fields that aren't listed in __lock__
     """
     patched_patch = {}
-    for field in patch:
+    for field in patch.keys():
         if field in dir(object):
             if '__lock__' in dir(object) and field in getattr(object, '__lock__') or field == '__lock__':
                 return 1
