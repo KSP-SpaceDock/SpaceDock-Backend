@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String
+from sqlalchemy import create_engine, Column, String, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from SpaceDock.config import cfg
@@ -10,7 +10,7 @@ db = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for database objects, to support metadata (plugins)
 class MetaObject():
-    meta = Column(String(512), default='{}')
+    meta = Column(String(512), server_default=text('{}'))
 
     # Adds a new metadata, or updates an existing one
     def __getitem__(self, key):

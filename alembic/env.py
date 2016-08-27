@@ -3,14 +3,15 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
 
-import os, sys
+import os, os.path, sys
 sys.path.append(os.getcwd())
 
-from SpaceDock.config import Config
+from SpaceDock.config import cfg
 from SpaceDock.database import * 
-spacedock_cfg = Config()
-spacedock_database = Database(spacedock_cfg)
 from SpaceDock.objects import *
+
+spacedock_cfg = cfg
+spacedock_database = db
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

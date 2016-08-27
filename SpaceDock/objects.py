@@ -106,7 +106,6 @@ class User(Base, MetaObject):
     mods = relationship('Mod', order_by='Mod.created')
     packs = relationship('ModList', order_by='ModList.created')
     following = relationship('Mod', secondary=mod_followers, backref='user.id')
-    theme = Column(String(24))
     # Permissions
     _roles = relationship('Role', secondary=user_role_table, backref='users')
     roles = association_proxy('_roles', 'name', creator=role_find_or_create)
