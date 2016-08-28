@@ -30,10 +30,14 @@
     <InterpreterReference Include="{b262b887-eef9-452a-afec-b57da83111af}\3.4" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="alembic\" />
+    <Folder Include="alembic\versions\" />
     <Folder Include="SpaceDock\" />
     <Folder Include="SpaceDock\endpoints\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="alembic\env.py" />
+    <Compile Include="alembic\versions\60264098e5f0_spacedock_backend_migration.py" />
     <Compile Include="setup.py" />
     <Compile Include="SpaceDock.py">
       <SubType>Code</SubType>
@@ -76,6 +80,8 @@
     <Compile Include="SpaceDock\__init__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="alembic\README" />
+    <Content Include="alembic\script.py.mako" />
     <Content Include="SpaceDock\__init__.py" />
   </ItemGroup>
   <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />

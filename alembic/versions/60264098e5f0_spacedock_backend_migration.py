@@ -19,20 +19,20 @@ import sqlalchemy as sa
 def upgrade():
     
     # Featured
-    op.add_column('featured', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('featured', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Blog Post
-    op.add_column('blog', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('blog', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # User
     op.drop_column('user', 'bgOffsetX')
     op.drop_column('user', 'bgOffsetY')
     op.drop_column('user', 'dark_theme')
-    op.add_column('user', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('user', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Roles
     op.create_table('role', 
-        sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')),
+        sa.Column('meta', sa.String(512), server_default='{}'),
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('name', sa.String(120), unique=True),
         sa.Column('params',  sa.String(512))
@@ -48,58 +48,58 @@ def upgrade():
     
     # Abilities
     op.create_table('ability', 
-        sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')),
+        sa.Column('meta', sa.String(512), server_default='{}'),
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('name', sa.String(120), unique=True)
     )
     
     # User Auth
-    op.add_column('user_auth', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('user_auth', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Ratings
-    op.add_column('rating', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('rating', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Reviews
-    op.add_column('review', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('review', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Publisher    
     op.drop_column('publisher', 'bgOffsetX')
     op.drop_column('publisher', 'bgOffsetY')
-    op.add_column('publisher', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('publisher', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Game
     op.drop_column('game', 'bgOffsetX')
     op.drop_column('game', 'bgOffsetY')
-    op.add_column('game', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('game', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Mods
     op.drop_column('mod', 'bgOffsetX')
     op.drop_column('mod', 'bgOffsetY')
     op.drop_column('mod', 'ckan')
-    op.add_column('mod', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('mod', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Modlist
     op.drop_column('modlist', 'bgOffsetY')
-    op.add_column('modlist', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
-    op.add_column('modlistitem', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('modlist', sa.Column('meta', sa.String(512), server_default='{}'))
+    op.add_column('modlistitem', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Shared Author    
-    op.add_column('sharedauthor', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('sharedauthor', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Events
-    op.add_column('downloadevent', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
-    op.add_column('followevent', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
-    op.add_column('referralevent', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('downloadevent', sa.Column('meta', sa.String(512), server_default='{}'))
+    op.add_column('followevent', sa.Column('meta', sa.String(512), server_default='{}'))
+    op.add_column('referralevent', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Modversion    
-    op.add_column('modversion', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('modversion', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Media
-    op.add_column('media', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
-    op.add_column('reviewmedia', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('media', sa.Column('meta', sa.String(512), server_default='{}'))
+    op.add_column('reviewmedia', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # GameVersion
-    op.add_column('gameversion', sa.Column('meta', sa.String(512), server_default=sa.text('"{}"')))
+    op.add_column('gameversion', sa.Column('meta', sa.String(512), server_default='{}'))
 
 
 def downgrade():
