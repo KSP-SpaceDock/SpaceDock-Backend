@@ -26,6 +26,9 @@ def with_session(f):
     return wrapper
 
 def json_output(f):
+    """
+    Output transformer that returns a JSON formatted string
+    """
     @wraps(f)
     def wrapper(*args, **kwargs):
         if request.args.get('callback'):
