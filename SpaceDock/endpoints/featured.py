@@ -26,8 +26,10 @@ def list_featured_game(gameshort):
 
     # Get the features
     result = list()
-    for feature in Featured.query.filter(Mod.query.filter(Mod.id == Featured.mod_id).first().game.short == gameshort).all():
-        result.append(feature_info(feature))
+    for feature in Featured.query.all():
+        mod = Mod.query.filter(Mod.id == Featured.mod_id).first()
+        if mod.game.short == gameshort:
+            result.append(feature_info(feature))
     return {'error': False, 'count': len(result), 'data': result}
 
 @route('/api/mods/featured/add/<gameshort>', methods=['POST'])
