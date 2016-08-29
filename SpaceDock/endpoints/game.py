@@ -62,48 +62,6 @@ def game_versions(gameshort):
         results.append(game_version_info(version))
     return {'error': False, 'count': len(results), 'data': results}
 
-@route('/api/games/<gameshort>/mods')
-def game_mods(gameshort):
-    """
-    Displays a list of all mods added for this game.
-    """
-    if not Game.query.filter(Game.short == gameshort).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
-
-    # Get the ID
-    gameid = game_id(gameshort)
-
-    # Get mods
-    mods = Mod.query.filter(Mod.game_id == int(gameid)).all()
-
-    # Format
-    result = dict()
-    for mod in mods:
-        result[str(mod.id)] = mod.name
-    return {'error': False, 'count': len(result), 'data': result}
-
-@route('/api/games/<gameshort>/modlists')
-def game_modlists(gameshort):
-    """
-    Displays all mod lists this game knows.
-    """
-    if not Game.query.filter(Game.short == gameshort).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
-
-    # Get the ID
-    gameid = game_id(gameshort)
-
-    # Get mod lists
-    game = Game.query.filter(Game.id == int(gameid)).first()
-    modlists = ModList.query.filter(ModList.game_id == int(gameid)).all()
-
-    # Format
-    result = dict()
-    for ml in modlists:
-        result[str(ml.id)] = ml.name
-    return {'error': False, 'count': len(result), 'data': result}
-
-
 @route('/api/games/<gameshort>/edit', methods=['POST'])
 @user_has('game-edit', params=['gameshort'])
 @with_session

@@ -25,6 +25,26 @@ def mod_list():
         results.append(mod_info(mod))
     return {'error': False, 'count': len(results), 'data': results}
 
+@route('/api/mods/<gameshort>')
+def mod_game_list(gameshort):
+    """
+    Returns a list with all mods for this game.
+    """
+    if not Game.query.filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+
+    # Get the ID
+    gameid = game_id(gameshort)
+
+    # Get mods
+    mods = Mod.query.filter(Mod.game_id == int(gameid)).all()
+
+    # Format
+    result = list()
+    for mod in mods:
+        result.append(mod_info(mod))
+    return {'error': False, 'count': len(result), 'data': result}
+
 @route('/api/mods/<gameshort>/<modid>')
 def mods_info(gameshort, modid):
     """
