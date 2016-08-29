@@ -16,13 +16,13 @@ mod_followers = Table('mod_followers', Base.metadata,
 )
 
 user_role_table = Table('user_role', Base.metadata,
-    Column('user_id', Integer(), ForeignKey('user.id'), primary_key=False),
-    Column('role_id', Integer(), ForeignKey('role.id'), primary_key=False)
+    Column('user_id', Integer, ForeignKey('user.id'), primary_key=False),
+    Column('role_id', Integer, ForeignKey('role.id'), primary_key=False)
 )
 
 role_ability_table = Table('role_ability', Base.metadata,
-    Column('role_id', Integer(), ForeignKey('role.id'), primary_key=False),
-    Column('ability_id', Integer(), ForeignKey('ability.id'), primary_key=False)
+    Column('role_id', Integer, ForeignKey('role.id'), primary_key=False),
+    Column('ability_id', Integer, ForeignKey('ability.id'), primary_key=False)
 )
 
 def role_find_or_create(r):
@@ -74,29 +74,29 @@ class User(Base, MetaObject):
     id = Column(Integer, primary_key = True)
     username = Column(String(128), nullable = False, index = True)
     email = Column(String(256), nullable = False, index = True)
-    showEmail = Column(Boolean())
-    public = Column(Boolean())
+    showEmail = Column(Boolean)
+    public = Column(Boolean)
     password = Column(String(128))
     description = Column(Unicode(10000))
     created = Column(DateTime)
-    showCreated = Column(Boolean())
+    showCreated = Column(Boolean)
     forumUsername = Column(String(128))
-    showForumName = Column(Boolean())
+    showForumName = Column(Boolean)
     forumId = Column(Integer)
     ircNick = Column(String(128))
-    showIRCName = Column(Boolean())
+    showIRCName = Column(Boolean)
     twitterUsername = Column(String(128))
-    showTwitterName = Column(Boolean())
+    showTwitterName = Column(Boolean)
     redditUsername = Column(String(128))
-    showRedditName = Column(Boolean())
+    showRedditName = Column(Boolean)
     youtubeUsername = Column(String(128))
-    showYoutubeName = Column(Boolean())
+    showYoutubeName = Column(Boolean)
     twitchUsername = Column(String(128))
-    showTwitchName = Column(Boolean())
+    showTwitchName = Column(Boolean)
     facebookUsername = Column(String(128))
-    showFacebookName = Column(Boolean())
+    showFacebookName = Column(Boolean)
     location = Column(String(128))
-    showLocation = Column(Boolean())
+    showLocation = Column(Boolean)
     confirmation = Column(String(128))
     passwordReset = Column(String(128))
     passwordResetExpiry = Column(DateTime)
@@ -162,7 +162,7 @@ class User(Base, MetaObject):
 
 class Role(Base, MetaObject):
     __tablename__ = 'role'
-    id = Column(Integer(), primary_key=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String(120), unique=True)
     abilities = relationship('Ability', secondary=role_ability_table, backref='roles')
     params = Column(String(512))
@@ -223,7 +223,7 @@ class Role(Base, MetaObject):
 
 class Ability(Base, MetaObject):
     __tablename__ = 'ability'
-    id = Column(Integer(), primary_key=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String(120), unique=True)
 
     def __init__(self, name):
@@ -263,7 +263,7 @@ class Rating(Base, MetaObject):
     user = relationship('User', back_populates='ratings')
     mod_id = Column(Integer, ForeignKey('mod.id'))
     mod = relationship('Mod', back_populates='ratings')
-    score = Column(Float(), nullable=False, server_default=text('5'))
+    score = Column(Float, nullable=False, server_default=text('5'))
     created = Column(DateTime)
     updated = Column(DateTime)
 
@@ -293,10 +293,10 @@ class Review(Base, MetaObject):
     medias = relationship('ReviewMedia')
     video_link = Column(String(100))
     video_image = Column(String(100))
-    has_video = Column(Boolean())
+    has_video = Column(Boolean)
     teaser = Column(Unicode(1000))
-    approved = Column(Boolean())
-    published = Column(Boolean())
+    approved = Column(Boolean)
+    published = Column(Boolean)
     created = Column(DateTime)
     updated = Column(DateTime)
 
@@ -334,10 +334,10 @@ class Game(Base, MetaObject):
     __lock__ = ['id', 'rating', 'short', 'publisher_id', 'publisher', 'mods', 'modlists' 'version', 'created', 'updated', 'background']
     id = Column(Integer, primary_key = True)
     name = Column(Unicode(1024))
-    active = Column(Boolean())
+    active = Column(Boolean)
     fileformats = Column(Unicode(1024))
     altname = Column(Unicode(1024))
-    rating = Column(Float())
+    rating = Column(Float)
     releasedate = Column(DateTime)
     short = Column(Unicode(1024))
     publisher_id = Column(Integer, ForeignKey('publisher.id'))
@@ -389,12 +389,12 @@ class Mod(Base, MetaObject):
     name = Column(String(100), index = True)
     description = Column(Unicode(100000))
     short_description = Column(Unicode(1000))
-    approved = Column(Boolean())
-    published = Column(Boolean())
+    approved = Column(Boolean)
+    published = Column(Boolean)
     donation_link = Column(String(512))
     external_link = Column(String(512))
     license = Column(String(128))
-    votes = Column(Integer())
+    votes = Column(Integer)
     created = Column(DateTime)
     updated = Column(DateTime)
     background = Column(String(512))
@@ -410,7 +410,7 @@ class Mod(Base, MetaObject):
     followers = relationship('User', viewonly=True, secondary=mod_followers, backref='mod.id')
     ratings = relationship('Rating', order_by='Rating.created')
     review = relationship('Review', order_by='Review.created')
-    total_score = Column(Float(), nullable=True)
+    total_score = Column(Float, nullable=True)
     rating_count = Column(Integer, nullable=False, server_default=text('0'))
 
     def background_thumb(self):
@@ -565,7 +565,7 @@ class ModVersion(Base, MetaObject):
     mod_id = Column(Integer, ForeignKey('mod.id'))
     mod = relationship('Mod', viewonly=True, backref=backref('modversion', order_by="desc(ModVersion.created)"))
     friendly_version = Column(String(64))
-    is_beta = Column(Boolean())
+    is_beta = Column(Boolean)
     gameversion_id = Column(Integer, ForeignKey('gameversion.id'))
     gameversion = relationship('GameVersion', viewonly=True, backref=backref('modversion', order_by=id))
     created = Column(DateTime)
@@ -635,7 +635,7 @@ class GameVersion(Base, MetaObject):
     __lock__ = ['id', 'friendly_version', 'game_id', 'game']
     id = Column(Integer, primary_key = True)
     friendly_version = Column(String(128))
-    is_beta = Column(Boolean())
+    is_beta = Column(Boolean)
     game_id = Column(Integer, ForeignKey('game.id'))
     game = relationship('Game', back_populates='version')
 
