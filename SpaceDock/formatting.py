@@ -181,7 +181,7 @@ def user_info(user):
 def feature_info(feature):
     return {
         'id': feature.id,
-        'mod': feature.mod.name,
+        'mod': mod_info(feature.mod),
         'mod_id': feature.mod_id,
         'game': feature.mod.game.short,
         'created': feature.created.isoformat() if not feature.created == None else None,
