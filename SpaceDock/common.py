@@ -1,13 +1,17 @@
-from flask import request
+from flask import request, make_response
 from flask_json import as_json_p, as_json
 from flask_login import current_user
 from functools import wraps
 from sqlalchemy import Column
+from SpaceDock.config import cfg
 from SpaceDock.database import db
 from SpaceDock.objects import Ability, Game
+from wsgiref.handlers import format_date_time
 
 import re
 import json
+import datetime
+import time
 
 def with_session(f):
     """
@@ -179,3 +183,22 @@ def clamp_number(min_value, max_value, num):
 		return result
 	except TypeError as e:
 		return -1
+
+def cache(f):
+    """
+    Caches a response to reduce the load for the server
+    """
+    @wraps(f)
+    def cache_func(*args, **kwargs): 
+        now = datetime.datetime.now()
+ 
+        response = make_response(f(*args, **kwargs))
+        response.headers['Last-Modified'] = format_date_time(time.mktime(now.timetuple()))
+            
+        expires_time = now + datetime.timedelta(seconds=cfg.geti('cache-expires') * 60)
+
+        response.headers['Cache-Control'] = 'public'
+        response.headers['Expires'] = format_date_time(time.mktime(expires_time.timetuple()))
+ 
+        return response
+    return cache_func

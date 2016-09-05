@@ -26,11 +26,12 @@ def load_user(username):
 
 login_manager.anonymous_user = lambda: None
 
-from SpaceDock.common import json_output
+from SpaceDock.common import json_output, cache
 from SpaceDock.routing import add_wrapper
 
 # Register JSON output
 add_wrapper(json_output)
+add_wrapper(cache)
 
 # Load plugins
 load_plugins()

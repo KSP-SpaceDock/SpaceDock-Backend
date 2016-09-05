@@ -57,3 +57,6 @@ thumbnail_size=320x320
 
 # Mod URL expression, used for sending emails containing links to the frontend
 mod-url=/mod/{id}/{name}
+
+# How long should the browser cache pages? (minutes)
+cache-expires=10
