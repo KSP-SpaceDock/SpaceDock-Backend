@@ -60,3 +60,7 @@ mod-url=/mod/{id}/{name}
 
 # How long should the browser cache pages? (minutes)
 cache-expires=10
+
+# Enables threading in the flask app.
+# Stability: Unknown
+threaded=False
