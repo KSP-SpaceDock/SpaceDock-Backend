@@ -19,7 +19,7 @@ def publishers_list():
     return {"error": False, 'count': len(results), 'data': results}
 
 @route('/api/publishers/<pubid>')
-def publisher_info(pubid):
+def publishers_info(pubid):
     """
     Outputs detailed infos for one publisher
     """
@@ -32,7 +32,7 @@ def publisher_info(pubid):
 @route('/api/publishers/<pubid>/edit', methods=['POST'])
 @user_has('publisher-edit', params=['pubid'])
 @with_session
-def edit_publisher(publid):
+def edit_publisher(pubid):
     """
     Edits a publisher, based on the request parameters. Required fields: data
     """
