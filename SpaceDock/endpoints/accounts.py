@@ -14,7 +14,6 @@ import re
 import binascii
 import os
 
-
 @route('/api/register', methods=['POST'])
 @with_session
 def register():
