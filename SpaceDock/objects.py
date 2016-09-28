@@ -1,9 +1,9 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, ForeignKey, Table, text, Float
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Table, Unicode, text
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from SpaceDock.config import cfg
-from SpaceDock.database import Base, MetaObject, db
+from SpaceDock.database import MetaObject, Base, db
 from SpaceDock.thumbnail import create
 
 import bcrypt
