@@ -1,5 +1,6 @@
-import os.path
 from PIL import Image
+
+import os.path
 
 def create(imagePath, thumbnailPath, thumbnailSize):
     if not os.path.isfile(imagePath):

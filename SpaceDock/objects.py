@@ -1,14 +1,14 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, ForeignKey, Table, text, Float
-from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
-from SpaceDock.database import Base, MetaObject, db
+from sqlalchemy.orm import relationship, backref
 from SpaceDock.config import cfg
+from SpaceDock.database import Base, MetaObject, db
 from SpaceDock.thumbnail import create
 
-import os.path
 import bcrypt
 import json
+import os.path
 import re
 
 mod_followers = Table('mod_followers', Base.metadata,

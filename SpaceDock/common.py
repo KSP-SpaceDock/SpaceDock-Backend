@@ -7,9 +7,9 @@ from SpaceDock.database import db
 from SpaceDock.objects import Ability, Game
 from wsgiref.handlers import format_date_time
 
-import re
-import json
 import datetime
+import json
+import re
 import time
 
 def with_session(f):
