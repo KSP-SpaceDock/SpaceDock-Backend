@@ -18,6 +18,12 @@ git clone https://github.com/KSP-SpaceDock/SpaceDock-Backend.git
 cd SpaceDock-Backend
 ```
 
+SpaceDock requires some apt-get packages to be installed
+```
+apt-get install python3 python3-dev python-virtualenv python-pip postgresql-server-9.3 postgresql-server-dev-9.3 libjpeg-dev 
+apt-get install libmysqlclient-dev mysql-server # Only if you want to use MySQL
+```
+
 Now you need to create a new virtualenv. Skip this step if you dont use virtualenv:
 ```
 virtualenv -p /usr/bin/python3 . # Windows: C:\Python34\python.exe or wherever your python lies
@@ -33,6 +39,7 @@ cp config/config.ini.example config/config.ini
 And finally install all the requirements. Depending on your internet connection this could take a while
 ```
 pip install -r requirements.txt
+pip install mysqlclient # Only if you want to use MySQL
 ```
 
 To start the backend simply type
