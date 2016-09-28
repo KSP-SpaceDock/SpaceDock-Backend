@@ -363,7 +363,7 @@ class Game(Base, MetaObject):
         fullThumbPath = os.path.join(os.path.join(cfg['storage'], thumbPath.replace('/content/', '')))
         fullImagePath = os.path.join(cfg['storage'], self.background.replace('/content/', ''))
         if not os.path.exists(fullThumbPath):
-            thumbnail.create(fullImagePath, fullThumbPath, thumbnailSize)
+            create(fullImagePath, fullThumbPath, thumbnailSize)
         return thumbPath
 
     def __init__(self,name,publisher_id,short):
@@ -424,7 +424,7 @@ class Mod(Base, MetaObject):
         fullThumbPath = os.path.join(os.path.join(cfg['storage'], thumbPath.replace('/content/', '')))
         fullImagePath = os.path.join(cfg['storage'], self.background.replace('/content/', ''))
         if not os.path.exists(fullThumbPath):
-            thumbnail.create(fullImagePath, fullThumbPath, thumbnailSize)
+            create(fullImagePath, fullThumbPath, thumbnailSize)
         return thumbPath
 
     def default_version(self):
