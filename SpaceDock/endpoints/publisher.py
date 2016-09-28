@@ -1,10 +1,10 @@
 from datetime import datetime
 from flask import request
 from sqlalchemy import desc
-from SpaceDock.common import with_session, user_has
+from SpaceDock.common import edit_object, user_has, with_session
 from SpaceDock.database import db
 from SpaceDock.formatting import publisher_info
-from SpaceDock.objects import *
+from SpaceDock.objects import Publisher
 from SpaceDock.routing import route
 
 
