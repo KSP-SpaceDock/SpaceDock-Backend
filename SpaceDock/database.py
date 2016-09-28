@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, text
+from sqlalchemy import create_engine, Column, String
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from SpaceDock.config import cfg
@@ -41,7 +41,7 @@ def test_is_json(test):
     Checks whether something is JSON formatted
     """
     try:
-        s = json.loads(test)
+        json.loads(test)
         return True
     except ValueError as e:
         return False

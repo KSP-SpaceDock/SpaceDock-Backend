@@ -1,6 +1,4 @@
-from flask import url_for
-from sqlalchemy import desc
-from SpaceDock.objects import *
+from SpaceDock.objects import Game, DownloadEvent, FollowEvent, ReferralEvent
 
 import json
 

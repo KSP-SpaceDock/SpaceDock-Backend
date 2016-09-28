@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask
 from flask_json import FlaskJSON
 from flask_login import LoginManager
 from SpaceDock.config import cfg
@@ -46,5 +46,3 @@ import SpaceDock.endpoints.general
 import SpaceDock.endpoints.mods
 import SpaceDock.endpoints.publisher
 import SpaceDock.endpoints.user
-
-

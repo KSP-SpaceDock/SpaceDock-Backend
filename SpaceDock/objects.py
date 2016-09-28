@@ -1,9 +1,10 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, ForeignKey, Table, UnicodeText, Text, text,Float
+from sqlalchemy import Column, Integer, String, Unicode, Boolean, DateTime, ForeignKey, Table, text, Float
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 from SpaceDock.database import Base, MetaObject, db
 from SpaceDock.config import cfg
+from SpaceDock.thumbnail import create
 
 import os.path
 import bcrypt
@@ -129,7 +130,7 @@ class User(Base, MetaObject):
         self.description = ''
         self.backgroundMedia = ''
         self.dark_theme = False
-        if roles and isinstance(roles, basestring):
+        if roles and isinstance(roles, str):
             roles = [roles]
         if roles and is_sequence(roles):
             self.roles = roles
@@ -143,7 +144,7 @@ class User(Base, MetaObject):
     def is_authenticated(self):
         return True
     def is_active(self):
-        return confirmation == None
+        return self.confirmation == None
     def is_anonymous(self):
         return False
     def get_id(self):

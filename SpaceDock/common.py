@@ -2,7 +2,6 @@ from flask import request, make_response
 from flask_json import as_json_p, as_json
 from flask_login import current_user
 from functools import wraps
-from sqlalchemy import Column
 from SpaceDock.config import cfg
 from SpaceDock.database import db
 from SpaceDock.objects import Ability, Game
@@ -166,7 +165,7 @@ def is_json(test):
     Checks whether something is JSON formatted
     """
     try:
-        s = json.loads(test)
+        json.loads(test)
         return True
     except ValueError as e:
         return False
