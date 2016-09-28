@@ -1,6 +1,5 @@
 from flask import redirect, make_response, send_file
 from SpaceDock.app import app
-from SpaceDock.routing import route
 from SpaceDock.config import cfg
 
 import mimetypes
