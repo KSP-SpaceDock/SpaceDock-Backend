@@ -101,7 +101,7 @@ def confirm(username, confirmation):
     login_user(user)
     user.add_roles(username)
     role = Role.query.filter(Role.name == username).first()
-    role.add_abilities('user-edit', 'mods-add', 'logged-in')
+    role.add_abilities('user-edit', 'mods-add', 'packs-add', 'logged-in')
     role.add_param('user-edit', 'userid', user.id)
     role.add_param('mods-add', 'gameshort', '.*')
     role.add_param('packs-add', 'gameshort', '.*')

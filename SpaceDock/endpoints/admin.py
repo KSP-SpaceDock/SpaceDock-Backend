@@ -47,7 +47,7 @@ def manual_confirm(userid):
     user.confirmation = None
     user.add_roles(user.username)
     role = Role.query.filter(Role.name == user.username).first()
-    role.add_abilities('user-edit', 'mods-add', 'logged-in')
+    role.add_abilities('user-edit', 'mods-add', 'packs-add', 'logged-in')
     role.add_param('user-edit', 'userid', user.id)
     role.add_param('mods-add', 'gameshort', '*.')
     db.add(role)
