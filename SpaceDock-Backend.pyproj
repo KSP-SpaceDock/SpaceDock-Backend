@@ -45,7 +45,6 @@
     <Compile Include="SpaceDock\endpoints\access.py" />
     <Compile Include="SpaceDock\endpoints\accounts.py" />
     <Compile Include="SpaceDock\endpoints\admin.py" />
-    <Compile Include="SpaceDock\endpoints\api.py" />
     <Compile Include="SpaceDock\endpoints\featured.py">
       <SubType>Code</SubType>
     </Compile>
