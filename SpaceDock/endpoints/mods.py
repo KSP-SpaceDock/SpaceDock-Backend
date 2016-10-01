@@ -21,8 +21,12 @@ def mod_list():
     Returns a list of all mods
     """
     results = list()
-    for mod in Mod.query.order_by(desc(Mod.id)).filter(Mod.published):
-        results.append(mod_info(mod))
+    for mod in Mod.query.order_by(desc(Mod.id)):
+        if not mod.published:
+            if current_user == mod.user:
+                results.append(mod_info(mod))
+        else:
+            results.append(mod_info(mod))
     return {'error': False, 'count': len(results), 'data': results}
 
 @route('/api/mods/<gameshort>')
@@ -37,12 +41,16 @@ def mod_game_list(gameshort):
     gameid = game_id(gameshort)
 
     # Get mods
-    mods = Mod.query.filter(Mod.game_id == int(gameid)).all()
+    mods = Mod.query.filter(Mod.game_id == int(gameid)).order_by(desc(Mod.id)).all()
 
     # Format
     result = list()
     for mod in mods:
-        result.append(mod_info(mod))
+        if not mod.published:
+            if current_user == mod.user:
+                results.append(mod_info(mod))
+        else:
+            results.append(mod_info(mod))
     return {'error': False, 'count': len(result), 'data': result}
 
 @route('/api/mods/<gameshort>/<modid>')
@@ -56,6 +64,8 @@ def mods_info(gameshort, modid):
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
+    if not mod.published and current_user != mod.user:
+        return {'error': True, reasons: ['The mod is not published.']}, 400
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 @route('/api/mods/<gameshort>/<modid>/download/<versionname>')
@@ -72,6 +82,8 @@ def mods_download(gameshort, modid, versionname):
         return {'error': True, 'reasons': ['The version is invalid.']}, 400
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
+    if not mod.published and current_user != mod.user:
+        return {'error': True, reasons: ['The mod is not published.']}, 400
     version = ModVersion.query.filter(ModVersion.mod_id == modid).filter(ModVersion.friendly_version == versionname).first()
     download = DownloadEvent.query\
             .filter(DownloadEvent.mod_id == mod.id and DownloadEvent.version_id == version.id)\
@@ -272,6 +284,9 @@ def mod_versions(gameshort, modid):
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
     # Get the versions
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
+    if not mod.published and current_user != mod.user:
+        return {'error': True, reasons: ['The mod is not published.']}, 400
     versions = ModVersion.query.filter(ModVersion.mod_id == int(modid)).all()
     return {'error': False, 'count': len(versions), 'data': bulk(versions, mod_version_info)}
 
@@ -380,7 +395,7 @@ def mods_follow(gameshort, modid):
     """
     Registers a user for automated email sending when a new mod version is released
     """
-    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+    if not modid.isdigit() or not Mod.query.filter(Mod.published).filter(Mod.id == int(modid)).first():
         return {'error': True, 'reasons': ['The modid is invalid']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 
@@ -417,10 +432,10 @@ def mods_unfollow(gameshort, modid):
     """
     Unregisters a user for automated email sending when a new mod version is released
     """
-    if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+    if not modid.isdigit() or not Mod.query.filter(Mod.published).filter(Mod.id == int(modid)).first():
         return {'error': True, 'reasons': ['The modid is invalid']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
     if not any(m.id == int(modid) for m in current_user.following):
         return {'error': True, 'reasons': ['You are not following this mod.']}, 400
 
@@ -452,37 +467,38 @@ def mods_unfollow(gameshort, modid):
 @user_has('logged-in', public=False)
 @with_session
 def mods_rate(gameshort, modid):
-	"""
-	Rates a mod. Required fields: rating
-	"""
-	# Get variables
-	score = request.json.get('rating')
+    """
+    Rates a mod. Required fields: rating
+    """
+    # Get variables
+    score = request.json.get('rating')
 
-	errors = list()
-	if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
-		errors.append('The Mod ID is invalid.')
-	if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-		errors.append('The gameshort is invalid.')
-	if not score or not score.isdigit():
-		 errors.append('The score is invalid.')
-	if Rating.query.filter(Rating.mod_id == int(modid)).filter(Rating.user_id == current_user.id).first():
-		errors.append('You already have a rating for this mod.')
-	if any(errors):
-		return {'error': True, 'reasons': errors}, 400
+    errors = list()
+    if not modid.isdigit() or not Mod.query.filter(Mod.published).filter(Mod.id == int(modid)).first():
+        errors.append('The Mod ID is invalid.')
+    if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
+        errors.append('The gameshort is invalid.')
+    if not score or not score.isdigit():
+        errors.append('The score is invalid.')
+    if Rating.query.filter(Rating.mod_id == int(modid)).filter(Rating.user_id == current_user.id).first():
+        errors.append('You already have a rating for this mod.')
+    if any(errors):
+        return {'error': True, 'reasons': errors}, 400
 
-	# Find the mod
-	mod = Mod.query.filter(Mod.id == int(modid)).first()
-	# Create rating
-	rating = Rating(current_user.id, current_user, mod.id, mod, int(score))
-	db.add(rating)
-	db.commit()
+    # Find the mod
+    mod = Mod.query.filter(Mod.id == int(modid)).first()
 
-	# Add rating to user and increase mod rating count
-	current_user.ratings.append(rating)
-	mod.rating_count += 1
-	mod.ratings.append(rating)
+    # Create rating
+    rating = Rating(current_user.id, current_user, mod.id, mod, int(score))
+    db.add(rating)
+    db.commit()
 
-	return {'error': False, 'count': 1, 'data': rating_info(rating)}
+    # Add rating to user and increase mod rating count
+    current_user.ratings.append(rating)
+    mod.rating_count += 1
+    mod.ratings.append(rating)
+
+    return {'error': False, 'count': 1, 'data': rating_info(rating)}
 
 @route('/api/mods/<gameshort>/<modid>/ratings/remove')
 @user_has('logged-in', public=False)
@@ -493,7 +509,7 @@ def mods_unrate(gameshort, modid):
 	"""
 	
 	errors = list()
-	if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
+	if not modid.isdigit() or not Mod.query.filter(Mod.published).filter(Mod.id == int(modid)).first():
 		errors.append('The Mod ID is invalid.')
 	if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
 		errors.append('The gameshort is invalid.')
@@ -568,7 +584,7 @@ def mods_accept_grant(gameshort, modid):
 
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
-    author = [a for a in mod.shared_authors if a.user == current_user and a.accepted]
+    author = [a for a in mod.shared_authors if a.user == current_user and not a.accepted]
     if len(author) == 0:
         return {'error': True, 'reasons': ['You do not have a pending authorship invite.']}, 400
     author = author[0]
@@ -591,7 +607,7 @@ def mods_reject_grant(gameshort, modid):
 
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
-    author = [a for a in mod.shared_authors if a.user == current_user and a.accepted]
+    author = [a for a in mod.shared_authors if a.user == current_user and not a.accepted]
     if len(author) == 0:
         return {'error': True, 'reasons': ['You do not have a pending authorship invite.']}, 400
     mod.shared_authors = [a for a in mod.shared_authors if a.user != current_user]
