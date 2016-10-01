@@ -63,7 +63,7 @@ def new_game(name, short, publisher):
     db.add(pub)
 
     # Create the game
-    game = Game(name, pub.id, short)
+    game = Game(name, pub, short)
     game.active = True
     db.add(game)
 
@@ -112,7 +112,7 @@ def new_mod(name, user, game, license):
     game = Game.query.filter(Game.short == game).first()
 
     # Create new object
-    mod = Mod(name, user.id, game.id, license)
+    mod = Mod(name, user, game, license)
 
     # Roles
     user.add_roles(name)

@@ -117,7 +117,8 @@ def add_game():
         return {'error': True, 'reasons': errors}, 400
 
     # Make a new game
-    game = Game(name, int(pubid), short)
+    pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
+    game = Game(name, pub, short)
     db.add(game)
     db.commit()
     return {'error': False, 'count': 1, 'data': game_info(game)}
