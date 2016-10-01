@@ -63,7 +63,7 @@ def new_game(name, short, publisher):
     db.add(pub)
 
     # Create the game
-    game = Game(name, pub.id, short)
+    game = Game(name, pub, short)
     game.active = True
     db.add(game)
 
@@ -73,7 +73,7 @@ def new_game(name, short, publisher):
 
 # Makes a new gameversion
 def new_version(game, name, beta):
-    version = GameVersion(name, Game.query.filter(Game.short == game).first().id, beta)
+    version = GameVersion(name, Game.query.filter(Game.short == game).first(), beta)
     db.add(version)
     db.commit()
     return version
@@ -112,7 +112,7 @@ def new_mod(name, user, game, license):
     game = Game.query.filter(Game.short == game).first()
 
     # Create new object
-    mod = Mod(name, user.id, game.id, license)
+    mod = Mod(name, user, game, license)
 
     # Roles
     user.add_roles(name)
@@ -143,7 +143,7 @@ def new_mod_version(modname, friendly_version, game, gameversion, beta):
     path_ = os.path.join(full_path, filename)
 
     # Create the object
-    version = ModVersion(mod.id, friendly_version, game.id, path_, beta)
+    version = ModVersion(mod, friendly_version, game, path_, beta)
 
     # Save data
     zip = ZipFile(path_, 'w')

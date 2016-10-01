@@ -53,7 +53,7 @@ def add_feature(gameshort):
     # Everything's fine, let's feature the mod    
     if Featured.query.filter(Featured.mod_id == int(modid)).first():
         return {'error': True, 'reasons': ['The mod is already featured']}, 400
-    feature = Featured(int(modid))
+    feature = Featured(Mod.query.filter(Mod.id == int(modid)).first())
     db.add(feature)
     db.commit()
     return {'error': False, 'count': 1, 'data': feature_info(feature)}

@@ -28,6 +28,8 @@ def upgrade():
     op.drop_column('user', 'bgOffsetX')
     op.drop_column('user', 'bgOffsetY')
     op.drop_column('user', 'dark_theme')
+    op.drop_column('user', 'admin')
+    op.drop_column('user', 'forumId')
     op.add_column('user', sa.Column('meta', sa.String(512), server_default='{}'))
     
     # Roles
@@ -114,6 +116,8 @@ def downgrade():
     op.add_column('user', sa.Column('bgOffsetX', sa.Integer))
     op.add_column('user', sa.Column('bgOffsetY', sa.Integer))
     op.add_column('user', sa.Column('dark_theme', sa.Boolean))
+    op.add_column('user', sa.Column('forumId', sa.Integer))
+    op.add_column('user', sa.Column('admin', sa.Boolean))
     op.drop_column('user', 'meta')
     
     # Roles

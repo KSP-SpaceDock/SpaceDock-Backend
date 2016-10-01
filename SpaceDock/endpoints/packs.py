@@ -52,10 +52,7 @@ def packs_add():
         return {'error': True, 'reasons': errors}, 400
 
     # Make the new list
-    list = ModList()
-    list.name = name
-    list.game = Game.query.filter(Game.short == gameshort).first()
-    list.user = current_user
+    list = ModList(name, Game.query.filter(Game.short == gameshort).first(), current_user)
     db.add(list)
     current_user.add_roles(name)    
     role = Role.query.filter(Role.name == name).first()

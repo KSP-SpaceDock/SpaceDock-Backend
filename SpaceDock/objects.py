@@ -46,15 +46,16 @@ class Featured(Base, MetaObject):
     mod = relationship('Mod', backref=backref('mod', order_by=id))
     created = Column(DateTime)
 
-    def __init__(self, modid):
+    def __init__(self, mod):
         self.created = datetime.now()
-        self.mod_id = modid
-
+        self.mod_id = mod.id
+        self.mod = mod
 
     def __repr__(self):
         return '<Featured %r>' % self.id
 
 
+# Obsolete - TODO: Remove
 class BlogPost(Base, MetaObject):
     __tablename__ = 'blog'
     id = Column(Integer, primary_key = True)
@@ -83,7 +84,6 @@ class User(Base, MetaObject):
     showCreated = Column(Boolean)
     forumUsername = Column(String(128))
     showForumName = Column(Boolean)
-    forumId = Column(Integer)
     ircNick = Column(String(128))
     showIRCName = Column(Boolean)
     twitterUsername = Column(String(128))
@@ -107,6 +107,7 @@ class User(Base, MetaObject):
     mods = relationship('Mod', order_by='Mod.created')
     packs = relationship('ModList', order_by='ModList.created')
     following = relationship('Mod', secondary=mod_followers, backref='user.id')
+
     # Permissions
     _roles = relationship('Role', secondary=user_role_table, backref='users')
     roles = association_proxy('_roles', 'name', creator=role_find_or_create)
@@ -115,27 +116,39 @@ class User(Base, MetaObject):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     def __init__(self, username, email, password, roles=None, default_role='unconfirmed'):
-        self.email = email
         self.username = username
-        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        self.email = email
+        self.showEmail = False
         self.public = False
-        self.admin = False
-        self.created = datetime.now()
-        self.youtubeUsername = ''
-        self.twitchUsername = ''
-        self.facebookUsername = ''
-        self.twitterUsername = ''
-        self.forumUsername = ''
-        self.ircNick = ''
+        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         self.description = ''
-        self.backgroundMedia = ''
-        self.dark_theme = False
+        self.created = datetime.now()
+        self.showCreated = True
+        self.forumUsername = ''
+        self.showForumName = False
+        self.ircNick = ''
+        self.showIRCName = False
+        self.twitterUsername = ''
+        self.showTwitterName = False
+        self.redditUsername = ''
+        self.showRedditName = False
+        self.youtubeUsername = ''
+        self.showYoutubeName = False
+        self.twitchUsername = ''
+        self.showTwitchName = False
+        self.facebookUsername = ''
+        self.showFacebookName = False
+        self.location = ''
+        self.showLocation = False
+
+        # Roles
         if roles and isinstance(roles, str):
             roles = [roles]
         if roles and is_sequence(roles):
             self.roles = roles
         elif default_role:
             self.roles = [default_role]
+
     def __repr__(self):
         return '<User %r>' % self.username
 
@@ -237,6 +250,7 @@ class Ability(Base, MetaObject):
         return self.name
 
 
+# TODO: Move to plugin somehow
 class UserAuth(Base, MetaObject):
     __tablename__ = 'user_auth'
     id = Column(Integer, primary_key=True)
@@ -268,11 +282,11 @@ class Rating(Base, MetaObject):
     created = Column(DateTime)
     updated = Column(DateTime)
 
-    def __init__(self, user_id, user, mod_id, mod, score):
+    def __init__(self, user, mod, score):
         from SpaceDock.common import clamp_number
-        self.user_id = user_id
+        self.user_id = user.id
         self.user = user
-        self.mod_id = mod_id
+        self.mod_id = mod.id
         self.mod = mod
         self.score = clamp_number(0, 5, score)
         self.created = datetime.now()
@@ -301,7 +315,19 @@ class Review(Base, MetaObject):
     created = Column(DateTime)
     updated = Column(DateTime)
 
-    def __init__(self):
+    def __init__(self, user, mod, title, text):
+        self.user_id = user.id
+        self.user = user
+        self.mod_id = mod.id
+        self.mod = mod
+        self.review_title = title
+        self.review_text = text
+        self.video_link = ''
+        self.video_image = ''
+        self.has_video = False
+        self.teaser = ''
+        self.approved = True
+        self.published = False
         self.created = datetime.now()
         self.updated = datetime.now()
 
@@ -322,9 +348,14 @@ class Publisher(Base, MetaObject):
     link = Column(Unicode(1024))
     games = relationship('Game', back_populates='publisher')
 
-    def __init__(self,name):
-        self.created = datetime.now()
+    def __init__(self, name):
         self.name = name
+        self.short_description = ''
+        self.description = ''
+        self.created = datetime.now()
+        self.updated = datetime.now()
+        self.background = ''
+        self.link = ''
 
     def __repr__(self):
         return '<Publisher %r %r>' % (self.id, self.name)
@@ -366,12 +397,22 @@ class Game(Base, MetaObject):
             create(fullImagePath, fullThumbPath, thumbnailSize)
         return thumbPath
 
-    def __init__(self,name,publisher_id,short):
-        self.created = datetime.now()
+    def __init__(self, name, publisher, short):
         self.name = name
-        self.publisher_id = publisher_id
+        self.active = False
+        self.fileformats = ''
+        self.altname = ''
+        self.rating = 0
+        self.releasedate = datetime.now()
         self.short = short
+        self.publisher_id = publisher.id
+        self.publisher = publisher
+        self.description = ''
+        self.short_description = ''
+        self.created = datetime.now()
         self.updated = datetime.now()
+        self.background = ''
+        self.link = ''
 
     def __repr__(self):
         return '<Game %r %r>' % (self.id, self.name)
@@ -433,22 +474,30 @@ class Mod(Base, MetaObject):
             return None
         return versions[0]
 
-    def __init__(self, name, user_id, game_id, license):
+    def __init__(self, name, user, game, license):
         self.name = name
-        self.user_id = user_id
-        self.game_id = game_id
+        self.user_id = user.id
+        self.user = user
+        self.game_id = game.id
+        self.game = game
+        self.name = name
+        self.description = ''
+        self.short_description = ''
+        self.approved = True
+        self.published = False
+        self.donation_link = ''
+        self.external_link = ''
         self.license = license
+        self.votes = 0
         self.created = datetime.now()
         self.updated = datetime.now()
-        self.approved = False
-        self.published = False
-        self.votes = 0
+        self.background = ''
+        self.default_version_id = 0
+        self.source_link = ''
         self.follower_count = 0
         self.download_count = 0
-        self.user = User.query.filter(User.id == user_id).first()
-        self.game = Game.query.filter(Game.id == game_id).first()
-        self.description = ""
-        self.short_description = ""
+        self.total_score = 0
+        self.rating_count = 0
 
     def __repr__(self):
         return '<Mod %r %r>' % (self.id, self.name)
@@ -469,8 +518,16 @@ class ModList(Base, MetaObject):
     name = Column(Unicode(1024))
     mods = relationship('ModListItem', order_by="asc(ModListItem.sort_index)")
 
-    def __init__(self):
+    def __init__(self, name, game, user):
+        self.user = user
+        self.user_id = user.id
         self.created = datetime.now()
+        self.game_id = game.id
+        self.game = game
+        self.background = ''
+        self.description = ''
+        self.short_description = ''
+        self.name = name
 
     def __repr__(self):
         return '<ModList %r %r>' % (self.id, self.name)
@@ -486,7 +543,11 @@ class ModListItem(Base, MetaObject):
     mod_list = relationship('ModList', viewonly=True, backref=backref('modlistitem'))
     sort_index = Column(Integer)
 
-    def __init__(self):
+    def __init__(self, mod, modlist):
+        self.mod_id = mod.id
+        self.mod = mod
+        self.mod_list_id = modlist.id
+        self.mod_list = modlist
         self.sort_index = 0
 
     def __repr__(self):
@@ -502,7 +563,11 @@ class SharedAuthor(Base, MetaObject):
     user = relationship('User', backref=backref('sharedauthor', order_by=id))
     accepted = Column(Boolean)
 
-    def __init__(self):
+    def __init__(self, user, mod):
+        self.mod_id = mod.id
+        self.mod = mod
+        self.user_id = user.id
+        self.user = user
         self.accepted = False
 
     def __repr__(self):
@@ -519,7 +584,11 @@ class DownloadEvent(Base, MetaObject):
     downloads = Column(Integer)
     created = Column(DateTime)
 
-    def __init__(self):
+    def __init__(self, mod, version):
+        self.mod_id = mod.id
+        self.mod = mod
+        self.version_id = version.id
+        self.version = version
         self.downloads = 0
         self.created = datetime.now()
 
@@ -536,12 +605,15 @@ class FollowEvent(Base, MetaObject):
     delta = Column(Integer)
     created = Column(DateTime)
 
-    def __init__(self):
+    def __init__(self, mod):
+        self.mod_id = mod.id
+        self.mod = mod
+        self.events = 0
         self.delta = 0
         self.created = datetime.now()
 
     def __repr__(self):
-        return '<Download Event %r>' % self.id
+        return '<Follow Event %r>' % self.id
 
 
 class ReferralEvent(Base, MetaObject):
@@ -553,12 +625,15 @@ class ReferralEvent(Base, MetaObject):
     events = Column(Integer)
     created = Column(DateTime)
 
-    def __init__(self):
+    def __init__(self, mod, host):
+        self.mod_id = mod.id
+        self.mod = mod
+        self.host = host
         self.events = 0
         self.created = datetime.now()
 
     def __repr__(self):
-        return '<Download Event %r>' % self.id
+        return '<Referral Event %r>' % self.id
 
 
 class ModVersion(Base, MetaObject):
@@ -577,17 +652,18 @@ class ModVersion(Base, MetaObject):
     sort_index = Column(Integer)
     file_size = Column(Integer)
 
-    def __init__(self, mod_id, friendly_version, gameversion_id, download_path,is_beta):
+    def __init__(self, mod, friendly_version, gameversion, download_path,is_beta):
+        self.mod_id = mod.id
+        self.mod = mod
         self.friendly_version = friendly_version
         self.is_beta = is_beta
-        self.gameversion_id = gameversion_id
-        self.gameversion = GameVersion.query.filter(GameVersion.id == gameversion_id).first()
-        self.download_path = download_path
+        self.gameversion_id = gameversion.id
+        self.gameversion = gameversion
         self.created = datetime.now()
+        self.download_path = download_path
+        self.changelog = ''
         self.sort_index = 0
         self.file_size = 0
-        self.mod_id = mod_id
-        self.mod = Mod.query.filter(Mod.id == mod_id).first()
         
         if self.download_path:
             file_path = os.path.join(cfg['storage'], download_path)
@@ -606,7 +682,9 @@ class Media(Base, MetaObject):
     type = Column(String(32))
     data = Column(String(512))
 
-    def __init__(self, hash, type, data):
+    def __init__(self, mod, hash, type, data):
+        self.mod_id = mod.id
+        self.mod = mod
         self.hash = hash
         self.type = type
         self.data = data
@@ -624,7 +702,9 @@ class ReviewMedia(Base, MetaObject):
     type = Column(String(32))
     data = Column(String(512))
 
-    def __init__(self, hash, type, data):
+    def __init__(self, review, hash, type, data):
+        self.review_id = review.id
+        self.review = review
         self.hash = hash
         self.type = type
         self.data = data
@@ -642,10 +722,11 @@ class GameVersion(Base, MetaObject):
     game_id = Column(Integer, ForeignKey('game.id'))
     game = relationship('Game', back_populates='version')
 
-    def __init__(self, friendly_version, game_id, is_beta):
+    def __init__(self, friendly_version, game, is_beta):
         self.friendly_version = friendly_version
         self.is_beta = is_beta
-        self.game_id = game_id
+        self.game_id = game.id
+        self.game = game
 
     def __repr__(self):
         return '<Game Version %r>' % self.friendly_version

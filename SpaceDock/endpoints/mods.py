@@ -97,9 +97,7 @@ def mods_download(gameshort, modid, versionname):
     if not 'Range' in request.headers:
         # Events are aggregated hourly
         if not download or ((datetime.now() - download.created).seconds / 60 / 60) >= 1:
-            download = DownloadEvent()
-            download.mod = mod
-            download.version = version
+            download = DownloadEvent(mod, version)
             download.downloads = 1
             db.add(download)
             mod.downloads.append(download)
@@ -161,7 +159,8 @@ def add_mod():
         return {'error': True, 'reasons': errors}, 400
 
     # Add new mod
-    mod = Mod(name, current_user.id, game_id(short), license)
+    game = Game.query.filter(Game.short == short).first()
+    mod = Mod(name, current_user, game, license)
     db.add(mod)
     current_user.add_roles(name)
     role = Role.query.filter(Role.name == name).first()
@@ -336,7 +335,7 @@ def mod_update(gameshort, modid):
     if not zipfile.is_zipfile(path):
         os.remove(path)
         return {'error': True, 'reasons': ['This is not a valid zip file.']}, 400
-    version = ModVersion(mod.id, secure_filename(version), game_version_id, os.path.join(base_path, filename))
+    version = ModVersion(mod, secure_filename(version), test_gameversion, os.path.join(base_path, filename))
     version.changelog = changelog
     version.is_beta = boolean(beta)
     # Assign a sort index
@@ -413,8 +412,7 @@ def mods_follow(gameshort, modid):
             .first()
     # Events are aggregated hourly
     if not event or ((datetime.now() - event.created).seconds / 60 / 60) >= 1:
-        event = FollowEvent()
-        event.mod = mod
+        event = FollowEvent(mod)
         event.delta = 1
         event.events = 1
         db.add(event)
@@ -490,7 +488,7 @@ def mods_rate(gameshort, modid):
     mod = Mod.query.filter(Mod.id == int(modid)).first()
 
     # Create rating
-    rating = Rating(current_user.id, current_user, mod.id, mod, int(score))
+    rating = Rating(current_user, mod, int(score))
     db.add(rating)
     db.commit()
 
@@ -561,9 +559,7 @@ def mods_grant(gameshort, modid):
         return {'error': True, 'reasons': ['This user has not made their profile public.']}, 400
     if not mod.user == current_user and not has_ability('mods-invite'):
         return {'error': True, 'reasons': ['You dont have the permission to add new authors.']}, 400
-    author = SharedAuthor()
-    author.mod = mod
-    author.user = user
+    author = SharedAuthor(user, mod)
     mod.shared_authors.append(author)
     db.add(author)
     db.commit()
