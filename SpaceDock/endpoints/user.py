@@ -1,13 +1,15 @@
 from flask import request
 from flask_login import current_user
 from sqlalchemy import desc
-from SpaceDock.common import *
+from werkzeug.utils import secure_filename
+from SpaceDock.common import edit_object, has_ability, user_has, with_session
+from SpaceDock.config import cfg
 from SpaceDock.formatting import user_info, admin_user_info
-from SpaceDock.objects import *
+from SpaceDock.objects import User
 from SpaceDock.routing import route
 
-import json
-
+import os.path
+import time
 
 @route('/api/users')
 def get_users():
@@ -68,7 +70,7 @@ def user_updateBG(userid):
     """
     errors = list()
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
-        rerrors.append('The userid is invalid.')
+        errors.append('The userid is invalid.')
     if not request.files.get('image'):
         errors.append('The background is invalid.')
     if any(errors):
@@ -100,8 +102,8 @@ def user_updateBG(userid):
     filetype = os.path.splitext(os.path.basename(f.filename))[1]
     if not filetype in ['.png', '.jpg']:
         return {'error': True, 'reasons': ['This file type is not acceptable.']}, 400
-    filename = secure_filename(mod.name) + '-' + str(time.time()) + filetype
-    base_path = os.path.join(secure_filename(user.username) + '_' + str(mod.user.id), secure_filename(mod.name))
+    filename = secure_filename(user.username) + '-' + str(time.time()) + filetype
+    base_path = os.path.join(secure_filename(user.username) + '_' + str(user.id), secure_filename(user.username))
     full_path = os.path.join(cfg['storage'], base_path)
     if not os.path.exists(full_path):
         os.makedirs(full_path)

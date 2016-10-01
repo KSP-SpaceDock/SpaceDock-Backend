@@ -1,4 +1,5 @@
 from importlib.machinery import SourceFileLoader
+
 import os
 
 # A list of all plugin modules
@@ -27,7 +28,7 @@ def load_file(path):
     for d in deps:
         if d.endswith('.py'):
             load_file(d)
-    plugins.append(SourceFileLoader(name, 'plugins/' + file).load_module())
+    plugins.append(SourceFileLoader(name, 'plugins/' + path).load_module())
 
 def load_plugins():
     """

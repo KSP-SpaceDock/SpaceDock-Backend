@@ -1,10 +1,10 @@
+from flask import request
 from flask_login import current_user, login_user
-from SpaceDock.common import *
-from SpaceDock.email import *
-from SpaceDock.formatting import *
+from SpaceDock.common import user_has, with_session
+from SpaceDock.database import db
+from SpaceDock.email import send_bulk_email
+from SpaceDock.objects import Role, User
 from SpaceDock.routing import route
-from SpaceDock.objects import User
-
 
 @route('/api/admin/impersonate/<userid>')
 @user_has('admin-impersonate', params=['userid']) # I feel like adding this as a param could be useful

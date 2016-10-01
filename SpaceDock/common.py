@@ -1,16 +1,15 @@
-from flask import request, make_response
-from flask_json import as_json_p, as_json
+from flask import make_response, request
+from flask_json import as_json, as_json_p
 from flask_login import current_user
 from functools import wraps
-from sqlalchemy import Column
 from SpaceDock.config import cfg
 from SpaceDock.database import db
 from SpaceDock.objects import Ability, Game
 from wsgiref.handlers import format_date_time
 
-import re
-import json
 import datetime
+import json
+import re
 import time
 
 def with_session(f):
@@ -166,7 +165,7 @@ def is_json(test):
     Checks whether something is JSON formatted
     """
     try:
-        s = json.loads(test)
+        json.loads(test)
         return True
     except ValueError as e:
         return False

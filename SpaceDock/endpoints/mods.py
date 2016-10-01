@@ -1,19 +1,19 @@
-from sqlalchemy import desc
+from flask import request
 from flask_login import current_user
+from sqlalchemy import desc
 from werkzeug.utils import secure_filename
-from SpaceDock.common import *
+from SpaceDock.common import boolean, edit_object, has_ability, game_id, redirect, user_has, with_session
 from SpaceDock.config import cfg
 from SpaceDock.database import db
-from SpaceDock.email import *
-from SpaceDock.formatting import mod_info, bulk, mod_version_info, rating_info
-from SpaceDock.objects import *
+from SpaceDock.email import send_grant_notice, send_update_notification
+from SpaceDock.formatting import bulk, mod_info, mod_version_info, rating_info
+from SpaceDock.objects import DownloadEvent, FollowEvent, Mod, ModVersion, Game, GameVersion, Rating, Role, SharedAuthor, User
 from SpaceDock.routing import route
 
-import json
+import datetime
 import os
 import time
 import zipfile
-
 
 @route('/api/mods')
 def mod_list():
@@ -338,6 +338,7 @@ def mod_update(gameshort, modid):
         return {'error': True, 'reasons': ['This is not a valid zip file.']}, 400
     version = ModVersion(mod.id, secure_filename(version), game_version_id, os.path.join(base_path, filename))
     version.changelog = changelog
+    version.is_beta = boolean(beta)
     # Assign a sort index
     if len(mod.versions) == 0:
         version.sort_index = 0
@@ -385,7 +386,7 @@ def delete_version(gameshort, modid):
     if version[0].id == mod.default_version_id:
         return {'error': True, 'reasons': ['You cannot delete the default version of a mod.']}, 400
     db.delete(version[0])
-    mod.versions = [v for v in mod.versions if v.id != int(version_id)]
+    mod.versions = [v for v in mod.versions if v.id != int(versionid)]
     return {'error': False}
 
 @route('/api/mods/<gameshort>/<modid>/follow')
@@ -546,7 +547,7 @@ def mods_grant(gameshort, modid):
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
     if not User.query.filter(User.username == username).first():
-        return {'error': true, 'reasons': ['The username is invalid']}, 400
+        return {'error': True, 'reasons': ['The username is invalid']}, 400
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     user = User.query.filter(User.username == username).first()
@@ -562,11 +563,11 @@ def mods_grant(gameshort, modid):
         return {'error': True, 'reasons': ['You dont have the permission to add new authors.']}, 400
     author = SharedAuthor()
     author.mod = mod
-    author.user = new_user
+    author.user = user
     mod.shared_authors.append(author)
     db.add(author)
     db.commit()
-    send_grant_notice(mod, new_user)
+    send_grant_notice(mod, user)
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 @route('/api/mods/<gameshort>/<modid>/accept_grant', methods=['POST'])
@@ -629,7 +630,7 @@ def mods_revoke(gameshort, modid):
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
     if not User.query.filter(User.username == username).first():
-        return {'error': true, 'reasons': ['The username is invalid']}, 400
+        return {'error': True, 'reasons': ['The username is invalid']}, 400
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     user = User.query.filter(User.username == username).first()
@@ -643,7 +644,7 @@ def mods_revoke(gameshort, modid):
         return { 'error': True, 'reason': 'This user is not an author.' }, 400
 
     # Remove
-    author = [a for a in mod.shared_authors if a.user == new_user][0]
+    author = [a for a in mod.shared_authors if a.user == user][0]
     mod.shared_authors = [a for a in mod.shared_authors if a.user != current_user]
     user.remove_role(mod.name)
     db.delete(author)

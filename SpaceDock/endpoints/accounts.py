@@ -1,19 +1,18 @@
 from datetime import datetime, timedelta
 from flask import request
 from flask_login import current_user, login_user, logout_user
-from SpaceDock.common import *
+from SpaceDock.common import with_session
 from SpaceDock.config import cfg
-from SpaceDock.email import *
-from SpaceDock.formatting import *
 from SpaceDock.database import db
+from SpaceDock.email import send_confirmation, send_reset
+from SpaceDock.formatting import user_info
+from SpaceDock.objects import Mod, Role, User
 from SpaceDock.routing import route
-from SpaceDock.objects import *
 
 import bcrypt
 import re
 import binascii
 import os
-
 
 @route('/api/register', methods=['POST'])
 @with_session

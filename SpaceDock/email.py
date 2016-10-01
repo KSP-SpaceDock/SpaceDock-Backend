@@ -14,7 +14,7 @@ def send_confirmation(user, followMod=None):
                 'site-name': cfg['site-name'], 
                 'username': user.username, 
                 'domain': cfg['domain'],
-                'confirmation': user.confirmation + "?f=" + followMod 
+                'confirmation': confirmation
             })
         send_mail.delay(cfg['support-mail'], [ user.email ], "Welcome to " + cfg['site-name'] + "!", message, important=True)
 

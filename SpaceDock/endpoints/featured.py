@@ -1,8 +1,8 @@
-from SpaceDock.common import *
+from flask import request
+from SpaceDock.common import game_id, user_has, with_session
 from SpaceDock.database import db
-from SpaceDock.email import *
 from SpaceDock.formatting import feature_info
-from SpaceDock.objects import *
+from SpaceDock.objects import Featured, Game, Mod
 from SpaceDock.routing import route
 
 

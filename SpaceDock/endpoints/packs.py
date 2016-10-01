@@ -1,10 +1,10 @@
 from flask import request
 from flask_login import current_user
-from SpaceDock.common import *
+from SpaceDock.common import edit_object, game_id, user_has, with_session
 from SpaceDock.database import db
 from SpaceDock.formatting import pack_info
+from SpaceDock.objects import ModList, Game, Role
 from SpaceDock.routing import route
-from SpaceDock.objects import ModList
 
 @route('/api/packs/')
 def packs_list():
@@ -46,7 +46,7 @@ def packs_add():
         errors.append('Invalid mod name.')
     if ModList.query.filter(ModList.name == name).first():
         errors.append('A modlist with this name does already exist.')
-    if not short or not game_id(short):
+    if not gameshort or not game_id(gameshort):
         errors.append('Invalid gameshort.')
     if any(errors):
         return {'error': True, 'reasons': errors}, 400

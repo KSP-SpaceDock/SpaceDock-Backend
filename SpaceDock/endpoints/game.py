@@ -1,12 +1,10 @@
 from flask import request
 from sqlalchemy import desc
-from SpaceDock.common import *
+from SpaceDock.common import boolean, edit_object, game_id, user_has, with_session
 from SpaceDock.database import db
 from SpaceDock.formatting import game_info, game_version_info
-from SpaceDock.objects import *
+from SpaceDock.objects import Game, GameVersion, Publisher
 from SpaceDock.routing import route
-
-import json
 
 
 @route('/api/games')
