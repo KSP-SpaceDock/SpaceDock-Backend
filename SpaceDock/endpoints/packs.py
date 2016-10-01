@@ -52,12 +52,12 @@ def packs_add():
         return {'error': True, 'reasons': errors}, 400
 
     # Make the new list
-    list = ModList(name, Game.query.filter(Game.short == gameshort).first(), current_user)
-    db.add(list)
+    pack = ModList(name, Game.query.filter(Game.short == gameshort).first(), current_user)
+    db.add(pack)
     current_user.add_roles(name)    
     role = Role.query.filter(Role.name == name).first()
     role.add_abilities('packs-edit', 'mods-remove')
-    role.add_param('packs-edit', 'packid', str(list.id))
+    role.add_param('packs-edit', 'packid', str(pack.id))
     role.add_param('packs-remove', 'name', name)    
     db.add(role)
     db.commit()
@@ -76,8 +76,8 @@ def packs_edit(gameshort, packid):
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
     # Get the list
-    list = ModList.query.filter(ModList.id == int(packid)).first()
-    code = edit_object(list, request.json)
+    pack = ModList.query.filter(ModList.id == int(packid)).first()
+    code = edit_object(pack, request.json)
 
     # Error check
     if code == 2:
