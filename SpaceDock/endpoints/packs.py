@@ -3,7 +3,7 @@ from flask_login import current_user
 from SpaceDock.common import edit_object, game_id, user_has, with_session
 from SpaceDock.database import db
 from SpaceDock.formatting import pack_info
-from SpaceDock.objects import ModList, Game, Role
+from SpaceDock.objects import ModList, Game, Role, ModListItem, Mod
 from SpaceDock.routing import route
 
 @route('/api/packs/')
@@ -61,7 +61,7 @@ def packs_add():
     role.add_param('packs-remove', 'name', name)    
     db.add(role)
     db.commit()
-    return {'error': False, 'count': 1, 'data': pack_info(list)}
+    return {'error': False, 'count': 1, 'data': pack_info(pack)}
 
 @route('/api/packs/<gameshort>/<packid>/edit', methods=['POST'])
 @user_has('packs-edit', params=['gameshort', 'packid'])
@@ -88,4 +88,63 @@ def packs_edit(gameshort, packid):
         return {'error': False, 'count': 1, 'data': pack_info(list)}
 
 
-    
+@route('/api/packs/<gameshort>/<packid>/addmod', methods=['POST'])
+@user_has('packs-edit', params=['gameshort', 'packid'])
+@with_session
+def packs_add_mod(gameshort, packid):
+    """
+    Adds a new mod to the modlist. Required fields: modid
+    """
+    mod_id = request.json.get('modid')
+
+    # Error check
+    errors = list()
+    if not mod_id.isdigit() or not Mod.query.filter(Mod.id == int(mod_id)).first():
+        errors.append('The mod ID is invalid')
+    if not packid.isdigit() or not ModList.query.filter(ModList.id == int(packid)).first():
+        errors.append('The pack ID is invalid')
+    if not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
+        errors.append('The gameshort is invalid')
+    if ModListItem.query.filter(ModListItem.mod_id == int(mod_id)).filter(ModListItem.mod_list_id == int(packid)).first():
+        errors.append('The specified mod was already added to the modlist')
+    if any(errors):
+        return {'error': True, 'reasons': errors}, 400
+
+    # Get the list
+    pack = ModList.query.filter(ModList.id == int(packid)).first()
+    moditem = ModListItem(mod=Mod.query.filter(Mod.id == int(mod_id)).first(), modlist=pack)
+
+    db.add(moditem)
+    db.commit()
+
+    return {'error': False}
+
+@route('/api/packs/<gameshort>/<packid>/delmod', methods=['POST'])
+@user_has('packs-edit', params=['gameshort', 'packid'])
+@with_session
+def packs_del_mod(gameshort, packid):
+    """
+    Removes a mod from the modlist. Required fields: modid
+    """
+    mod_id = request.json.get('modid')
+
+    # Error check
+    errors = list()
+    if not mod_id.isdigit() or not Mod.query.filter(Mod.id == int(mod_id)).first():
+        errors.append('The mod ID is invalid')
+    if not packid.isdigit() or not ModList.query.filter(ModList.id == int(packid)).first():
+        errors.append('The pack ID is invalid')
+    if not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
+        errors.append('The gameshort is invalid')
+    if not ModListItem.query.filter(ModListItem.mod_id == int(mod_id)).filter(ModListItem.mod_list_id == int(packid)).first():
+        errors.append('The specified mod is not included in the modlist')
+    if any(errors):
+        return {'error': True, 'reasons': errors}, 400
+
+    # Get the list
+    pack = ModList.query.filter(ModList.id == int(packid)).first()
+    moditem = ModListItem.query.filter(ModListItem.mod_list_id == int(packid)).filter(ModListItem.mod_id == int(mod_id)).first()
+
+    db.delete(moditem)
+
+    return {'error': False}
