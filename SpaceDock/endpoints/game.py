@@ -98,7 +98,7 @@ def add_game():
     pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
     game = Game(name, pub, short)
     db.add(game)
-    db.commit()
+    db.flush()
     return {'error': False, 'count': 1, 'data': game_info(game)}
 
 @route('/api/games/remove', methods=['POST'])

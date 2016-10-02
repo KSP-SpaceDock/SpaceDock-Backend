@@ -60,7 +60,7 @@ def packs_add():
     role.add_param('packs-edit', 'packid', str(pack.id))
     role.add_param('packs-remove', 'name', name)    
     db.add(role)
-    db.commit()
+    db.flush()
     return {'error': False, 'count': 1, 'data': pack_info(pack)}
 
 @route('/api/packs/<gameshort>/<packid>/edit', methods=['POST'])
@@ -119,7 +119,7 @@ def packs_add_mod(gameshort, packid):
     moditem = ModListItem(mod=Mod.query.filter(Mod.id == int(mod_id)).first(), modlist=pack)
 
     db.add(moditem)
-    db.commit()
+    db.flush()
 
     return {'error': False}
 

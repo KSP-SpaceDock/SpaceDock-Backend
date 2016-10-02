@@ -71,7 +71,7 @@ def add_publisher():
     # Get the matching game and edit it
     pub = Publisher(name)
     db.add(pub)
-    db.commit()
+    db.flush()
     return {'error': False, 'count': 1, 'data': publisher_info(pub)}
 
 @route('/api/publishers/remove', methods=['POST'])
