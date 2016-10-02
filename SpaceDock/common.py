@@ -142,7 +142,7 @@ def boolean(s):
     """
     if s == None:
         return False
-    return s.lower() in ['true', 'yes', '1', 'y', 't']
+    return str(s).lower() in ['true', 'yes', '1', 'y', 't']
 
 def get_param(ability, param, p):
     """
