@@ -420,7 +420,7 @@ class Game(Base, MetaObject):
 
 class Mod(Base, MetaObject):
     __tablename__ = 'mod'
-    __lock__ = ['id', 'user_id', 'user', 'game_id', 'game', 'shared_authors', 'approved', 'votes', 'created', 'updated', 'background', 'medias', 'versions', 
+    __lock__ = ['id', 'user_id', 'user', 'game_id', 'game', 'shared_authors', 'approved', 'published', 'votes', 'created', 'updated', 'background', 'medias', 'versions', 
                 'downloads', 'follow_events', 'referrals', 'followers', 'rating', 'review', 'follower_count', 'download_count', 'total_score', 'rating_count']
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('user.id'))

@@ -21,7 +21,7 @@ def list_featured_game(gameshort):
     """
     Returns a list of featured mods for a specific game.
     """
-    if not Game.query.filter(Game.short == gameshort).first():
+    if not Game.query.filter(Game.active).filter(Game.short == gameshort).first():
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
     # Get the features
