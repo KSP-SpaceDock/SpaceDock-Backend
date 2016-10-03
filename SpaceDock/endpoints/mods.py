@@ -126,7 +126,9 @@ def mod_edit(gameshort, modid):
     code = edit_object(mod, request.json)
 
     # Error check
-    if code == 2:
+    if code == 3:
+        return {'error': True, 'reasons': ['The value you submitted is invalid']}, 400
+    elif code == 2:
         return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
     elif code == 1:
         return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
@@ -168,7 +170,7 @@ def add_mod():
     role.add_param('mods-edit', 'modid', str(mod.id))
     role.add_param('mods-remove', 'name', name)
     db.add(role)
-    db.commit()
+    db.flush()
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 @route('/api/mods/publish', methods=['POST'])
@@ -350,7 +352,7 @@ def mod_update(gameshort, modid):
         send_update_notification(mod, version, current_user)
     db.add(version)
     mod.default_version_id = version.id
-    db.commit()
+    db.flush()
     return {'error': False, 'count': 1, 'data': mod_version_info(version)}
 
 @route('/api/mods/<gameshort>/<modid>/versions/delete', methods=['POST'])
@@ -499,7 +501,7 @@ def mods_rate(gameshort, modid):
     # Create rating
     rating = Rating(current_user, mod, int(score))
     db.add(rating)
-    db.commit()
+    db.flush()
 
     # Add rating to user and increase mod rating count
     current_user.ratings.append(rating)
@@ -574,7 +576,7 @@ def mods_grant(gameshort, modid):
     author = SharedAuthor(user, mod)
     mod.shared_authors.append(author)
     db.add(author)
-    db.commit()
+    db.flush()
     send_grant_notice(mod, user)
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
