@@ -181,6 +181,7 @@ def game_version_remove(gameshort):
 
     # Fetch the game
     game = Game.query.filter(Game.short == gameshort).first()
+    gameid = game_id(gameshort)
 
     # Remove the version
     version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == gameid).first()
