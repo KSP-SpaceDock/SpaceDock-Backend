@@ -30,14 +30,13 @@ def games_info(gameshort):
     Displays information about a game.
     """
     # Get the games with the according gameshort
-    filter = Game.query.filter(Game.short == gameshort)
+    game = Game.query.filter(Game.short == gameshort).first()
 
     # Game doesn't exist
-    if len(filter.all()) == 0:
+    if not game:
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
     # Game does exist
-    game = filter.first()
     return {'error': False, 'count': 1, 'data': game_info(game)}
 
 @route('/api/games/<gameshort>/versions')
@@ -47,6 +46,8 @@ def game_versions(gameshort):
     """
     if not Game.query.filter(Game.short == gameshort).first():
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    elif not Game.query.filter(Game.active).filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The game is not published.']}, 400
 
     # Get the ID
     gameid = game_id(gameshort)
@@ -67,11 +68,8 @@ def edit_game(gameshort):
     """
     Edits a game, based on the request parameters. Required fields: data
     """
-    errors = list()
     if not Game.query.filter(Game.short == gameshort).first():
-        errors.append('The gameshort is invalid.')
-    if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
     # Get the matching game and edit it
     game = Game.query.filter(Game.short == gameshort).first()
