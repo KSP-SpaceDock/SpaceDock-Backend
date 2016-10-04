@@ -24,7 +24,7 @@ def publishers_info(pubid):
     Outputs detailed infos for one publisher
     """
     if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
-        return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
+        return {'error': True, 'reasons': ['Invalid publisher ID'], 'codes': ['2110']}, 400
     # Return the info
     pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
     return {'error': False, 'count': 1, 'data': publisher_info(pub)}
@@ -37,7 +37,7 @@ def edit_publisher(pubid):
     Edits a publisher, based on the request parameters. Required fields: data
     """
     if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
-        return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
+        return {'error': True, 'reasons': ['Invalid publisher ID'], 'codes': ['2110']}, 400
 
     # Get the matching game and edit it
     pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
@@ -57,7 +57,7 @@ def add_publisher():
 
     # Check for existence
     if Publisher.query.filter(Publisher.name == name).first():
-        return {'error': True, 'reasons': ['A publisher with this name already exists.']}, 400
+        return {'error': True, 'reasons': ['A publisher with this name already exists.'], 'codes': ['2000']}, 400
 
     # Get the matching game and edit it
     pub = Publisher(name)
@@ -76,7 +76,7 @@ def remove_publisher():
 
     # Check if the pubid is valid
     if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
-        return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
+        return {'error': True, 'reasons': ['Invalid publisher ID'], 'codes': ['2110']}, 400
 
     # Get the publisher and remove it
     pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
