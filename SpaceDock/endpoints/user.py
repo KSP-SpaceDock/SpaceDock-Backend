@@ -31,13 +31,13 @@ def get_user_info(userid):
     if userid == 'current':
         user = current_user
     elif not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
-        return {'error': True, 'reasons': ['The userid is invalid']}, 400
+        return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
     if not user:
         user = User.query.filter(User.id == int(userid)).first()
     if has_ability('view-users-full') or (user.public and user.confirmation == None):
         return {'error': False, 'count': 1, 'data': (user_info(user) if not has_ability('view-users-full') else admin_user_info(user))}
     else:
-        return {'error': True, 'reasons': ['The userid is invalid']}, 400
+        return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
 
 @route('/api/users/<userid>/edit', methods=['POST'])
 @user_has('user-edit', params=['userid'], public=False)
@@ -47,7 +47,7 @@ def edit_user(userid):
     Edits a user, based on the request parameters. Required fields: data
     """
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
-        return {'error': True, 'reasons': ['The userid is invalid.']}, 400
+        return {'error': True, 'reasons': ['The userid is invalid.'], 'codes': ['2145']}, 400
 
     # Get the matching user and edit it
     user = User.query.filter(User.id == int(userid)).first()
@@ -55,9 +55,9 @@ def edit_user(userid):
 
     # Error check
     if code == 2:
-        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
+        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.'], 'codes': ['3090']}, 400
     elif code == 1:
-        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
+        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.'], 'codes': ['3095']}, 400
     else:
         return {'error': False, 'count': 1, 'data': user_info(user)}
 
@@ -83,7 +83,7 @@ def user_updateBG(userid):
     f = request.files['image']
     filetype = os.path.splitext(os.path.basename(f.filename))[1]
     if not filetype in ['.png', '.jpg']:
-        return {'error': True, 'reasons': ['This file type is not acceptable.']}, 400
+        return {'error': True, 'reasons': ['This file type is not acceptable.'], 'codes': ['3035']}, 400
     filename = secure_filename(user.username) + filetype
     base_path = os.path.join(secure_filename(user.username) + '-' + str(time.time()) + '_' + str(user.id))
     full_path = os.path.join(cfg['storage'], base_path)
@@ -101,7 +101,7 @@ def user_updateBG(userid):
     f = request.files['image']
     filetype = os.path.splitext(os.path.basename(f.filename))[1]
     if not filetype in ['.png', '.jpg']:
-        return {'error': True, 'reasons': ['This file type is not acceptable.']}, 400
+        return {'error': True, 'reasons': ['This file type is not acceptable.'], 'codes': ['3035']}, 400
     filename = secure_filename(user.username) + '-' + str(time.time()) + filetype
     base_path = os.path.join(secure_filename(user.username) + '_' + str(user.id), secure_filename(user.username))
     full_path = os.path.join(cfg['storage'], base_path)
