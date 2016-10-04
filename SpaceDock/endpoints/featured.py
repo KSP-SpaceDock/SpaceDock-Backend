@@ -22,7 +22,7 @@ def list_featured_game(gameshort):
     Returns a list of featured mods for a specific game.
     """
     if not Game.query.filter(Game.short == gameshort).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the features
     result = list()
@@ -52,7 +52,7 @@ def add_feature(gameshort):
 
     # Everything's fine, let's feature the mod    
     if Featured.query.filter(Featured.mod_id == int(modid)).first():
-        return {'error': True, 'reasons': ['The mod is already featured']}, 400
+        return {'error': True, 'reasons': ['The mod is already featured'], 'codes': ['3015']}, 400
     feature = Featured(Mod.query.filter(Mod.id == int(modid)).first())
     db.add(feature)
     db.commit()
