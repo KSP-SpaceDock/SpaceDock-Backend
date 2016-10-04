@@ -127,9 +127,9 @@ def mod_edit(gameshort, modid):
 
     # Error check
     if code == 2:
-        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
+        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.'], 'codes': ['3090']}, 400
     elif code == 1:
-        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
+        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.'], 'codes': ['3095']}, 400
     else:
         return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
