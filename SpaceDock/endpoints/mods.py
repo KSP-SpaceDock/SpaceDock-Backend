@@ -35,7 +35,7 @@ def mod_game_list(gameshort):
     Returns a list with all mods for this game.
     """
     if not Game.query.filter(Game.short == gameshort).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the ID
     gameid = game_id(gameshort)
@@ -59,13 +59,13 @@ def mods_info(gameshort, modid):
     Returns information for one mod
     """
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     if not mod.published and current_user != mod.user:
-        return {'error': True, 'reasons': ['The mod is not published.']}, 400
+        return {'error': True, 'reasons': ['The mod is not published.'], 'codes': ['3020']}, 400
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 @route('/api/mods/<gameshort>/<modid>/download/<versionname>')
@@ -75,11 +75,11 @@ def mods_download(gameshort, modid, versionname):
     Downloads the latest non-beta version of the mod
     """
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     if not ModVersion.query.filter(ModVersion.mod_id == int(modid)).filter(ModVersion.friendly_version == versionname).first():
-        return {'error': True, 'reasons': ['The version is invalid.']}, 400
+        return {'error': True, 'reasons': ['The version is invalid.'], 'codes': ['2155']}, 400
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     if not mod.published and current_user != mod.user:
@@ -92,7 +92,7 @@ def mods_download(gameshort, modid, versionname):
 
     # Check whether the path exists
     if not os.path.isfile(os.path.join(cfg['storage'], version.download_path)):
-        return {'error': True, 'reasons': ['The file you tried to access doesn\'t exist.']}, 404
+        return {'error': True, 'reasons': ['The file you tried to access doesn\'t exist.'], 'codes': ['2120']}, 404
 
     if not 'Range' in request.headers:
         # Events are aggregated hourly
@@ -256,7 +256,7 @@ def mod_updateBG(gameshort, modid):
     f = request.files['image']
     filetype = os.path.splitext(os.path.basename(f.filename))[1]
     if not filetype in ['.png', '.jpg']:
-        return {'error': True, 'reasons': ['This file type is not acceptable.']}, 400
+        return {'error': True, 'reasons': ['This file type is not acceptable.'], 'codes': ['3035']}, 400
     filename = secure_filename(mod.name) + '-' + str(time.time()) + filetype
     base_path = os.path.join(secure_filename(mod.user.username) + '_' + str(mod.user.id), secure_filename(mod.name))
     full_path = os.path.join(cfg['storage'], base_path)
@@ -279,9 +279,9 @@ def mod_versions(gameshort, modid):
     Returns a list of mod versions including their data.
     """
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     # Get the versions
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     if not mod.published and current_user != mod.user:
@@ -305,17 +305,17 @@ def mod_update(gameshort, modid):
 
     # Get the mod
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     mod = Mod.query.filter(Mod.id == int(modid)).first()
 
     # Process fields
     if not version or not game_version or not zipball:
-        return {'error': True, 'reasons': ['All fields are required.']}, 400
+        return {'error': True, 'reasons': ['All fields are required.'], 'codes': ['2505']}, 400
     test_gameversion = GameVersion.query.filter(GameVersion.game_id == mod.game_id).filter(GameVersion.friendly_version == game_version).first()
     if not test_gameversion:
-        return {'error': True, 'reasons': ['Game version does not exist.']}, 400
+        return {'error': True, 'reasons': ['Game version does not exist.'], 'codes': ['2105']}, 400
     game_version_id = test_gameversion.id
     notify = boolean(notify)
 
@@ -328,13 +328,13 @@ def mod_update(gameshort, modid):
     path = os.path.join(full_path, filename)
     for v in mod.versions:
         if v.friendly_version == secure_filename(version):
-            return {'error': True, 'reasons': ['We already have this version. Did you mistype the version number?']}, 400
+            return {'error': True, 'reasons': ['We already have this version. Did you mistype the version number?'], 'codes': ['3040']}, 400
     if os.path.isfile(path):
         os.remove(path)
     zipball.save(path)
     if not zipfile.is_zipfile(path):
         os.remove(path)
-        return {'error': True, 'reasons': ['This is not a valid zip file.']}, 400
+        return {'error': True, 'reasons': ['This is not a valid zip file.'], 'codes': ['2160']}, 400
     version = ModVersion(mod, secure_filename(version), test_gameversion, os.path.join(base_path, filename))
     version.changelog = changelog
     version.is_beta = boolean(beta)
@@ -379,11 +379,11 @@ def delete_version(gameshort, modid):
 
     # Checks
     if len(mod.versions) == 1:
-        return {'error': True, 'reasons': ['There is only one version left. You cant delete this one.']}, 400
+        return {'error': True, 'reasons': ['There is only one version left. You cant delete this one.'], 'codes': ['3025']}, 400
     if len(version) == 0:
-        return {'error': True, 'reasons': ['Something went wrong.']}, 404
+        return {'error': True, 'reasons': ['Something went wrong.'], 'codes': ['4000']}, 404
     if version[0].id == mod.default_version_id:
-        return {'error': True, 'reasons': ['You cannot delete the default version of a mod.']}, 400
+        return {'error': True, 'reasons': ['You cannot delete the default version of a mod.'], 'codes': ['3080']}, 400
     db.delete(version[0])
     mod.versions = [v for v in mod.versions if v.id != int(versionid)]
     return {'error': False}
@@ -396,11 +396,11 @@ def mods_follow(gameshort, modid):
     Registers a user for automated email sending when a new mod version is released
     """
     if not modid.isdigit() or not Mod.query.filter(Mod.published).filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 
     if any(m.id == int(modid) for m in current_user.following):
-        return {'error': True, 'reasons': ['You are already following this mod.']}, 400
+        return {'error': True, 'reasons': ['You are already following this mod.'], 'codes': ['3050']}, 400
 
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
@@ -432,11 +432,11 @@ def mods_unfollow(gameshort, modid):
     Unregisters a user for automated email sending when a new mod version is released
     """
     if not modid.isdigit() or not Mod.query.filter(Mod.published).filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     if not any(m.id == int(modid) for m in current_user.following):
-        return {'error': True, 'reasons': ['You are not following this mod.']}, 400
+        return {'error': True, 'reasons': ['You are not following this mod.'], 'codes': ['3065']}, 400
 
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
@@ -541,24 +541,24 @@ def mods_grant(gameshort, modid):
 
     # Check params
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     if not User.query.filter(User.username == username).first():
-        return {'error': True, 'reasons': ['The username is invalid']}, 400
+        return {'error': True, 'reasons': ['The username is invalid'], 'codes': ['2150']}, 400
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     user = User.query.filter(User.username == username).first()
 
     # More checks
     if mod.user == user:
-        return {'error': True, 'reasons': ['This user has already been added.']}, 400
+        return {'error': True, 'reasons': ['This user has already been added.'], 'codes': ['2010']}, 400
     if any(m.user == user for m in mod.shared_authors):
-        return {'error': True, 'reasons': ['This user has already been added.']}, 400
+        return {'error': True, 'reasons': ['This user has already been added.'], 'codes': ['2010']}, 400
     if not user.public:
-        return {'error': True, 'reasons': ['This user has not made their profile public.']}, 400
+        return {'error': True, 'reasons': ['This user has not made their profile public.'], 'codes': ['3040']}, 400
     if not mod.user == current_user and not has_ability('mods-invite'):
-        return {'error': True, 'reasons': ['You dont have the permission to add new authors.']}, 400
+        return {'error': True, 'reasons': ['You dont have the permission to add new authors.'], 'codes': ['1025']}, 400
     author = SharedAuthor(user, mod)
     mod.shared_authors.append(author)
     db.add(author)
@@ -575,15 +575,15 @@ def mods_accept_grant(gameshort, modid):
     """
     # Check params
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     author = [a for a in mod.shared_authors if a.user == current_user and not a.accepted]
     if len(author) == 0:
-        return {'error': True, 'reasons': ['You do not have a pending authorship invite.']}, 400
+        return {'error': True, 'reasons': ['You do not have a pending authorship invite.'], 'codes': ['3085']}, 400
     author = author[0]
     author.accepted = True
     current_user.add_role(mod.name)
@@ -598,15 +598,15 @@ def mods_reject_grant(gameshort, modid):
     """
     # Check params
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'resons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     author = [a for a in mod.shared_authors if a.user == current_user and not a.accepted]
     if len(author) == 0:
-        return {'error': True, 'reasons': ['You do not have a pending authorship invite.']}, 400
+        return {'error': True, 'reasons': ['You do not have a pending authorship invite.'], 'codes': ['3085']}, 400
     mod.shared_authors = [a for a in mod.shared_authors if a.user != current_user]
     db.delete(author)
     return {'error': False}
@@ -622,22 +622,22 @@ def mods_revoke(gameshort, modid):
 
     # Check params
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
-        return {'error': True, 'reasons': ['The modid is invalid']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
     if not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     if not User.query.filter(User.username == username).first():
-        return {'error': True, 'reasons': ['The username is invalid']}, 400
+        return {'error': True, 'reasons': ['The username is invalid'], 'codes': ['2150']}, 400
     # Get the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     user = User.query.filter(User.username == username).first()
 
     # More checks
     if not mod.user == current_user and not has_ability('mods-invite'):
-        return {'error': True, 'reasons': ['You dont have the permission to remove authors.']}, 400
+        return {'error': True, 'reasons': ['You dont have the permission to remove authors.'], 'codes': ['1030']}, 400
     if mod.user == user:
-        return {'error': True, 'reasons': ['You can\'t remove this user.']}, 400
+        return {'error': True, 'reasons': ['You can\'t remove this user.'], 'codes': ['3075']}, 400
     if not any(m.user == user for m in mod.shared_authors):
-        return { 'error': True, 'reason': 'This user is not an author.' }, 400
+        return { 'error': True, 'reasons': ['This user is not an author.'], 'codes': ['3073']}, 400
 
     # Remove
     author = [a for a in mod.shared_authors if a.user == user][0]
