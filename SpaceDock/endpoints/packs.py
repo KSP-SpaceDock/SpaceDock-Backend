@@ -22,9 +22,9 @@ def packs_info(gameshort, packid):
     Returns info for a specific modpack
     """
     if not packid.isdigit() or not ModList.query.filter(ModList.id == int(packid)).first():
-        return {'error': True, 'reasons': ['The pack ID is invalid']}, 400
+        return {'error': True, 'reasons': ['The pack ID is invalid'], 'codes': ['2135']}, 400
     if not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the pack
     pack = ModList.query.filter(ModList.id == int(packid)).first()
@@ -71,9 +71,9 @@ def packs_edit(gameshort, packid):
     Edits a modlist based on patch data. Required fields: data
     """
     if not packid.isdigit() or not ModList.query.filter(ModList.id == int(packid)).first():
-        return {'error': True, 'reasons': ['The pack ID is invalid']}, 400
+        return {'error': True, 'reasons': ['The pack ID is invalid'], 'codes': ['2135']}, 400
     if not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the list
     pack = ModList.query.filter(ModList.id == int(packid)).first()
@@ -81,9 +81,9 @@ def packs_edit(gameshort, packid):
 
     # Error check
     if code == 2:
-        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
+        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.'], 'codes': ['3090']}, 400
     elif code == 1:
-        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
+        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.'], 'codes': ['3095']}, 400
     else:
         return {'error': False, 'count': 1, 'data': pack_info(list)}
 
