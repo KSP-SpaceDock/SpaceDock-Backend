@@ -34,7 +34,7 @@ def games_info(gameshort):
 
     # Game doesn't exist
     if len(filter.all()) == 0:
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Game does exist
     game = filter.first()
@@ -46,7 +46,7 @@ def game_versions(gameshort):
     Displays information about the versions of a game.
     """
     if not Game.query.filter(Game.short == gameshort).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the ID
     gameid = game_id(gameshort)
@@ -79,9 +79,9 @@ def edit_game(gameshort):
 
     # Error check
     if code == 2:
-        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
+        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.'], 'codes': ['3090']}, 400
     elif code == 1:
-        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
+        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.'], 'codes': ['3095']}, 400
     else:
         return {'error': False, 'count': 1, 'data': game_info(game)}
 
@@ -134,7 +134,7 @@ def remove_game():
 
     # Check if the gameshort is valid
     if not Game.query.filter(Game.short == short).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the game and remove it
     game = Game.query.filter(Game.short == short).first()
