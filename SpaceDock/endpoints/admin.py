@@ -13,7 +13,7 @@ def impersonate(userid):
     Log into another persons account from an admin account
     """
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
-        return {'error': True, 'reasons': ['The userid is invalid']}, 400
+        return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
     user = User.query.filter(User.id == int(userid)).first()
     login_user(user)
     return {'error': False}
@@ -28,9 +28,9 @@ def email():
     body = request.json.get('body')
     modders_only = request.json.get('modders-only') == 'on'
     if not subject or not body:
-        return {'error': True, 'reason': 'Required fields are missing'}
+        return {'error': True, 'reasons': ['Required fields are missing'], 'codes': ['2510']}
     if subject == '' or body == '':
-        return {'error': True, 'reason': 'Required data is missing'}
+        return {'error': True, 'reasons': ['Required data is missing'], 'codes': ['2500']}
     users = User.query.all()
     if modders_only:
         users = [u for u in users if len(u.mods) != 0 or u.username == current_user.username]
@@ -42,7 +42,7 @@ def email():
 @with_session
 def manual_confirm(userid):
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
-        return {'error': True, 'reasons': ['The userid is invalid']}, 400
+        return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
     user = User.query.filter(User.id == int(userid)).first()
     user.confirmation = None
     user.add_roles(user.username)
