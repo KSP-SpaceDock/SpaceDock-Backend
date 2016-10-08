@@ -44,6 +44,7 @@ def json_output(f):
 #   0: Everything is ok
 #   1: Tried to edit a field that is listed in __lock__
 #   2: Tried to patch a field that doesnt exist
+#   3: Invalid type
 def edit_object(object, patch):
     """
     Edits an object using a patch dictionary. Edits only fields that aren't listed in __lock__
@@ -65,6 +66,11 @@ def edit_object(object, patch):
             patched_patch[field] = o
     for field2 in patched_patch:
         setattr(object, field, patched_patch[field])
+    try:
+        db.commit()
+    except:
+        db.rollback()
+        return 3
     return 0
 
 def user_has(ability, public=True, params=None):
@@ -136,7 +142,7 @@ def boolean(s):
     """
     if s == None:
         return False
-    return s.lower() in ['true', 'yes', '1', 'y', 't']
+    return str(s).lower() in ['true', 'yes', '1', 'y', 't']
 
 def get_param(ability, param, p):
     """

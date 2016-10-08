@@ -43,7 +43,7 @@ def packs_add():
     # Check the vars
     errors = list()
     if not name:
-        errors.append('Invalid mod name.')
+        errors.append('Invalid modlist name.')
     if ModList.query.filter(ModList.name == name).first():
         errors.append('A modlist with this name does already exist.')
     if not gameshort or not game_id(gameshort):
@@ -56,11 +56,11 @@ def packs_add():
     db.add(pack)
     current_user.add_roles(name)    
     role = Role.query.filter(Role.name == name).first()
-    role.add_abilities('packs-edit', 'mods-remove')
+    role.add_abilities('packs-edit', 'packs-remove')
     role.add_param('packs-edit', 'packid', str(pack.id))
     role.add_param('packs-remove', 'name', name)    
     db.add(role)
-    db.commit()
+    db.flush()
     return {'error': False, 'count': 1, 'data': pack_info(pack)}
 
 @route('/api/packs/<gameshort>/<packid>/edit', methods=['POST'])
@@ -80,7 +80,9 @@ def packs_edit(gameshort, packid):
     code = edit_object(pack, request.json)
 
     # Error check
-    if code == 2:
+    if code == 3:
+        return {'error': True, 'reasons': ['The value you submitted is invalid']}, 400
+    elif code == 2:
         return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
     elif code == 1:
         return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
@@ -101,11 +103,13 @@ def packs_add_mod(gameshort, packid):
     errors = list()
     if not mod_id.isdigit() or not Mod.query.filter(Mod.id == int(mod_id)).first():
         errors.append('The mod ID is invalid')
+    elif mod_id.isdigit() and not Mod.query.filter(Mod.published).filter(Mod.id == int(mod_id)).first():
+        errors.append('The mod is not published.')
     if not packid.isdigit() or not ModList.query.filter(ModList.id == int(packid)).first():
         errors.append('The pack ID is invalid')
-    if not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
+    if packid.isdigit() and not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
         errors.append('The gameshort is invalid')
-    if ModListItem.query.filter(ModListItem.mod_id == int(mod_id)).filter(ModListItem.mod_list_id == int(packid)).first():
+    if mod_id.isdigit() and packid.isdigit() and ModListItem.query.filter(ModListItem.mod_id == int(mod_id)).filter(ModListItem.mod_list_id == int(packid)).first():
         errors.append('The specified mod was already added to the modlist')
     if any(errors):
         return {'error': True, 'reasons': errors}, 400
@@ -115,7 +119,7 @@ def packs_add_mod(gameshort, packid):
     moditem = ModListItem(mod=Mod.query.filter(Mod.id == int(mod_id)).first(), modlist=pack)
 
     db.add(moditem)
-    db.commit()
+    db.flush()
 
     return {'error': False}
 
