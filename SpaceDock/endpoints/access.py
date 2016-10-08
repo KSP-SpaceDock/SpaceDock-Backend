@@ -28,9 +28,9 @@ def add_role():
     """
     userid = request.json.get('userid')
     rolename = request.json.get('rolename')
-    if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
+    if not isinstance(userid, int) or not User.query.filter(User.id == userid).first():
         return {'error': True, 'reasons': ['The userid is invalid.']}, 400
-    user = User.query.filter(User.id == int(userid)).first()
+    user = User.query.filter(User.id == userid).first()
     user.add_roles(rolename)
     db.add(Role.query.filter(Role.name == rolename).first())
     return {'error': False}

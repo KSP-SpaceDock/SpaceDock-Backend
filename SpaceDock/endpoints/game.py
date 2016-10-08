@@ -77,7 +77,7 @@ def add_game():
     errors = list()
 
     # Check if the publisher ID is valid
-    if not pubid or not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+    if not pubid or not isinstance(pubid, int) or not Publisher.query.filter(Publisher.id == pubid).first():
         errors.append('The pubid is invalid.')
     if not name:
         errors.append('The name is invalid.')
@@ -95,7 +95,7 @@ def add_game():
         return {'error': True, 'reasons': errors}, 400
 
     # Make a new game
-    pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
+    pub = Publisher.query.filter(Publisher.id == pubid).first()
     game = Game(name, pub, short)
     db.add(game)
     db.flush()
@@ -152,12 +152,14 @@ def game_version_add(gameshort):
     # Errorcheck
     if not Game.query.filter(Game.short == gameshort).first():
         return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    if not isinstance(is_beta, bool):
+        return {'error': True, 'reasons': ['"is_beta" is invalid']}, 400
 
     # Fetch the game
     game = Game.query.filter(Game.short == gameshort).first()
 
     # Create a new version
-    version = GameVersion(friendly_version, game, boolean(is_beta))
+    version = GameVersion(friendly_version, game, is_beta)
     db.add(version)
     db.flush()
 
