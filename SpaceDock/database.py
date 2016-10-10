@@ -5,7 +5,7 @@ from SpaceDock.config import cfg
 
 import json
 
-engine = create_engine(cfg['connection-string'])
+engine = create_engine(cfg['connection-string'], pool_size=20, max_overflow=100)
 db = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 # Base class for database objects, to support metadata (plugins)

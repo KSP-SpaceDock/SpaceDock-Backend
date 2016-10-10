@@ -113,6 +113,7 @@ def new_mod(name, user, game, license):
 
     # Create new object
     mod = Mod(name, user, game, license)
+    mod.published = True
 
     # Roles
     user.add_roles(name)
@@ -143,7 +144,7 @@ def new_mod_version(modname, friendly_version, game, gameversion, beta):
     path_ = os.path.join(full_path, filename)
 
     # Create the object
-    version = ModVersion(mod, friendly_version, game, path_, beta)
+    version = ModVersion(mod, friendly_version, game, '/content/' + base_path.replace("\\", "/") + "/" + filename, beta)
 
     # Save data
     zip = ZipFile(path_, 'w')
@@ -152,6 +153,10 @@ def new_mod_version(modname, friendly_version, game, gameversion, beta):
 
     # add and commit
     db.add(version)
+    db.flush()
+    if not beta:
+        mod.default_version_id = version.id
+        print(mod.default_version_id)
     db.commit()
     return version
     
@@ -184,8 +189,10 @@ if __name__ == '__main__':
 
     # Versions
     mod_ksp_1_1 = new_mod_version('DarkMultiPlayer', '0.1', 'kerbal-space-program', '1.1.2', False)
-    mod_ksp_1_2 = new_mod_version('DarkMultiPlayer', '0.2', 'kerbal-space-program', '1.1.3', True)
+    mod_ksp_1_2 = new_mod_version('DarkMultiPlayer', '0.2', 'kerbal-space-program', '1.1.3', False)
+    mod_ksp_1_3 = new_mod_version('DarkMultiPlayer', '0.3', 'kerbal-space-program', '1.2', True)
     mod_ksp_2_1 = new_mod_version('CookieEngine', '1.2', 'kerbal-space-program', '1.1.3', False)
+    mod_ksp_2_2 = new_mod_version('CookieEngine', '1.4', 'kerbal-space-program', '1.2', True)
 
 
     

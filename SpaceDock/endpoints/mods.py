@@ -287,7 +287,7 @@ def mod_versions(gameshort, modid):
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     if not mod.published and current_user != mod.user:
         return {'error': True, reasons: ['The mod is not published.']}, 400
-    versions = ModVersion.query.filter(ModVersion.mod_id == int(modid)).all()
+    versions = ModVersion.query.filter(ModVersion.mod_id == int(modid)).order_by(desc(ModVersion.id)).all()
     return {'error': False, 'count': len(versions), 'data': bulk(versions, mod_version_info)}
 
 @route('/api/mods/<gameshort>/<modid>/versions/add', methods=['POST'])
@@ -338,7 +338,7 @@ def mod_update(gameshort, modid):
     if not zipfile.is_zipfile(path):
         os.remove(path)
         return {'error': True, 'reasons': ['This is not a valid zip file.']}, 400
-    version = ModVersion(mod, secure_filename(version), test_gameversion, os.path.join(base_path, filename))
+    version = ModVersion(mod, secure_filename(version), test_gameversion, os.path.join(base_path, filename).replace("\\", "/") + "/" + filename)
     version.changelog = changelog
     version.is_beta = boolean(beta)
     # Assign a sort index
@@ -348,10 +348,11 @@ def mod_update(gameshort, modid):
         version.sort_index = max([v.sort_index for v in mod.versions]) + 1
     mod.versions.append(version)
     mod.updated = datetime.datetime.now()
-    if notify:
+    if notify and not beta:
         send_update_notification(mod, version, current_user)
     db.add(version)
-    mod.default_version_id = version.id
+    if not beta:
+        mod.default_version_id = version.id
     db.flush()
     return {'error': False, 'count': 1, 'data': mod_version_info(version)}
 
