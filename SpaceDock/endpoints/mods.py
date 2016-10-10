@@ -314,13 +314,16 @@ def mod_update(gameshort, modid):
         return {'error': True, reasons: ['The mod is not published.']}, 400
 
     # Process fields
+    if not isinstance(is_beta, bool):
+        return {'error': True, 'reasons': ['"is_beta" is invalid']}, 400
+    if not isinstance(notify, bool):
+        return {'error': True, 'reasons': ['"notify-followers" is invalid']}, 400
     if not version or not game_version or not zipball:
         return {'error': True, 'reasons': ['All fields are required.']}, 400
     test_gameversion = GameVersion.query.filter(GameVersion.game_id == mod.game_id).filter(GameVersion.friendly_version == game_version).first()
     if not test_gameversion:
         return {'error': True, 'reasons': ['Game version does not exist.']}, 400
     game_version_id = test_gameversion.id
-    notify = boolean(notify)
 
     # Save the file
     filename = secure_filename(mod.name) + '-' + secure_filename(version) + '.zip'
@@ -340,7 +343,7 @@ def mod_update(gameshort, modid):
         return {'error': True, 'reasons': ['This is not a valid zip file.']}, 400
     version = ModVersion(mod, secure_filename(version), test_gameversion, os.path.join(base_path, filename).replace("\\", "/") + "/" + filename)
     version.changelog = changelog
-    version.is_beta = boolean(beta)
+    version.is_beta = beta
     # Assign a sort index
     if len(mod.versions) == 0:
         version.sort_index = 0
@@ -372,16 +375,16 @@ def delete_version(gameshort, modid):
         errors.append('The mod ID is invalid.')
     if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
        errors.append('The gameshort is invalid.')
-    if not versionid.isdigit() or not ModVersion.query.filter(ModVersion.id == int(versionid)).first():
+    if not isinstance(versionid, int) or not ModVersion.query.filter(ModVersion.id == versionid).first():
         errors.append('The version ID is invalid.')
-    if not any(errors) and not ModVersion.query.filter(ModVersion.mod_id == int(modid)).filter(ModVersion.id == int(versionid)).first():
+    if not any(errors) and not ModVersion.query.filter(ModVersion.mod_id == int(modid)).filter(ModVersion.id == versionid).first():
         errors.append('The mod ID and the version ID don\'t match.')
     if any(errors):
         return {'error': True, 'reasons': errors}, 400
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     if not mod.published and current_user != mod.user:
         return {'error': True, reasons: ['The mod is not published.']}, 400
-    version = [v for v in mod.versions if v.id == int(versionid)]
+    version = [v for v in mod.versions if v.id == versionid]
 
     # Checks
     if len(mod.versions) == 1:
@@ -391,7 +394,7 @@ def delete_version(gameshort, modid):
     if version[0].id == mod.default_version_id:
         return {'error': True, 'reasons': ['You cannot delete the default version of a mod.']}, 400
     db.delete(version[0])
-    mod.versions = [v for v in mod.versions if v.id != int(versionid)]
+    mod.versions = [v for v in mod.versions if v.id != versionid]
     return {'error': False}
 
 @route('/api/mods/<gameshort>/<modid>/follow')
@@ -487,7 +490,7 @@ def mods_rate(gameshort, modid):
         errors.append('The Mod ID is invalid.')
     if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
         errors.append('The gameshort is invalid.')
-    if not score or not score.isdigit():
+    if not score or not isinstance(score, int):
         errors.append('The score is invalid.')
     if Rating.query.filter(Rating.mod_id == int(modid)).filter(Rating.user_id == current_user.id).first():
         errors.append('You already have a rating for this mod.')
@@ -500,7 +503,7 @@ def mods_rate(gameshort, modid):
         return {'error': True, reasons: ['The mod is not published.']}, 400
 
     # Create rating
-    rating = Rating(current_user, mod, int(score))
+    rating = Rating(current_user, mod, score)
     db.add(rating)
     db.flush()
 
