@@ -84,10 +84,10 @@ def remove_publisher():
     pubid = request.json.get('pubid')
 
     # Check if the pubid is valid
-    if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+    if not isinstance(pubid, int) or not Publisher.query.filter(Publisher.id == pubid).first():
         return {'error': True, 'reasons': ['Invalid publisher ID']}, 400
 
     # Get the publisher and remove it
-    pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
+    pub = Publisher.query.filter(Publisher.id == pubid).first()
     db.delete(pub)
     return {'error': False}
