@@ -30,35 +30,14 @@ def games_info(gameshort):
     Displays information about a game.
     """
     # Get the games with the according gameshort
-    filter = Game.query.filter(Game.short == gameshort)
+    game = Game.query.filter(Game.short == gameshort).first()
 
     # Game doesn't exist
-    if len(filter.all()) == 0:
+    if not game:
         return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Game does exist
-    game = filter.first()
     return {'error': False, 'count': 1, 'data': game_info(game)}
-
-@route('/api/games/<gameshort>/versions')
-def game_versions(gameshort):
-    """
-    Displays information about the versions of a game.
-    """
-    if not Game.query.filter(Game.short == gameshort).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
-
-    # Get the ID
-    gameid = game_id(gameshort)
-
-    # get game versions
-    versions = GameVersion.query.filter(GameVersion.game_id == gameid).all()
-
-    # Format them
-    results = list()
-    for version in versions:
-        results.append(game_version_info(version))
-    return {'error': False, 'count': len(results), 'data': results}
 
 @route('/api/games/<gameshort>/edit', methods=['POST'])
 @user_has('game-edit', params=['gameshort'])
@@ -67,18 +46,17 @@ def edit_game(gameshort):
     """
     Edits a game, based on the request parameters. Required fields: data
     """
-    errors = list()
     if not Game.query.filter(Game.short == gameshort).first():
-        errors.append('The gameshort is invalid.')
-    if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
 
     # Get the matching game and edit it
     game = Game.query.filter(Game.short == gameshort).first()
     code = edit_object(game, request.json)
 
     # Error check
-    if code == 2:
+    if code == 3:
+        return {'error': True, 'reasons': ['The value you submitted is invalid'], 'codes': ['2180']}, 400
+    elif code == 2:
         return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.'], 'codes': ['3090']}, 400
     elif code == 1:
         return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.'], 'codes': ['3095']}, 400
@@ -99,7 +77,7 @@ def add_game():
     errors = list()
 
     # Check if the publisher ID is valid
-    if not pubid or not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+    if not pubid or not isinstance(pubid, int) or not Publisher.query.filter(Publisher.id == pubid).first():
         errors.append('The pubid is invalid.')
     if not name:
         errors.append('The name is invalid.')
@@ -117,10 +95,10 @@ def add_game():
         return {'error': True, 'reasons': errors}, 400
 
     # Make a new game
-    pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
+    pub = Publisher.query.filter(Publisher.id == pubid).first()
     game = Game(name, pub, short)
     db.add(game)
-    db.commit()
+    db.flush()
     return {'error': False, 'count': 1, 'data': game_info(game)}
 
 @route('/api/games/remove', methods=['POST'])
@@ -140,3 +118,122 @@ def remove_game():
     game = Game.query.filter(Game.short == short).first()
     db.delete(game)
     return {'error': False}
+
+@route('/api/games/<gameshort>/versions')
+def game_versions(gameshort):
+    """
+    Displays information about the versions of a game.
+    """
+    if not Game.query.filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+
+    # Get the ID
+    gameid = game_id(gameshort)
+
+    # get game versions
+    versions = GameVersion.query.filter(GameVersion.game_id == gameid).all()
+
+    # Format them
+    results = list()
+    for version in versions:
+        results.append(game_version_info(version))
+    return {'error': False, 'count': len(results), 'data': results}
+
+@route('/api/games/<gameshort>/versions/add', methods=['POST'])
+@user_has('game-edit', params=['gameshort'])
+@with_session
+def game_version_add(gameshort):
+    """
+    Adds a new version of the game. Required fields: friendly_version, is_beta
+    """
+    friendly_version = request.json.get('friendly_version')
+    is_beta = request.json.get('is_beta')
+    
+    # Errorcheck
+    if not Game.query.filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    if not isinstance(is_beta, bool):
+        return {'error': True, 'reasons': ['"is_beta" is invalid']}, 400
+
+    # Fetch the game
+    game = Game.query.filter(Game.short == gameshort).first()
+
+    # Create a new version
+    version = GameVersion(friendly_version, game, is_beta)
+    db.add(version)
+    db.flush()
+
+    # get game version
+    return {'error': False, 'count': 1, 'data': game_version_info(version)}
+
+@route('/api/games/<gameshort>/versions/remove', methods=['POST'])
+@user_has('game-edit', params=['gameshort'])
+@with_session
+def game_version_remove(gameshort):
+    """
+    Removes a version of the game. Required fields: friendly_version
+    """
+    friendly_version = request.json.get('friendly_version')
+    
+    # Errorcheck
+    if not Game.query.filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    if not GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['This version name does not exist.']}, 400
+
+    # Fetch the game
+    game = Game.query.filter(Game.short == gameshort).first()
+    gameid = game_id(gameshort)
+
+    # Remove the version
+    version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == gameid).first()
+    db.delete(version)
+
+    # get game version
+    return {'error': False}
+
+@route('/api/games/<gameshort>/versions/<friendly_version>')
+def game_version(gameshort, friendly_version):
+    """
+    Displays information about one version of a game.
+    """
+    if not Game.query.filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    if not GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['This version name does not exist.']}, 400
+
+    # Get the ID
+    gameid = game_id(gameshort)
+
+    # get game version
+    version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == gameid).first()
+    return {'error': False, 'count': 1, 'data': game_version_info(version)}
+
+@route('/api/games/<gameshort>/versions/<friendly_version>/edit', methods=['POST'])
+@user_has('game-edit', params=['gameshort'])
+@with_session
+def game_version_edit(gameshort, friendly_version):
+    """
+    Edits a version of the game
+    """
+    if not Game.query.filter(Game.short == gameshort).first():
+        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+    if not GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == game_id(gameshort)).first():
+        return {'error': True, 'reasons': ['This version name does not exist.']}, 400
+
+    # Get the ID
+    gameid = game_id(gameshort)
+
+    # get game version
+    version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == gameid).first()
+    code = edit_object(version, request.json)
+
+    # Error check
+    if code == 3:
+        return {'error': True, 'reasons': ['The value you submitted is invalid']}, 400
+    elif code == 2:
+        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
+    elif code == 1:
+        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
+    else:
+        return {'error': False, 'count': 1, 'data': game_version_info(version)}

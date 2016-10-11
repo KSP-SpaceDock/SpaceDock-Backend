@@ -9,15 +9,15 @@ def load_file(path):
     # Read control header
     name = ''
     deps = []
-    with open(path) as f:
+    with open(os.getcwd() + '/plugins/' + path) as f:
         lines = f.readlines()
         for line in lines:
             if not line.startswith('#'):
                 break
-            if line[1:].trim().lower().startswith('name:'):
-                name = line[1:].trim()[5:].trim()
-            if line[1:].trim().lower().startswith('depends:'):
-                deps.append(line[1:].trim()[8:].trim())
+            if line[1:].strip().lower().startswith('name:'):
+                name = line[1:].strip()[5:].strip()
+            if line[1:].strip().lower().startswith('depends:'):
+                deps.append(line[1:].strip()[8:].strip())
 
     # Dont load the file if it has no name
     if not name:

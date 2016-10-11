@@ -41,9 +41,18 @@ def edit_publisher(pubid):
 
     # Get the matching game and edit it
     pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
-    edit_object(pub, request.json)
-    pub.updated = datetime.now()
-    return {'error': False, 'count': 1, 'data': publisher_info(pub)}
+    code = edit_object(pub, request.json)
+    
+    # Error check
+    if code == 3:
+        return {'error': True, 'reasons': ['The value you submitted is invalid']}, 400
+    elif code == 2:
+        return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.']}, 400
+    elif code == 1:
+        return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.']}, 400
+    else:
+        pub.updated = datetime.now()
+        return {'error': False, 'count': 1, 'data': publisher_info(pub)}
 
 @route('/api/publishers/add', methods=['POST'])
 @user_has('publisher-add')
@@ -62,7 +71,7 @@ def add_publisher():
     # Get the matching game and edit it
     pub = Publisher(name)
     db.add(pub)
-    db.commit()
+    db.flush()
     return {'error': False, 'count': 1, 'data': publisher_info(pub)}
 
 @route('/api/publishers/remove', methods=['POST'])
@@ -75,10 +84,10 @@ def remove_publisher():
     pubid = request.json.get('pubid')
 
     # Check if the pubid is valid
-    if not pubid.isdigit() or not Publisher.query.filter(Publisher.id == int(pubid)).first():
+    if not isinstance(pubid, int) or not Publisher.query.filter(Publisher.id == pubid).first():
         return {'error': True, 'reasons': ['Invalid publisher ID'], 'codes': ['2110']}, 400
 
     # Get the publisher and remove it
-    pub = Publisher.query.filter(Publisher.id == int(pubid)).first()
+    pub = Publisher.query.filter(Publisher.id == pubid).first()
     db.delete(pub)
     return {'error': False}

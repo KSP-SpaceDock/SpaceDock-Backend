@@ -22,11 +22,13 @@ def impersonate(userid):
 @user_has('admin-email')
 def email():
     """
-    Emails everyone. Required fields: subject, body. Optional fields: modders (on/off)
+    Emails everyone. Required fields: subject, body. Optional fields: modders-only
     """
     subject = request.json.get('subject')
     body = request.json.get('body')
-    modders_only = request.json.get('modders-only') == 'on'
+    modders_only = request.json.get('modders-only')
+    if not isinstance(modders_only, bool):
+        return {'error': True, 'reasons': ['"modders_only" is invalid']}, 400
     if not subject or not body:
         return {'error': True, 'reasons': ['Required fields are missing'], 'codes': ['2510']}
     if subject == '' or body == '':
