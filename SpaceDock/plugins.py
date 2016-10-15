@@ -29,6 +29,7 @@ def load_file(path):
         if d.endswith('.py'):
             load_file(d)
     plugins.append(SourceFileLoader(name, 'plugins/' + path).load_module())
+    print(' * Loaded ' + name)
 
 def load_plugins():
     """
