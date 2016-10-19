@@ -29,28 +29,34 @@ def register():
     password = request.json.get('password')
     confirmPassword = request.json.get('repeatPassword')
 
-    errors = []
-
+    errors = ()
+    codes = ()
     emailError = check_email_for_registration(email)
     if emailError:
         errors.append(emailError)
+        codes.append('4000')
 
     usernameError = check_username_for_registration(username)
     if usernameError:
         errors.append(usernameError)
+        codes.append('4000')
 
     if not password:
         errors.append('Password is required.')
+        codes.append('2515')
     else:
         if password != confirmPassword:
             errors.append('Passwords do not match.')
+            codes.append('3005')
         if len(password) < 5:
             errors.append('Your password must be greater than 5 characters.')
+            codes.append('2101')
         if len(password) > 256:
             errors.append('We admire your dedication to security, but please use a shorter password.')
+            codes.append('2102')
 
     if len(errors) > 0:
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # All valid, let's make them an account
     user = User(username, email, password)

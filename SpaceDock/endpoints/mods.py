@@ -113,13 +113,16 @@ def mod_edit(gameshort, modid):
     """
     Edits a mod, based on the request parameters. Required fields: data
     """
-    errors = list()
+    errors = ()
+    codes = ()
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The Mod ID is invalid.')
+        codes.append('2130')
     if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
        errors.append('The gameshort is invalid.')
+       codes.append('2125')
     if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # Get the matching mod and edit it
     mod = Mod.query.filter(Mod.id == int(modid)).first()
@@ -148,17 +151,22 @@ def add_mod():
     license = request.json.get('license')
 
     # Check the vars
-    errors = list()
+    errors = ()
+    codes = ()
     if not name:
         errors.append('Invalid mod name.')
+        codes.append('2117')
     if Mod.query.filter(Mod.name == name).first():
-        errors.append('A mod with this name does already exist.')
+        errors.append('A mod with this name already exists.')
+        codes.append('2035')
     if not short or not game_id(short) or not Game.query.filter(Game.active).filter(Game.short == short).first():
         errors.append('Invalid gameshort.')
+        codes.append('2125')
     if not license:
         errors.append('Invalid License.')
+        codes.append('2190')
     if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # Add new mod
     game = Game.query.filter(Game.short == short).first()
@@ -185,15 +193,19 @@ def publish_mod():
     short = request.json.get('gameshort')
 
     # Check the vars
-    errors = list()
+    errors = ()
+    codes = ()
     if not name:
         errors.append('Invalid mod name.')
+        codes.append('2117')
     if not short or not game_id(short):
         errors.append('Invalid gameshort.')
+        codes.append('2125')
     if name and short and not Mod.query.filter(Mod.name == name).filter(Mod.game_id == game_id(short)).first():
-        errors.append('A mod with theese parameters does not exist.')
+        errors.append('A mod with these parameters does not exist.')
+        codes.append('3033')
     if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # Publish
     mod = Mod.query.filter(Mod.name == name).filter(Mod.game_id == game_id(short)).first()
@@ -212,15 +224,19 @@ def remove_mod():
     short = request.json.get('gameshort')
 
     # Check the vars
-    errors = list()
+    errors = ()
+    codes = ()
     if not name:
         errors.append('Invalid mod name.')
+        codes.append('2117')
     if not short or not game_id(short):
         errors.append('Invalid gameshort.')
+        codes.append('2125')
     if name and short and not Mod.query.filter(Mod.name == name).filter(Mod.game_id == game_id(short)).first():
         errors.append('A mod with theese parameters does not exist.')
+        codes.append('3033')
     if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # Add new mod
     mod = Mod.query.filter(Mod.name == name).filter(Mod.game_id == game_id(short)).first()
@@ -240,15 +256,19 @@ def mod_updateBG(gameshort, modid):
     """
     Updates a mod background. Required fields: image
     """
-    errors = list()
+    errors = ()
+    codes = ()
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The Mod ID is invalid.')
+        codes.append('2130')
     if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
        errors.append('The gameshort is invalid.')
+       codes.append('2125')
     if not request.files.get('image'):
         errors.append('The background is invalid.')
+        codes.append('2153')
     if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # Find the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
@@ -370,17 +390,22 @@ def delete_version(gameshort, modid):
     versionid = request.json.get('version-id')
 
     # Error check
-    errors = list()
+    errors = ()
+    codes = ()
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The mod ID is invalid.')
+        codes.append('2130')
     if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
        errors.append('The gameshort is invalid.')
+       codes.append('2125')
     if not isinstance(versionid, int) or not ModVersion.query.filter(ModVersion.id == versionid).first():
         errors.append('The version ID is invalid.')
+        codes.append('2155')
     if not any(errors) and not ModVersion.query.filter(ModVersion.mod_id == int(modid)).filter(ModVersion.id == versionid).first():
         errors.append('The mod ID and the version ID don\'t match.')
+        codes.append('3093')
     if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     if not mod.published and current_user != mod.user:
         return {'error': True, reasons: ['The mod is not published.'], 'codes': ['3020']}, 400
@@ -485,17 +510,22 @@ def mods_rate(gameshort, modid):
     # Get variables
     score = request.json.get('rating')
 
-    errors = list()
+    errors = ()
+    codes = ()
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The Mod ID is invalid.')
+        codes.append('2130')
     if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
         errors.append('The gameshort is invalid.')
+        codes.append('2125')
     if not score or not isinstance(score, int):
         errors.append('The score is invalid.')
+        codes.append('2183')
     if Rating.query.filter(Rating.mod_id == int(modid)).filter(Rating.user_id == current_user.id).first():
         errors.append('You already have a rating for this mod.')
+        codes.append('2040')
     if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # Find the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()
@@ -521,15 +551,19 @@ def mods_unrate(gameshort, modid):
     """
     Removes a rating for a mod.
     """
-    errors = list()
+    errors = ()
+    codes = ()
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The Mod ID is invalid.')
+        codes.append('2130')
     if not any(errors) and not Mod.query.filter(Mod.id == int(modid)).filter(Mod.game_id == game_id(gameshort)).first():
         errors.append('The gameshort is invalid.')
+        codes.append('2125')
     if not Rating.query.filter(Rating.mod_id == int(modid)).filter(Rating.user_id == current_user.id).first():
         errors.append('You can\'t remove a rating you don\'t have, right?')
+        codes.append('3013')
     if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # Find the mod
     mod = Mod.query.filter(Mod.id == int(modid)).first()

@@ -70,13 +70,16 @@ def user_updateBG(userid):
     """
     Updates a users background. Required fields: image
     """
-    errors = list()
+    errors = ()
+    codes = ()
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
         errors.append('The userid is invalid.')
+        codes.append('2145')
     if not request.files.get('image'):
-        errors.append('The background is invalid.')
+        errors.append('The image background is invalid.')
+        codes.append('2153')
     if any(errors):
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # Find the user
     user = User.query.filter(User.id == int(userid)).first()
