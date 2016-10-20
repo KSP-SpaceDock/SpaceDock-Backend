@@ -55,7 +55,7 @@ def edit_user(userid):
 
     # Error check
     if code == 3:
-        return {'error': True, 'reasons': ['The value you submitted is invalid']'codes': ['2180']}, 400
+        return {'error': True, 'reasons': ['The value you submitted is invalid'], 'codes': ['2180']}, 400
     elif code == 2:
         return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.'], 'codes': ['3090']}, 400
     elif code == 1:
