@@ -29,7 +29,7 @@ def add_role():
     userid = request.json.get('userid')
     rolename = request.json.get('rolename')
     if not isinstance(userid, int) or not User.query.filter(User.id == userid).first():
-        return {'error': True, 'reasons': ['The userid is invalid.']}, 400
+        return {'error': True, 'reasons': ['The userid is invalid.'], 'codes': ['2145']}, 400
     user = User.query.filter(User.id == userid).first()
     user.add_roles(rolename)
     db.add(Role.query.filter(Role.name == rolename).first())
@@ -45,10 +45,10 @@ def remove_role():
     userid = request.json.get('userid')
     rolename = request.json.get('rolename')
     if not isinstance(userid, int) or not User.query.filter(User.id == userid).first():
-        return {'error': True, 'reasons': ['The userid is invalid.']}, 400
+        return {'error': True, 'reasons': ['The userid is invalid.'], 'codes': ['2145']}, 400
     user = User.query.filter(User.id == userid).first()
     if not rolename in user._roles:
-        return {'error': True, 'reasons': ['The user doesn\'t have this role']}, 400
+        return {'error': True, 'reasons': ['The user doesn\'t have this role'], 'codes': ['1015']}, 400
     user.remove_roles(rolename)
     db.delete(Role.query.filter(Role.name == rolename).first())
     return {'error': False}
@@ -74,7 +74,7 @@ def add_abilities():
     rolename = request.json.get('rolename')
     abname = request.json.get('abname')
     if not Role.query.filter(Role.name == rolename).first():
-        return {'error': True, 'reasons': ['The role does not exist. Please add it to a user to create it internally.']}, 400
+        return {'error': True, 'reasons': ['The role does not exist. Please add it to a user to create it internally.'], 'codes': ['3030']}, 400
     r = Role.query.filter(Role.name == rolename).first()
     r.add_abilities(abname)
     return {'error': False}
@@ -88,17 +88,20 @@ def remove_abilities():
     """
     rolename = request.json.get('rolename')
     abname = request.json.get('abname')
-    errors = []
+    errors = ()
+    codes = ()
     if not Role.query.filter(Role.name == rolename).first():
         errors.append('The role does not exist.')
+        codes.append('3030')
     if not Ability.query.filter(Ability.name == abname).first():
         errors.append('The ability does not exist.')
+        codes.append('2107')
     if len(errors) > 0:
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes' codes}, 400
     role = Role.query.filter(Role.name == rolename).first()
     ability = Ability.query.filter(Ability.name == abname).first()
     if not ability in role.abilities:
-        return {'error': True, 'reasons': ['The ability isn\'t assigned to this role']}, 400
+        return {'error': True, 'reasons': ['The ability isn\'t assigned to this role'], 'codes': ['1010']}, 400
     role.remove_abilities(abname)
     return {'error': False}
 
@@ -112,13 +115,16 @@ def add_params(rolename):
     abname = request.json.get('abname')
     param = request.json.get('param')
     value = request.json.get('value')
-    errors = []
+    errors = ()
+    codes = ()
     if not Role.query.filter(Role.name == rolename).first():
         errors.append('The rolename is invalid.')
+        codes.append('3030')
     if not Ability.query.filter(Ability.name == abname).first():
         errors.append('The ability does not exist.')
+        codes.append('2107')
     if len(errors) > 0:
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
     role = Role.query.filter(Role.name == rolename).first()
     role.add_param(abname, param, value)
     return {'error': False}
@@ -133,15 +139,18 @@ def remove_params(rolename):
     abname = request.json.get('abname')
     param = request.json.get('param')
     value = request.json.get('value')
-    errors = []
+    errors = ()
+    codes = ()
     if not Role.query.filter(Role.name == rolename).first():
         errors.append('The rolename is invalid.')
+        codes.append('3030')
     if not Ability.query.filter(Ability.name == abname).first():
         errors.append('The ability does not exist.')
+        codes.append('2107')
     if len(errors) > 0:
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
     role = Role.query.filter(Role.name == rolename).first()
     if not value in get_param(abname, param, json.loads(role.params)):
-        return {'error': True, 'reasons': ['The parameter doesn\'t exist']}, 400
+        return {'error': True, 'reasons': ['The parameter doesn\'t exist'], 'codes': ['2140']}, 400
     role.remove_param(abname, param, value)
     return {'error': False}

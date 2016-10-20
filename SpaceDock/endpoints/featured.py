@@ -22,7 +22,7 @@ def list_featured_game(gameshort):
     Returns a list of featured mods for a specific game.
     """
     if not Game.query.filter(Game.active).filter(Game.short == gameshort).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the features
     result = list()
@@ -43,13 +43,13 @@ def add_feature(gameshort):
 
     # Errorcheck
     if not isinstance(modid, int) or not Mod.query.filter(Mod.id == modid).first():
-        return {'error': True, 'reasons': ['The Mod ID is invalid.']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid.'], 'codes': ['2130']}, 400
     elif not Mod.query.filter(Mod.id == modid).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     elif not Mod.query.filter(Mod.published).filter(Mod.id == modid).first():
-        return {'error': True, 'reasons': ['The mod must be published first.']}, 400
+        return {'error': True, 'reasons': ['The mod must be published first.'], 'codes': ['3022']}, 400
     if Featured.query.filter(Featured.mod_id == modid).first():
-        return {'error': True, 'reasons': ['The mod is already featured']}, 400
+        return {'error': True, 'reasons': ['The mod is already featured'], 'codes': ['3015']}, 400
 
     # Everything's fine, let's feature the mod    
     feature = Featured(Mod.query.filter(Mod.id == modid).first())
@@ -68,11 +68,11 @@ def remove_feature(gameshort):
 
     # Errorcheck
     if not isinstance(modid, int) or not Mod.query.filter(Mod.id == modid).first():
-        return {'error': True, 'reasons': ['The Mod ID is invalid.']}, 400
+        return {'error': True, 'reasons': ['The modid is invalid.'], 'codes': ['2130']}, 400
     elif not Mod.query.filter(Mod.id == modid).filter(Mod.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.']}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     elif not Mod.query.filter(Mod.published).filter(Mod.id == modid).first():
-        return {'error': True, 'reasons': ['The mod must be published first.']}, 400
+        return {'error': True, 'reasons': ['The mod must be published first.'], 'codes': ['3022']}, 400
     elif not Featured.query.filter(Featured.mod_id == modid).first():
         return {'error': True, 'reasons': ['This mod isn\'t featured.']}, 400
 

@@ -21,7 +21,7 @@ def register():
     Registers a new useraccount. Required parameters: email, username, password, repeatPassword. Optional parameters: follow-mod
     """
     if not cfg.getb('registration'):
-        return {'error': True, 'reasons': ['Registrations are disabled']}, 400
+        return {'error': True, 'reasons': ['Registrations are disabled'], 'codes': ['3010']}, 400
 
     followMod = request.json.get('follow-mod')
     email = request.json.get('email')
@@ -29,28 +29,34 @@ def register():
     password = request.json.get('password')
     confirmPassword = request.json.get('repeatPassword')
 
-    errors = []
-
+    errors = ()
+    codes = ()
     emailError = check_email_for_registration(email)
     if emailError:
         errors.append(emailError)
+        codes.append('4000')
 
     usernameError = check_username_for_registration(username)
     if usernameError:
         errors.append(usernameError)
+        codes.append('4000')
 
     if not password:
         errors.append('Password is required.')
+        codes.append('2515')
     else:
         if password != confirmPassword:
             errors.append('Passwords do not match.')
+            codes.append('3005')
         if len(password) < 5:
             errors.append('Your password must be greater than 5 characters.')
+            codes.append('2101')
         if len(password) > 256:
             errors.append('We admire your dedication to security, but please use a shorter password.')
+            codes.append('2102')
 
     if len(errors) > 0:
-        return {'error': True, 'reasons': errors}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
     # All valid, let's make them an account
     user = User(username, email, password)
@@ -91,11 +97,11 @@ def confirm(username, confirmation):
     """
     user = User.query.filter(User.username == username).first()
     if not user:
-        return {'error': True, 'reasons': ['User does not exist']}, 400
+        return {'error': True, 'reasons': ['User does not exist'], 'codes': ['2165']}, 400
     if user.confirmation == None:
-        return {'error': True, 'reasons': ['User already confirmed']}, 400
+        return {'error': True, 'reasons': ['User already confirmed'], 'codes': ['3045']}, 400
     if user.confirmation != confirmation:
-        return {'error': True, 'reasons': ['Confirmation does not match']}, 400
+        return {'error': True, 'reasons': ['Confirmation does not match'], 'codes': ['2100']}, 400
 
     user.confirmation = None
     login_user(user)
@@ -121,16 +127,16 @@ def login():
     username = request.json.get('username')
     password = request.json.get('password')
     if not username or not password:
-        return {'error': True, 'reasons': ['Missing username or password']}, 400
+        return {'error': True, 'reasons': ['Missing username or password'], 'codes': ['2515']}, 400
     if current_user:
-        return {'error': True, 'reasons': ['You are already logged in']}, 400
+        return {'error': True, 'reasons': ['You are already logged in'], 'codes': ['3060']}, 400
     user = User.query.filter(User.username.ilike(username)).first()
     if not user:
-        return {'error': True, 'reasons': ['Username or password is incorrect']}, 400
+        return {'error': True, 'reasons': ['Username or password is incorrect'], 'codes': ['2175']}, 400
     if not bcrypt.hashpw(password.encode('utf-8'), user.password.encode('utf-8')) == user.password.encode('utf-8'):
-        return {'error': True, 'reasons': ['Username or password is incorrect']}, 400
+        return {'error': True, 'reasons': ['Username or password is incorrect'], 'codes': ['2175']}, 400
     if user.confirmation == '' and user.confirmation == None:
-        return {'error': True, 'reasons': ['User is not confirmed']}, 400
+        return {'error': True, 'reasons': ['User is not confirmed'], 'codes': ['3055']}, 400
     login_user(user)
     return {'error': False}
 
@@ -140,7 +146,7 @@ def logout():
     Closes the session and logs the user out
     """
     if not current_user:
-        return {'error': True, 'reasons': ['You are not logged in. Logging out now would be a bit difficult, right?']}, 400 # Thats my daily portion of irony
+        return {'error': True, 'reasons': ['You are not logged in. Logging out now would be a bit difficult, right?'], 'codes': ['3070']}, 400 # Thats my daily portion of irony
     logout_user()
     return {'error': False}
 
@@ -152,10 +158,10 @@ def forgot_password():
     """
     email = request.json.get('email')
     if not email:
-        return {'error': True, 'reasons': ['No email address']}, 400
+        return {'error': True, 'reasons': ['No email address'], 'codes': ['2520']}, 400
     user = User.query.filter(User.email == email).first()
     if not user:
-        return {'error': True, 'reasons': ['No user for provided email address']}, 400
+        return {'error': True, 'reasons': ['No user for provided email address'], 'codes': ['2115']}, 400
     user.passwordReset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
     user.passwordResetExpiry = datetime.now() + timedelta(days=1)
     send_reset(user)
@@ -169,18 +175,18 @@ def reset_password(username, confirmation):
     """
     user = User.query.filter(User.username == username).first()
     if not user:
-        return {'error': True, 'reasons': ['Username is incorrect']}, 400
+        return {'error': True, 'reasons': ['Username is incorrect'], 'codes': ['2170']}, 400
 
     if user.passwordResetExpiry == None or user.passwordResetExpiry < datetime.now():
-        return {'error': True, 'reasons': ['Password reset invalid']}, 400
+        return {'error': True, 'reasons': ['Password reset invalid'], 'codes': ['3000']}, 400
     if user.passwordReset != confirmation:
-        return {'error': True, 'reasons': ['Password reset invalid']}, 400
+        return {'error': True, 'reasons': ['Password reset invalid'], 'codes': ['3000']}, 400
     password = request.json.get('password')
     password2 = request.json.get('password2')
     if not password or not password2:
-        return {'error': True, 'reasons': ['Passwords not provided']}, 400
+        return {'error': True, 'reasons': ['Passwords not provided'], 'codes': ['2525']}, 400
     if password != password2:
-        return {'error': True, 'reasons': ['Passwords do not match']}, 400
+        return {'error': True, 'reasons': ['Passwords do not match'], 'codes': ['3005']}, 400
     user.set_password(password)
     user.passwordReset = None
     user.passwordResetExpiry = None

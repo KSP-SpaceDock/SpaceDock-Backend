@@ -82,9 +82,9 @@ def user_has(ability, public=True, params=None):
         def inner(*args, **kwargs):
             # Check if the user is logged in
             if not current_user:
-                return {'error': True, 'reasons': ['You need to be logged in to access this page']}, 403
+                return {'error': True, 'reasons': ['You need to be logged in to access this page'], 'codes': ['1035']}, 403
             if public and not current_user.public:
-                return {'error': True, 'reasons': ['Only users with public profiles may access this page.']}, 403
+                return {'error': True, 'reasons': ['Only users with public profiles may access this page.'], 'codes': ['1000']}, 403
 
             # Get the specified ability
             desired_ability = Ability.query.filter(Ability.name == ability).first()
@@ -107,7 +107,7 @@ def user_has(ability, public=True, params=None):
                     has = True
                 if has:
                     return func(*args, **kwargs)
-            return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability]}, 403
+            return {'error': True, 'reasons': ['You don\'t have access to this page. You need to have the abilities: ' + ability], 'codes': ['1020']}, 403
         return inner
 
     # Make sure the ability exists
