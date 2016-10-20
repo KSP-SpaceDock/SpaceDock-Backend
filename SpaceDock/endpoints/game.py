@@ -131,7 +131,7 @@ def game_versions(gameshort):
     Displays information about the versions of a game.
     """
     if not Game.query.filter(Game.short == gameshort).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}}, 400
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the ID
     gameid = game_id(gameshort)
