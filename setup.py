@@ -156,7 +156,6 @@ def new_mod_version(modname, friendly_version, game, gameversion, beta):
     db.flush()
     if not beta:
         mod.default_version_id = version.id
-        print(mod.default_version_id)
     db.commit()
     return version
     
