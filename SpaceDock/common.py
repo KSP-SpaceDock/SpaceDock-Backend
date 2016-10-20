@@ -2,9 +2,10 @@ from flask import make_response, request
 from flask_json import as_json, as_json_p
 from flask_login import current_user
 from functools import wraps
+from SpaceDock.app import limiter
 from SpaceDock.config import cfg
 from SpaceDock.database import db
-from SpaceDock.objects import Ability, Game
+from SpaceDock.objects import Ability, Game, Token
 from wsgiref.handlers import format_date_time
 
 import datetime
@@ -207,3 +208,24 @@ def cache(f):
  
         return response
     return cache_func
+
+def limit(f):
+    """
+    Limits the amount of requests a user can make
+    """
+    def exceptions():
+        """
+        Checks if a user shouldn't be limited
+        """
+        if current_user and has_ability('no-limits'):
+            return True
+        if 'token' in request.json:
+            s_token = request.json.get('token')
+            del request.json['token']
+            token = Token.query.filter(Token.token == s_token).first()
+            if not token:
+                return False
+            return request.remote_addr in token['ips']
+        return False
+
+    return limiter.limit(cfg['access-limit'], exempt_when=exceptions)(f)

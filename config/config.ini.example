@@ -64,3 +64,11 @@ cache-expires=10
 # Enables threading in the flask app.
 # Stability: Unknown
 threaded=False
+
+# Access limiting
+# https://flask-limiter.readthedocs.io/en/stable/#ratelimit-string
+access-limit=100/second
+
+# Whether headers should be added, containing the current status 
+# of the access limiting
+limit-headers=False

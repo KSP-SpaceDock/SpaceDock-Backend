@@ -57,6 +57,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SpaceDock\endpoints\publisher.py" />
+    <Compile Include="SpaceDock\endpoints\tokens.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SpaceDock\endpoints\user.py" />
     <Compile Include="SpaceDock\endpoints\__init__.py" />
     <Compile Include="SpaceDock\plugins.py">
