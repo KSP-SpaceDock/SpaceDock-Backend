@@ -97,7 +97,7 @@ def remove_abilities():
         errors.append('The ability does not exist.')
         codes.append('2107')
     if len(errors) > 0:
-        return {'error': True, 'reasons': errors, 'codes' codes}, 400
+        return {'error': True, 'reasons': errors, 'codes': codes}, 400
     role = Role.query.filter(Role.name == rolename).first()
     ability = Ability.query.filter(Ability.name == abname).first()
     if not ability in role.abilities:
