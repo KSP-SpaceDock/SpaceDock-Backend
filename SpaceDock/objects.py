@@ -7,6 +7,7 @@ from SpaceDock.database import MetaObject, Base, db
 from SpaceDock.thumbnail import create
 
 import bcrypt
+import binascii
 import json
 import os.path
 import re
@@ -730,3 +731,15 @@ class GameVersion(Base, MetaObject):
 
     def __repr__(self):
         return '<Game Version %r>' % self.friendly_version
+
+class Token(Base, MetaObject):
+    __tablename__ = 'token'
+    id = Column(Integer, primary_key = True)
+    token = Column(String(128))
+
+    def __init__(self):
+        self.token = bcrypt.hashpw(binascii.b2a_hex(os.urandom(20)), bcrypt.gensalt()).decode('utf-8')
+        self['ips'] = list()
+
+    def __repr__(self):
+        return '<Token %r>' % self.id
