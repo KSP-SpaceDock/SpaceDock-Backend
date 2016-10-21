@@ -102,6 +102,13 @@ def upgrade():
     
     # GameVersion
     op.add_column('gameversion', sa.Column('meta', sa.String(512), server_default='{}'))
+       
+    # Tokens
+    op.create_table('token', 
+        sa.Column('meta', sa.String(512), server_default='{}'),
+        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('token', sa.String(32), unique=True)
+    )
 
 
 def downgrade():
@@ -175,3 +182,6 @@ def downgrade():
     
     # GameVersion
     op.drop_column('gameversion', 'meta')
+
+    # Tokens
+    op.drop_table('token')
