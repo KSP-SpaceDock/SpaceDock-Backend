@@ -736,7 +736,7 @@ class GameVersion(Base, MetaObject):
 class Token(Base, MetaObject):
     __tablename__ = 'token'
     id = Column(Integer, primary_key = True)
-    token = Column(String(128))
+    token = Column(String(32))
 
     def __init__(self):
         self.token = hashlib.md5(binascii.b2a_hex(os.urandom(20))).hexdigest()
