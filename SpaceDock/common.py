@@ -219,9 +219,9 @@ def limit(f):
         """
         if current_user and has_ability('no-limits'):
             return True
-        if 'token' in request.json:
-            s_token = request.json.get('token')
-            del request.json['token']
+        if 'token' in request.args:
+            s_token = request.args.get('token')
+            del request.args['token']
             token = Token.query.filter(Token.token == s_token).first()
             if not token:
                 return False
