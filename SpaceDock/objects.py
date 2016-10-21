@@ -33,7 +33,7 @@ def role_find_or_create(r):
     if not role:
         role = Role(name=r)
         db.add(role)
-        db.commit()
+        db.flush()
     return role
 
 def is_sequence(arg):
@@ -193,7 +193,7 @@ class Role(Base, MetaObject):
             if not existing_ability:
                 existing_ability = Ability(ability)
                 db.add(existing_ability)
-                db.commit()
+                db.flush()
             self.abilities.append(existing_ability)
 
     def add_abilities_re(self, pattern):
