@@ -20,7 +20,8 @@ def upgrade():
     op.add_column('gameversion', sa.Column('is_beta', sa.Boolean, nullable=True))
     op.add_column('mod', sa.Column('rating_count', sa.Integer, server_default=sa.text('0'), nullable=False))
     op.add_column('mod', sa.Column('total_score', sa.Float, nullable=True))
-    op.add_column('modversion', sa.Column('is_beta', sa.Boolean, nullable=True))
+    op.add_column('modversion', sa.Column('is_beta', sa.Boolean, nullable=True))file_size
+    op.add_column('modversion', sa.Column('file_size', sa.Integer))
     op.add_column('user', sa.Column('facebookUsername', sa.String(length=128), nullable=True))
     op.add_column('user', sa.Column('showCreated', sa.Boolean, nullable=True))
     op.add_column('user', sa.Column('showEmail', sa.Boolean, nullable=True))
@@ -80,6 +81,7 @@ def downgrade():
     op.drop_column('user', 'showCreated')
     op.drop_column('user', 'facebookUsername')
     op.drop_column('modversion', 'is_beta')
+    op.drop_column('modversion', 'file_size')
     op.drop_column('mod', 'total_score')
     op.drop_column('mod', 'rating_count')
     op.drop_column('gameversion', 'is_beta')
