@@ -28,6 +28,7 @@ def register():
     username = request.json.get('username')
     password = request.json.get('password')
     confirmPassword = request.json.get('repeatPassword')
+    check = request.args.get('check')
 
     errors = ()
     codes = ()
@@ -35,26 +36,40 @@ def register():
     if emailError:
         errors.append(emailError)
         codes.append('4000')
+        if check == 'email':
+            return {'error': True, 'reasons': [emailError], 'codes': ['4000']} 
 
     usernameError = check_username_for_registration(username)
     if usernameError:
         errors.append(usernameError)
         codes.append('4000')
+        if check == 'name':
+            return {'error': True, 'reasons': [usernameError], 'codes': ['4000']} 
 
     if not password:
         errors.append('Password is required.')
         codes.append('2515')
+        if check == 'password':
+            return {'error': True, 'reasons': ['Password is required.'], 'codes': ['2515']} 
     else:
         if password != confirmPassword:
             errors.append('Passwords do not match.')
             codes.append('3005')
+            if check == 'password':
+                return {'error': True, 'reasons': ['Passwords do not match.'], 'codes': ['3005']} 
         if len(password) < 5:
             errors.append('Your password must be greater than 5 characters.')
             codes.append('2101')
+            if check == 'password':
+                return {'error': True, 'reasons': ['Your password must be greater than 5 characters.'], 'codes': ['2101']} 
         if len(password) > 256:
             errors.append('We admire your dedication to security, but please use a shorter password.')
             codes.append('2102')
+            if check == 'password':
+                return {'error': True, 'reasons': ['We admire your dedication to security, but please use a shorter password.'], 'codes': ['2102']} 
 
+    if check in ['name', 'email', 'password']:
+        return {'error': False}
     if len(errors) > 0:
         return {'error': True, 'reasons': errors, 'codes': codes}, 400
 
