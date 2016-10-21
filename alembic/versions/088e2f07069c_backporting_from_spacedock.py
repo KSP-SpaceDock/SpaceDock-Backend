@@ -20,7 +20,7 @@ def upgrade():
     op.add_column('gameversion', sa.Column('is_beta', sa.Boolean, nullable=True))
     op.add_column('mod', sa.Column('rating_count', sa.Integer, server_default=sa.text('0'), nullable=False))
     op.add_column('mod', sa.Column('total_score', sa.Float, nullable=True))
-    op.add_column('modversion', sa.Column('is_beta', sa.Boolean, nullable=True))file_size
+    op.add_column('modversion', sa.Column('is_beta', sa.Boolean, nullable=True))
     op.add_column('modversion', sa.Column('file_size', sa.Integer))
     op.add_column('user', sa.Column('facebookUsername', sa.String(length=128), nullable=True))
     op.add_column('user', sa.Column('showCreated', sa.Boolean, nullable=True))
