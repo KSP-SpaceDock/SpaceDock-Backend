@@ -14,6 +14,8 @@ def generate_token():
     """
     token = Token()
     db.add(token)
+    db.flush()
+    token['ips'] = list()
     return {'error': False, 'count': 1, 'data': token_format(token)}
 
 @route('/api/tokens/edit', methods=['POST'])

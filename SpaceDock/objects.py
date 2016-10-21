@@ -739,7 +739,6 @@ class Token(Base, MetaObject):
 
     def __init__(self):
         self.token = bcrypt.hashpw(binascii.b2a_hex(os.urandom(20)), bcrypt.gensalt()).decode('utf-8')
-        self['ips'] = list()
 
     def __repr__(self):
         return '<Token %r>' % self.id

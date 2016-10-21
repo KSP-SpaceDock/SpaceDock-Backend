@@ -2,7 +2,6 @@ from flask import make_response, request
 from flask_json import as_json, as_json_p
 from flask_login import current_user
 from functools import wraps
-from SpaceDock.app import limiter
 from SpaceDock.config import cfg
 from SpaceDock.database import db
 from SpaceDock.objects import Ability, Game, Token
@@ -163,7 +162,7 @@ def re_in(itr, value):
     if value == None:
         return False
     for v in itr:
-        if not re.match(str(v), value) == None:
+        if not re.match(str(v), str(value)) == None:
             return True
     return False
 
@@ -213,6 +212,7 @@ def limit(f):
     """
     Limits the amount of requests a user can make
     """
+    from SpaceDock.app import limiter
     def exceptions():
         """
         Checks if a user shouldn't be limited
@@ -221,7 +221,6 @@ def limit(f):
             return True
         if 'token' in request.args:
             s_token = request.args.get('token')
-            del request.args['token']
             token = Token.query.filter(Token.token == s_token).first()
             if not token:
                 return False
