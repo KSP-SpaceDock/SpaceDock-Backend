@@ -256,3 +256,10 @@ def referral_event_format(event):
         'host': event.host,
         'created': event.created.isoformat() if not event.created == None else None
     }
+
+def token_format(token):
+    return {
+        'id': token.id,
+        'content': token.token,
+        'ips': token['ips']
+    }

@@ -1,6 +1,9 @@
 from flask import Flask
 from flask_json import FlaskJSON
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_login import LoginManager
+from werkzeug.contrib.fixers import ProxyFix
 from SpaceDock.config import cfg
 from SpaceDock.database import init_db
 from SpaceDock.objects import User
@@ -10,6 +13,8 @@ from SpaceDock.plugins import load_plugins
 app = Flask(__name__)
 json = FlaskJSON(app)
 login_manager = LoginManager(app)
+limiter = Limiter(app, key_func=get_remote_address, headers_enabled=cfg.getb('limit-headers'), 
+                  storage_uri=cfg["redis-connection"])
 init_db()
 
 # Config
@@ -26,12 +31,13 @@ def load_user(username):
 
 login_manager.anonymous_user = lambda: None
 
-from SpaceDock.common import json_output, cache
+from SpaceDock.common import json_output, cache, limit
 from SpaceDock.routing import add_wrapper
 
 # Register JSON output
 add_wrapper(json_output)
 add_wrapper(cache)
+add_wrapper(limit)
 
 # Load plugins
 load_plugins()
@@ -46,4 +52,8 @@ import SpaceDock.endpoints.general
 import SpaceDock.endpoints.mods
 import SpaceDock.endpoints.packs
 import SpaceDock.endpoints.publisher
+import SpaceDock.endpoints.tokens
 import SpaceDock.endpoints.user
+
+# Proxy fix
+app.wsgi_app = ProxyFix(app.wsgi_app)

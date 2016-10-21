@@ -30,6 +30,8 @@ def new_user(name, password, email, admin):
         admin_role = Role.query.filter(Role.name == 'admin').first()
         admin_role.add_abilities_re('.*')
         admin_role.add_abilities('mods-invite')
+        admin_role.add_abilities('view-users-full')
+        admin_role.add_abilities('no-limits')
 
         # Params
         admin_role.add_param('admin-impersonate', 'userid', '.*')
@@ -43,6 +45,8 @@ def new_user(name, password, email, admin):
         admin_role.add_param('packs-add', 'gameshort', '.*')
         admin_role.add_param('packs-remove', 'gameshort', '.*')
         admin_role.add_param('publisher-edit', 'publid', '.*')
+        admin_role.add_param('token-edit', 'tokenid', '.*')
+        admin_role.add_param('token-remove', 'tokenid', '.*')
         admin_role.add_param('user-edit', 'userid', '.*')
 
         db.add(admin_role)
