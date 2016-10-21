@@ -28,7 +28,7 @@ def register():
     username = request.json.get('username')
     password = request.json.get('password')
     confirmPassword = request.json.get('repeatPassword')
-    check = request.args.get('check')
+    check = request.json.get('check')
 
     errors = []
     codes = []
