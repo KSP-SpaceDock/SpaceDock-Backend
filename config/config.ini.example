@@ -72,3 +72,6 @@ access-limit=100/second
 # Whether headers should be added, containing the current status 
 # of the access limiting
 limit-headers=False
+
+# Disables the same origin policy on the client
+disable-same-origin=True
