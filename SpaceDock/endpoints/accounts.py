@@ -43,7 +43,7 @@ def register():
     if usernameError:
         errors.append(usernameError)
         codes.append('4000')
-        if check == 'name':
+        if check == 'username':
             return {'error': True, 'reasons': [usernameError], 'codes': ['4000']} 
 
     if not password:
@@ -68,7 +68,7 @@ def register():
             if check == 'password':
                 return {'error': True, 'reasons': ['We admire your dedication to security, but please use a shorter password.'], 'codes': ['2102']} 
 
-    if check in ['name', 'email', 'password']:
+    if check in ['username', 'email', 'password']:
         return {'error': False}
     if len(errors) > 0:
         return {'error': True, 'reasons': errors, 'codes': codes}, 400
