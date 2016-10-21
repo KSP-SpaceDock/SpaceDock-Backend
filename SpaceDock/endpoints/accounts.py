@@ -30,8 +30,8 @@ def register():
     confirmPassword = request.json.get('repeatPassword')
     check = request.args.get('check')
 
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     emailError = check_email_for_registration(email)
     if emailError:
         errors.append(emailError)

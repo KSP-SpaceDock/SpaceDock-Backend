@@ -113,8 +113,8 @@ def mod_edit(gameshort, modid):
     """
     Edits a mod, based on the request parameters. Required fields: data
     """
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The Mod ID is invalid.')
         codes.append('2130')
@@ -151,8 +151,8 @@ def add_mod():
     license = request.json.get('license')
 
     # Check the vars
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not name:
         errors.append('Invalid mod name.')
         codes.append('2117')
@@ -193,8 +193,8 @@ def publish_mod():
     short = request.json.get('gameshort')
 
     # Check the vars
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not name:
         errors.append('Invalid mod name.')
         codes.append('2117')
@@ -224,8 +224,8 @@ def remove_mod():
     short = request.json.get('gameshort')
 
     # Check the vars
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not name:
         errors.append('Invalid mod name.')
         codes.append('2117')
@@ -256,8 +256,8 @@ def mod_updateBG(gameshort, modid):
     """
     Updates a mod background. Required fields: image
     """
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The Mod ID is invalid.')
         codes.append('2130')
@@ -390,8 +390,8 @@ def delete_version(gameshort, modid):
     versionid = request.json.get('version-id')
 
     # Error check
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The mod ID is invalid.')
         codes.append('2130')
@@ -510,8 +510,8 @@ def mods_rate(gameshort, modid):
     # Get variables
     score = request.json.get('rating')
 
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The Mod ID is invalid.')
         codes.append('2130')
@@ -551,8 +551,8 @@ def mods_unrate(gameshort, modid):
     """
     Removes a rating for a mod.
     """
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not modid.isdigit() or not Mod.query.filter(Mod.id == int(modid)).first():
         errors.append('The Mod ID is invalid.')
         codes.append('2130')

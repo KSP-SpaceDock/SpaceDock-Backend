@@ -88,8 +88,8 @@ def remove_abilities():
     """
     rolename = request.json.get('rolename')
     abname = request.json.get('abname')
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not Role.query.filter(Role.name == rolename).first():
         errors.append('The role does not exist.')
         codes.append('3030')
@@ -115,8 +115,8 @@ def add_params(rolename):
     abname = request.json.get('abname')
     param = request.json.get('param')
     value = request.json.get('value')
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not Role.query.filter(Role.name == rolename).first():
         errors.append('The rolename is invalid.')
         codes.append('3030')
@@ -139,8 +139,8 @@ def remove_params(rolename):
     abname = request.json.get('abname')
     param = request.json.get('param')
     value = request.json.get('value')
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not Role.query.filter(Role.name == rolename).first():
         errors.append('The rolename is invalid.')
         codes.append('3030')

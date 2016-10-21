@@ -74,8 +74,8 @@ def add_game():
     pubid = request.json.get('pubid')
     short = request.json.get('short')
 
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
 
     # Check if the publisher ID is valid
     if not pubid or not isinstance(pubid, int) or not Publisher.query.filter(Publisher.id == pubid).first():

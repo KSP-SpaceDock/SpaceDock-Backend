@@ -41,8 +41,8 @@ def packs_add():
     gameshort = request.json.get('gameshort')
 
     # Check the vars
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not name:
         errors.append('Invalid modlist name.')
         codes.append('2137')
@@ -104,8 +104,8 @@ def packs_add_mod(gameshort, packid):
     mod_id = request.json.get('modid')
 
     # Error check
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not isinstance(mod_id, int) or not Mod.query.filter(Mod.id == mod_id).first():
         errors.append('The mod ID is invalid')
         codes.append('2130')
@@ -143,8 +143,8 @@ def packs_del_mod(gameshort, packid):
     mod_id = request.json.get('modid')
 
     # Error check
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not isinstance(mod_id, int) or not Mod.query.filter(Mod.id == mod_id).first():
         errors.append('The mod ID is invalid')
         codes.append('2130')

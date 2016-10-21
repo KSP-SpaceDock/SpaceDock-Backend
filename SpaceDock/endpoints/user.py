@@ -70,8 +70,8 @@ def user_updateBG(userid):
     """
     Updates a users background. Required fields: image
     """
-    errors = ()
-    codes = ()
+    errors = []
+    codes = []
     if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
         errors.append('The userid is invalid.')
         codes.append('2145')
