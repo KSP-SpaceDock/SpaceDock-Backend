@@ -14,7 +14,8 @@ app = Flask(__name__)
 json = FlaskJSON(app)
 login_manager = LoginManager(app)
 limiter = Limiter(app, key_func=get_remote_address, headers_enabled=cfg.getb('limit-headers'), 
-                  storage_uri=cfg["redis-connection"])
+                  #storage_uri=cfg["redis-connection"]
+                  )
 init_db()
 
 # Config

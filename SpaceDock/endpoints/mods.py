@@ -638,7 +638,7 @@ def mods_accept_grant(gameshort, modid):
         return {'error': True, 'reasons': ['You do not have a pending authorship invite.'], 'codes': ['3085']}, 400
     author = author[0]
     author.accepted = True
-    current_user.add_role(mod.name)
+    current_user.add_roles(mod.name)
     return {'error': False, 'count': 1, 'data': mod_info(mod)}
 
 @route('/api/mods/<gameshort>/<modid>/reject_grant', methods=['POST'])
@@ -694,7 +694,7 @@ def mods_revoke(gameshort, modid):
     # Remove
     author = [a for a in mod.shared_authors if a.user == user][0]
     mod.shared_authors = [a for a in mod.shared_authors if a.user != current_user]
-    user.remove_role(mod.name)
+    user.remove_roles(mod.name)
     db.delete(author)
     return {'error': False}
 
