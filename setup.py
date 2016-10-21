@@ -46,6 +46,7 @@ def new_user(name, password, email, admin):
         admin_role.add_param('packs-remove', 'gameshort', '.*')
         admin_role.add_param('publisher-edit', 'publid', '.*')
         admin_role.add_param('token-edit', 'tokenid', '.*')
+        admin_role.add_param('token-remove', 'tokenid', '.*')
         admin_role.add_param('user-edit', 'userid', '.*')
 
         db.add(admin_role)
