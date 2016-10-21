@@ -75,13 +75,13 @@ def mod_info(mod):
         'background': mod.background,
         'medias': mod.medias,
         'default_version_id': mod.default_version_id,
-        'downloads': [download_event_format(d) for d in DownloadEvent.query.filter(DownloadEvent.mod_id == mod.id).order_by(DownloadEvent.created).all()],
-        'follow_events': [follow_event_format(f) for f in FollowEvent.query.filter(FollowEvent.mod_id == mod.id).order_by(FollowEvent.created).all()],
-        'referrals': [referral_event_format(r) for r in ReferralEvent.query.filter(ReferralEvent.mod_id == mod.id).order_by(ReferralEvent.created).all()],
+        #'downloads': [download_event_format(d) for d in DownloadEvent.query.filter(DownloadEvent.mod_id == mod.id).order_by(DownloadEvent.created).all()],
+        #'follow_events': [follow_event_format(f) for f in FollowEvent.query.filter(FollowEvent.mod_id == mod.id).order_by(FollowEvent.created).all()],
+        #'referrals': [referral_event_format(r) for r in ReferralEvent.query.filter(ReferralEvent.mod_id == mod.id).order_by(ReferralEvent.created).all()],
         'source_link': mod.source_link,
         'follower_count': mod.follower_count,
         'download_count': mod.download_count,
-        'followers': mod.followers,
+        'followers': [u.id for u in mod.followers],
         #'rating': mod.rating,
         #'review': mod.review,
         'total_score': mod.total_score,
@@ -229,9 +229,9 @@ def ability_format(ability):
 def download_event_format(event):
     return {
         'id': event.id,
-        'mod': event.mod.name,
+        'mod': event.mod.name if not event.mod == None else None,
         'mod_id': event.mod_id,
-        'version': event.version.friendly_version,
+        'version': event.version.friendly_version if not event.version == None else None,
         'version_id': event.version_id,
         'downloads': event.downloads,
         'created': event.created.isoformat() if not event.created == None else None
@@ -240,7 +240,7 @@ def download_event_format(event):
 def follow_event_format(event):
     return {
         'id': event.id,
-        'mod': event.mod.name,
+        'mod': event.mod.name if not event.mod == None else None,
         'mod_id': event.mod_id,
         'events': event.events,
         'delta': event.delta,
@@ -250,7 +250,7 @@ def follow_event_format(event):
 def referral_event_format(event):
     return {
         'id': event.id,
-        'mod': event.mod.name,
+        'mod': event.mod.name if not event.mod == None else None,
         'mod_id': event.mod_id,
         'events': event.events,
         'host': event.host,
