@@ -6,12 +6,7 @@ from logging.config import fileConfig
 import os, os.path, sys
 sys.path.append(os.getcwd())
 
-from SpaceDock.config import cfg
-from SpaceDock.database import * 
-from SpaceDock.objects import *
-
-spacedock_cfg = cfg
-spacedock_database = db
+from SpaceDock.database import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
