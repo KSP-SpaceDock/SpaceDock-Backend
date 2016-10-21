@@ -12,3 +12,4 @@ psycopg2
 celery
 flask_cache
 flask_limiter
+flask_cors

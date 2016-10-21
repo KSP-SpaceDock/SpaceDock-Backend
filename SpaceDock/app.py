@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from flask_json import FlaskJSON
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -15,6 +16,8 @@ json = FlaskJSON(app)
 login_manager = LoginManager(app)
 limiter = Limiter(app, key_func=get_remote_address, headers_enabled=cfg.getb('limit-headers'), 
                   storage_uri=cfg["redis-connection"] if cfg.get_environment() == 'dev' else None)
+if cfg.getb('disable-same-origin'):
+    cors = CORS(app)
 init_db()
 
 # Config
@@ -57,11 +60,3 @@ import SpaceDock.endpoints.user
 
 # Proxy fix
 app.wsgi_app = ProxyFix(app.wsgi_app)
-
-@app.after_request
-def add_header(response):
-    if cfg.getb('disable-same-origin'):
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST'
-        response.headers['Access-Control-Max-Age'] = '1000'
-    return response
