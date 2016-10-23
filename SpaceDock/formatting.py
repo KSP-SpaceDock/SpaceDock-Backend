@@ -52,7 +52,7 @@ def publisher_info(publisher):
         'meta': json.loads(publisher.meta)
     }
 
-def mod_info(mod):
+def mod_info(mod, includeFollowers=False):
     return {
         'id': mod.id,
         'author': mod.user.username,
@@ -60,7 +60,7 @@ def mod_info(mod):
         'game_id': mod.game_id,
         'game': mod.game.name,
         'game_short': mod.game.short,
-        'shared_authors': [s.user.username for s in mod.shared_authors],
+        'shared_authors': [s.user.id for s in mod.shared_authors],
         'name': mod.name,
         'description': mod.description,
         'short_description': mod.short_description,
@@ -81,7 +81,7 @@ def mod_info(mod):
         'source_link': mod.source_link,
         'follower_count': mod.follower_count,
         'download_count': mod.download_count,
-        'followers': [u.id for u in mod.followers],
+        'followers': [u.id for u in mod.followers] if includeFollowers else [],
         #'rating': mod.rating,
         #'review': mod.review,
         'total_score': mod.total_score,
@@ -121,7 +121,6 @@ def admin_user_info(user):
         'showCreated': user.showCreated,
         'forumUsername': user.forumUsername,
         'showForumName': user.showForumName,
-        #'forumId': user.forumId,
         'ircNick': user.ircNick,
         'showIRCName': user.showIRCName,
         'twitterUsername': user.twitterUsername,
@@ -154,7 +153,6 @@ def user_info(user):
         'showCreated': user.showCreated,
         'forumUsername': user.forumUsername,
         'showForumName': user.showForumName,
-        #'forumId': user.forumId,
         'ircNick': user.ircNick,
         'showIRCName': user.showIRCName,
         'twitterUsername': user.twitterUsername,

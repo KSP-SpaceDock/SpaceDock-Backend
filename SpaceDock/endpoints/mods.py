@@ -66,7 +66,7 @@ def mods_info(gameshort, modid):
     mod = Mod.query.filter(Mod.id == int(modid)).first()
     if not mod.published and current_user != mod.user:
         return {'error': True, 'reasons': ['The mod is not published.'], 'codes': ['3020']}, 400
-    return {'error': False, 'count': 1, 'data': mod_info(mod)}
+    return {'error': False, 'count': 1, 'data': mod_info(mod, boolean(request.args.get('includeFollowers')))}
 
 @route('/api/mods/<gameshort>/<modid>/download/<versionname>')
 @with_session
