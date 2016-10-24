@@ -227,4 +227,4 @@ def limit(f):
             return request.remote_addr in token['ips']
         return False
 
-    return limiter.shared_limit(cfg['access-limit'], exempt_when=exceptions)(f)
+    return limiter.shared_limit(cfg['access-limit'], exempt_when=exceptions, scope=cfg['site-name'])(f)
