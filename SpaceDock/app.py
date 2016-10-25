@@ -36,6 +36,7 @@ login_manager.anonymous_user = lambda: None
 
 from SpaceDock.common import json_output, cache, limit
 from SpaceDock.routing import add_wrapper
+from SpaceDock import errors
 
 # Register JSON output
 add_wrapper(json_output)
