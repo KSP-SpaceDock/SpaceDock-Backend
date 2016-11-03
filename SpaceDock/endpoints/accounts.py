@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from flask import request
 from flask_login import current_user, login_user, logout_user
-from SpaceDock.common import with_session
+from SpaceDock.common import edit_object, with_session
 from SpaceDock.config import cfg
 from SpaceDock.database import db
 from SpaceDock.email import send_confirmation, send_reset
@@ -28,6 +28,7 @@ def register():
     username = request.json.get('username')
     password = request.json.get('password')
     confirmPassword = request.json.get('repeatPassword')
+    data = request.json.get('userdata')
     check = request.json.get('check')
 
     errors = []
@@ -76,6 +77,15 @@ def register():
     # All valid, let's make them an account
     user = User(username, email, password)
     user.confirmation = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
+    # Edits
+    if data:
+        code = edit_object(user, data)
+        if code == 3:
+            return {'error': True, 'reasons': ['The value you submitted is invalid'], 'codes': ['2180']}, 400
+        elif code == 2:
+            return {'error': True, 'reasons': ['You tried to edit a value that doesn\'t exist.'], 'codes': ['3090']}, 400
+        elif code == 1:
+            return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.'], 'codes': ['3095']}, 400
     db.add(user)
     db.commit() # We do this manually so that we're sure everything's hunky dory before the email leaves
     if followMod:
