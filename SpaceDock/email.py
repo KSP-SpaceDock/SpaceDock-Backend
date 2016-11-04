@@ -11,7 +11,7 @@ def send_confirmation(user, followMod=None):
             confirmation = user.confirmation
         message = f.read().format(
             { 
-                'site-name': cfg['site-name'], 
+                'site_name': cfg['site-name'], 
                 'username': user.username, 
                 'domain': cfg['domain'],
                 'confirmation': confirmation
@@ -22,7 +22,7 @@ def send_reset(user):
     with open("emails/password-reset") as f:
         message = f.read().format(
             { 
-                'site-name': cfg['site-name'], 
+                'site_name': cfg['site-name'], 
                 'username': user.username, 
                 'domain': cfg['domain'], 
                 'confirmation': user.passwordReset 
@@ -36,7 +36,7 @@ def send_grant_notice(mod, user):
                 'username': user.username, 
                 'mod_username': mod.user.username,
                 'mod_name': mod.name,
-                'site-name': cfg['site-name'], 
+                'site_name': cfg['site-name'], 
                 "domain": cfg["domain"],
                 'url': create_mod_url(mod.id, mod.name) 
             })
@@ -59,7 +59,7 @@ def send_update_notification(mod, version, user):
                 'username': user.username,
                 'friendly_version': version.friendly_version,
                 'mod_name': mod.name,
-                'site-name': cfg['site-name'],
+                'site_name': cfg['site-name'],
                 'changelog': changelog,
                 'domain': cfg["domain"],
                 'url': create_mod_url(mod.id, secure_filename(mod.name)[:64]),
