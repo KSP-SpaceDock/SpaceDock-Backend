@@ -12,4 +12,4 @@ psycopg2
 celery
 flask_cache
 flask_limiter
-flask_cors
+https://github.com/ThomasKerman/flask-cors/zipball/master
