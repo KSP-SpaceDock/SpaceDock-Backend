@@ -29,6 +29,8 @@ def get_user_info(userid):
     """
     user = None
     if userid == 'current':
+        if not current_user:
+            return {'error': True, 'reasons': ['You need to be logged in to access this page'], 'codes': ['1035']}, 403
         user = current_user
     elif not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
         return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
