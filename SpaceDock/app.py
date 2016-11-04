@@ -17,7 +17,7 @@ login_manager = LoginManager(app)
 limiter = Limiter(app, key_func=get_remote_address, headers_enabled=cfg.getb('limit-headers'), 
                   storage_uri=cfg["redis-connection"] if cfg.get_environment() != 'dev' else None)
 if cfg.getb('disable-same-origin'):
-    cors = CORS(app)
+    cors = CORS(app, supports_credentials=True)
 init_db()
 
 # Config
