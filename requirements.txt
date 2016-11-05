@@ -7,7 +7,7 @@ flask_json
 flask_login
 flask_oauthlib
 redis
-SQLAlchemy
+Flask-SQLAlchemy
 psycopg2
 celery
 flask_cache

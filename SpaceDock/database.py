@@ -1,12 +1,13 @@
-from sqlalchemy import create_engine, Column, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, scoped_session
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, String
 from SpaceDock.config import cfg
 
 import json
 
-engine = create_engine(cfg['connection-string'], pool_size=20, max_overflow=100)
-db = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+connection = SQLAlchemy()
+
+# Base class for database queries        
+Base = connection.Model
 
 # Base class for database objects, to support metadata (plugins)
 class MetaObject():
@@ -45,10 +46,18 @@ def test_is_json(test):
         return True
     except ValueError as e:
         return False
-        
-Base = declarative_base()
-Base.query = db.query_property()
 
-def init_db():
+db = connection.session
+
+def init_db(app):
+    
+    # Configure database
+    app.config['SQLALCHEMY_DATABASE_URI'] = cfg['connection-string']
+    app.config['SQLALCHEMY_POOL_SIZE'] = cfg.geti('db-pool-size')
+    app.config['SQLALCHEMY_POOL_RECYCLE'] = cfg.geti('db-pool-recycle')
+    app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = False  # We continue to use @with_session, because that doesn't waste resources on routes that dont edit the db
+    connection.init_app(app)
+    connection.app = app
+
     import SpaceDock.objects
-    Base.metadata.create_all(bind=engine)
+    connection.create_all()

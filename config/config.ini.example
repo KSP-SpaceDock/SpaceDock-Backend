@@ -39,8 +39,10 @@ smtp-tls=false
 error-to=
 error-from=
 
-# SQL connection string
+# SQL settings
 connection-string=postgresql://postgres:somewhatsecretpassword@localhost/spacedock
+db-pool-size=100
+db-pool-recycle=280
 
 # Redis connection string
 # http://docs.celeryproject.org/en/3.0/getting-started/brokers/redis.html

@@ -6,8 +6,6 @@ from flask_limiter.util import get_remote_address
 from flask_login import LoginManager
 from werkzeug.contrib.fixers import ProxyFix
 from SpaceDock.config import cfg
-from SpaceDock.database import init_db
-from SpaceDock.objects import User
 from SpaceDock.plugins import load_plugins
 
 # Create Flask
@@ -18,7 +16,10 @@ limiter = Limiter(app, key_func=get_remote_address, headers_enabled=cfg.getb('li
                   storage_uri=cfg["redis-connection"] if cfg.get_environment() != 'dev' else None)
 if cfg.getb('disable-same-origin'):
     cors = CORS(app, supports_credentials=True)
-init_db()
+
+# Start the Database connection
+from SpaceDock.database import init_db
+init_db(app)
 
 # Config
 if cfg.get_environment() == 'dev':
@@ -30,6 +31,7 @@ app.url_map.strict_slashes = False
 
 @login_manager.user_loader
 def load_user(username):
+    from SpaceDock.objects import User
     return User.query.filter(User.username == username).first()
 
 login_manager.anonymous_user = lambda: None

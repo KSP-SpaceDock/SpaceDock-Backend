@@ -32,8 +32,11 @@
   <ItemGroup>
     <Folder Include="alembic\" />
     <Folder Include="alembic\versions\" />
+    <Folder Include="config\" />
+    <Folder Include="emails\" />
     <Folder Include="SpaceDock\" />
     <Folder Include="SpaceDock\endpoints\" />
+    <Folder Include="tools\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="alembic\env.py" />
@@ -67,6 +70,7 @@
     </Compile>
     <Compile Include="SpaceDock\endpoints\user.py" />
     <Compile Include="SpaceDock\endpoints\__init__.py" />
+    <Compile Include="SpaceDock\errors.py" />
     <Compile Include="SpaceDock\plugins.py">
       <SubType>Code</SubType>
     </Compile>
@@ -84,11 +88,22 @@
     <Compile Include="SpaceDock\app.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SpaceDock\thumbnail.py" />
     <Compile Include="SpaceDock\__init__.py" />
+    <Compile Include="tools\migrate_roles.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="alembic\README" />
     <Content Include="alembic\script.py.mako" />
+    <Content Include="config\alembic.ini" />
+    <Content Include="config\alembic.ini.example" />
+    <Content Include="config\config.ini" />
+    <Content Include="config\config.ini.example" />
+    <Content Include="emails\confirm-account" />
+    <Content Include="emails\grant-notice" />
+    <Content Include="emails\mod-autoupdated" />
+    <Content Include="emails\mod-updated" />
+    <Content Include="emails\password-reset" />
     <Content Include="SpaceDock\__init__.py" />
   </ItemGroup>
   <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />
