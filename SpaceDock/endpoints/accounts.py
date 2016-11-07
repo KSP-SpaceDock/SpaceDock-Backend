@@ -151,6 +151,9 @@ def login():
     """
     username = request.json.get('username')
     password = request.json.get('password')
+    remember = request.json.get('remember')
+    if remember == None or not isinstance(remember, bool):
+        remember = False
     if not username or not password:
         return {'error': True, 'reasons': ['Missing username or password'], 'codes': ['2515']}, 400
     if current_user:
@@ -162,7 +165,7 @@ def login():
         return {'error': True, 'reasons': ['Username or password is incorrect'], 'codes': ['2175']}, 400
     if user.confirmation == '' and user.confirmation == None:
         return {'error': True, 'reasons': ['User is not confirmed'], 'codes': ['3055']}, 400
-    login_user(user)
+    login_user(user, remember)
     return {'error': False, 'count': 1, 'data': user_info(user)}
 
 @route('/api/logout')
@@ -215,4 +218,6 @@ def reset_password(username, confirmation):
     user.set_password(password)
     user.passwordReset = None
     user.passwordResetExpiry = None
+    if current_user:
+        logout_user()
     return {'error': False}
