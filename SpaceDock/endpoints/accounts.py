@@ -163,7 +163,7 @@ def login():
         return {'error': True, 'reasons': ['Username or password is incorrect'], 'codes': ['2175']}, 400
     if not bcrypt.hashpw(password.encode('utf-8'), user.password.encode('utf-8')) == user.password.encode('utf-8'):
         return {'error': True, 'reasons': ['Username or password is incorrect'], 'codes': ['2175']}, 400
-    if user.confirmation == '' and user.confirmation == None:
+    if not user.confirmation == None:
         return {'error': True, 'reasons': ['User is not confirmed'], 'codes': ['3055']}, 400
     login_user(user, remember)
     return {'error': False, 'count': 1, 'data': user_info(user)}
