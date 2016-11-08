@@ -18,7 +18,7 @@ def get_users():
     """
     users = list()
     for user in User.query.order_by(desc(User.id)).all():
-        if has_ability('view-users-full') or (user.public and user.confirmation == None):
+        if has_ability('view-users-full') or ((user.public or user == current_user) and user.confirmation == None):
             users.append(user_info(user) if not has_ability('view-users-full') else admin_user_info(user))
     return {'error': False, 'count': len(users), 'data': users}
 
@@ -36,7 +36,7 @@ def get_user_info(userid):
         return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
     if not user:
         user = User.query.filter(User.id == int(userid)).first()
-    if has_ability('view-users-full') or (user.public and user.confirmation == None):
+    if has_ability('view-users-full') or ((user.public or user == current_user) and user.confirmation == None):
         return {'error': False, 'count': 1, 'data': (user_info(user) if not has_ability('view-users-full') else admin_user_info(user))}
     else:
         return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
