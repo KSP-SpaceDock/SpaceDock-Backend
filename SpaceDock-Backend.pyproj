@@ -13,6 +13,8 @@
     <InterpreterId>{b262b887-eef9-452a-afec-b57da83111af}</InterpreterId>
     <InterpreterVersion>3.4</InterpreterVersion>
     <IsWindowsApplication>False</IsWindowsApplication>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <EnableNativeCodeDebugging>True</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -44,6 +46,7 @@
     <Compile Include="alembic\versions\088e2f07069c_backporting_from_spacedock.py" />
     <Compile Include="alembic\versions\49cf6957c1f2_remove_ksp_specific_fields.py" />
     <Compile Include="alembic\versions\81b6d4d30515_remove_bgoffset.py" />
+    <Compile Include="alembic\versions\931284177161_add_avatars.py" />
     <Compile Include="alembic\versions\97b3136b58b2_add_api_tokens.py" />
     <Compile Include="alembic\versions\a66a267f85e3_added_meta_fields.py" />
     <Compile Include="setup.py" />

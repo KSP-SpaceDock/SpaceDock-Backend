@@ -104,6 +104,7 @@ class User(Base, MetaObject):
     passwordReset = Column(String(128))
     passwordResetExpiry = Column(DateTime)
     backgroundMedia = Column(String(512))
+    avatar = Column(String(512))
     ratings = relationship('Rating', order_by='Rating.created')
     review = relationship('Review', order_by='Review.created')
     mods = relationship('Mod', order_by='Mod.created')
