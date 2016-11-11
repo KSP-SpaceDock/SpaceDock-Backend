@@ -19,7 +19,7 @@ def get_users():
     users = list()
     for user in User.query.order_by(desc(User.id)).all():
         if has_ability('view-users-full') or ((user.public or user == current_user) and user.confirmation == None):
-            users.append(user_info(user) if not has_ability('view-users-full') else admin_user_info(user))
+            users.append(user_info(user) if current_user != user or not has_ability('view-users-full') else admin_user_info(user))
     return {'error': False, 'count': len(users), 'data': users}
 
 @route('/api/users/<userid>')
@@ -37,7 +37,7 @@ def get_user_info(userid):
     if not user:
         user = User.query.filter(User.id == int(userid)).first()
     if has_ability('view-users-full') or ((user.public or user == current_user) and user.confirmation == None):
-        return {'error': False, 'count': 1, 'data': (user_info(user) if not has_ability('view-users-full') else admin_user_info(user))}
+        return {'error': False, 'count': 1, 'data': (user_info(user) if userid != 'current' or not has_ability('view-users-full') else admin_user_info(user))}
     else:
         return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
 
@@ -63,7 +63,7 @@ def edit_user(userid):
     elif code == 1:
         return {'error': True, 'reasons': ['You tried to edit a value that is marked as read-only.'], 'codes': ['3095']}, 400
     else:
-        return {'error': False, 'count': 1, 'data': user_info(user)}
+        return {'error': False, 'count': 1, 'data': admin_user_info(user)}
 
 @route('/api/users/<userid>/update-media', methods=['POST'])
 @user_has('user-edit', params=['userid'], public=False)
@@ -109,4 +109,4 @@ def user_updateMedia(userid):
         user.backgroundMedia = os.path.join(base_path, filename)
     else:
         user.avatar = os.path.join(base_path, filename)
-    return {'error': False, 'count': 1, 'data': user_info(user)}
+    return {'error': False, 'count': 1, 'data': admin_user_info(user)}

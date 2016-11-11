@@ -162,7 +162,7 @@ def login():
     if not user.confirmation == None:
         return {'error': True, 'reasons': ['User is not confirmed'], 'codes': ['3055']}, 400
     login_user(user, remember)
-    return {'error': False, 'count': 1, 'data': user_info(user)}
+    return {'error': False, 'count': 1, 'data': admin_user_info(user)}
 
 @route('/api/logout')
 def logout():
