@@ -114,24 +114,20 @@ def check_email_for_registration(email):
         return 'A user with this email already exists.'
     return None
 
-@route('/api/confirm/<username>/<confirmation>')
+@route('/api/confirm/<confirmation>')
 @with_session
-def confirm(username, confirmation):
+def confirm(confirmation):
     """
     Confirms the user. The confirmation must match what was sent to the user.
     """
-    user = User.query.filter(User.username == username).first()
+    user = User.query.filter(User.confirmation == confirmation).first()
     if not user:
-        return {'error': True, 'reasons': ['User does not exist'], 'codes': ['2165']}, 400
-    if user.confirmation == None:
-        return {'error': True, 'reasons': ['User already confirmed'], 'codes': ['3045']}, 400
-    if user.confirmation != confirmation:
-        return {'error': True, 'reasons': ['Confirmation does not match'], 'codes': ['2100']}, 400
+        return {'error': True, 'reasons': ['User does not exist or it is already confirmed. Did you mistype the confirmation?'], 'codes': ['2165']}, 400
 
     user.confirmation = None
     login_user(user)
-    user.add_roles(username)
-    role = Role.query.filter(Role.name == username).first()
+    user.add_roles(user.username)
+    role = Role.query.filter(Role.name == user.username).first()
     role.add_abilities('user-edit', 'mods-add', 'packs-add', 'logged-in')
     role.add_param('user-edit', 'userid', user.id)
     role.add_param('mods-add', 'gameshort', '.*')
