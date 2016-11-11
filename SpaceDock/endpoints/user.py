@@ -32,10 +32,15 @@ def get_user_info(userid):
         if not current_user:
             return {'error': True, 'reasons': ['You need to be logged in to access this page'], 'codes': ['1035']}, 403
         user = current_user
-    elif not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
+    elif userid.isdigit() and not User.query.filter(User.id == int(userid)).first():
+        return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
+    elif not userid.isdigit() and not User.query.filter(User.username == userid).first():
         return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
     if not user:
-        user = User.query.filter(User.id == int(userid)).first()
+        if userid.isdigit():
+            user = User.query.filter(User.id == int(userid)).first()
+        else:
+            user = User.query.filter(User.username == userid).first()
     if has_ability('view-users-full') or ((user.public or user == current_user) and user.confirmation == None):
         return {'error': False, 'count': 1, 'data': (user_info(user) if userid != 'current' or not has_ability('view-users-full') else admin_user_info(user))}
     else:
