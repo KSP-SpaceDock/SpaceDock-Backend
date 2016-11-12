@@ -32,15 +32,10 @@ def get_user_info(userid):
         if not current_user:
             return {'error': True, 'reasons': ['You need to be logged in to access this page'], 'codes': ['1035']}, 403
         user = current_user
-    elif userid.isdigit() and not User.query.filter(User.id == int(userid)).first():
-        return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
-    elif not userid.isdigit() and not User.query.filter(User.username == userid).first():
-        return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
+    else:
+        user = User.get(userid)
     if not user:
-        if userid.isdigit():
-            user = User.query.filter(User.id == int(userid)).first()
-        else:
-            user = User.query.filter(User.username == userid).first()
+        return {'error': True, 'reasons': ['The userid is invalid'], 'codes': ['2145']}, 400
     if has_ability('view-users-full') or ((user.public or user == current_user) and user.confirmation == None):
         return {'error': False, 'count': 1, 'data': (user_info(user) if userid != 'current' or not has_ability('view-users-full') else admin_user_info(user))}
     else:
@@ -53,11 +48,11 @@ def edit_user(userid):
     """
     Edits a user, based on the request parameters. Required fields: data
     """
-    if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
+    user = User.get(userid)
+    if not user:
         return {'error': True, 'reasons': ['The userid is invalid.'], 'codes': ['2145']}, 400
 
     # Get the matching user and edit it
-    user = User.query.filter(User.id == int(userid)).first()
     code = edit_object(user, request.json)
 
     # Error check
@@ -82,7 +77,8 @@ def user_updateMedia(userid):
         return {'error': True, 'reasons': ['The image type is invalid'], 'codes': ['3036']}, 400
     errors = []
     codes = []
-    if not userid.isdigit() or not User.query.filter(User.id == int(userid)).first():
+    user = User.get(userid)
+    if not user:
         errors.append('The userid is invalid.')
         codes.append('2145')
     if not request.files.get('image'):
@@ -90,9 +86,6 @@ def user_updateMedia(userid):
         codes.append('2153')
     if any(errors):
         return {'error': True, 'reasons': errors, 'codes': codes}, 400
-
-    # Find the user
-    user = User.query.filter(User.id == int(userid)).first()
 
     # Get the file and save it to disk
     f = request.files['image']

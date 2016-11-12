@@ -135,7 +135,7 @@ def confirm(confirmation):
     db.add(role)
     f = request.args.get('f')
     if f:
-        mod = Mod.query.filter(Mod.id == int(f)).first()
+        mod = Mod.get(f)
         mod.follower_count += 1
         user.following.append(mod)
     return {'error': False}

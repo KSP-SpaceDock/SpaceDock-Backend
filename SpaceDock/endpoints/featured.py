@@ -27,7 +27,7 @@ def list_featured_game(gameshort):
     # Get the features
     result = list()
     for feature in Featured.query.all():
-        mod = Mod.query.filter(Mod.id == Featured.mod_id).first()
+        mod = Mod.get(feature.mod_id)
         if mod.game.short == gameshort:
             result.append(feature_info(feature))
     return {'error': False, 'count': len(result), 'data': result}
@@ -42,17 +42,18 @@ def add_feature(gameshort):
     modid = request.json.get('modid')
 
     # Errorcheck
-    if not isinstance(modid, int) or not Mod.query.filter(Mod.id == modid).first():
+    mod = Mod.get(modid)
+    if not mod:
         return {'error': True, 'reasons': ['The modid is invalid.'], 'codes': ['2130']}, 400
-    elif not Mod.query.filter(Mod.id == modid).filter(Mod.game_id == game_id(gameshort)).first():
+    elif not mod.game_id == game_id(gameshort):
         return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
-    elif not Mod.query.filter(Mod.published).filter(Mod.id == modid).first():
+    elif not mod.published:
         return {'error': True, 'reasons': ['The mod must be published first.'], 'codes': ['3022']}, 400
     if Featured.query.filter(Featured.mod_id == modid).first():
         return {'error': True, 'reasons': ['The mod is already featured'], 'codes': ['3015']}, 400
 
     # Everything's fine, let's feature the mod    
-    feature = Featured(Mod.query.filter(Mod.id == modid).first())
+    feature = Featured(mod)
     db.add(feature)
     db.flush()
     return {'error': False, 'count': 1, 'data': feature_info(feature)}
@@ -67,16 +68,17 @@ def remove_feature(gameshort):
     modid = request.json.get('modid')
 
     # Errorcheck
-    if not isinstance(modid, int) or not Mod.query.filter(Mod.id == modid).first():
+    mod = Mod.get(modid)
+    feature = Featured.query.filter(Featured.mod_id == modid).first()
+    if not mod:
         return {'error': True, 'reasons': ['The modid is invalid.'], 'codes': ['2130']}, 400
-    elif not Mod.query.filter(Mod.id == modid).filter(Mod.game_id == game_id(gameshort)).first():
+    elif not mod.game_id == game_id(gameshort):
         return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
-    elif not Mod.query.filter(Mod.published).filter(Mod.id == modid).first():
+    elif not mod.published:
         return {'error': True, 'reasons': ['The mod must be published first.'], 'codes': ['3022']}, 400
-    elif not Featured.query.filter(Featured.mod_id == modid).first():
+    elif not feature:
         return {'error': True, 'reasons': ['This mod isn\'t featured.']}, 400
 
     # Unfeature the mod
-    feature = Featured.query.filter(Featured.mod_id == modid).first()
     db.delete(feature)
     return {'error': False}

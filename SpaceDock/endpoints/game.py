@@ -30,7 +30,7 @@ def games_info(gameshort):
     Displays information about a game.
     """
     # Get the games with the according gameshort
-    game = Game.query.filter(Game.short == gameshort).first()
+    game = Game.get(gameshort)
 
     # Game doesn't exist
     if not game:
@@ -46,11 +46,11 @@ def edit_game(gameshort):
     """
     Edits a game, based on the request parameters. Required fields: data
     """
-    if not Game.query.filter(Game.short == gameshort).first():
+    game = Game.get(gameshort)
+    if not game:
         return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the matching game and edit it
-    game = Game.query.filter(Game.short == gameshort).first()
     code = edit_object(game, request.json)
 
     # Error check
@@ -117,11 +117,11 @@ def remove_game():
     short = request.json.get('short')
 
     # Check if the gameshort is valid
-    if not Game.query.filter(Game.short == short).first():
+    game = Game.get(short)
+    if not game:
         return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
-    # Get the game and remove it
-    game = Game.query.filter(Game.short == short).first()
+    # Remove it
     db.delete(game)
     return {'error': False}
 
@@ -130,11 +130,12 @@ def game_versions(gameshort):
     """
     Displays information about the versions of a game.
     """
-    if not Game.query.filter(Game.short == gameshort).first():
+    game = Game.get(gameshort)
+    if not game:
         return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
 
     # Get the ID
-    gameid = game_id(gameshort)
+    gameid = game.id
 
     # get game versions
     versions = GameVersion.query.filter(GameVersion.game_id == gameid).all()
@@ -154,15 +155,15 @@ def game_version_add(gameshort):
     """
     friendly_version = request.json.get('friendly_version')
     is_beta = request.json.get('is_beta')
+
+    # Fetch the game
+    game = Game.get(gameshort)
     
     # Errorcheck
-    if not Game.query.filter(Game.short == gameshort).first():
+    if not game:
         return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
     if not isinstance(is_beta, bool):
         return {'error': True, 'reasons': ['"is_beta" is invalid']}, 400
-
-    # Fetch the game
-    game = Game.query.filter(Game.short == gameshort).first()
 
     # Create a new version
     version = GameVersion(friendly_version, game, is_beta)
@@ -180,22 +181,19 @@ def game_version_remove(gameshort):
     Removes a version of the game. Required fields: friendly_version
     """
     friendly_version = request.json.get('friendly_version')
-    
-    # Errorcheck
-    if not Game.query.filter(Game.short == gameshort).first():
-        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
-    if not GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == game_id(gameshort)).first():
-        return {'error': True, 'reasons': ['This version name does not exist.'], 'codes': ['2185']}, 400
 
     # Fetch the game
-    game = Game.query.filter(Game.short == gameshort).first()
-    gameid = game_id(gameshort)
+    game = Game.get(gameshort)
+    
+    # Errorcheck
+    if not game:
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
+    version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == game.id).first()
+    if not version:
+        return {'error': True, 'reasons': ['This version name does not exist.'], 'codes': ['2185']}, 400
 
     # Remove the version
-    version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == gameid).first()
     db.delete(version)
-
-    # get game version
     return {'error': False}
 
 @route('/api/games/<gameshort>/versions/<friendly_version>')
@@ -203,16 +201,14 @@ def game_version(gameshort, friendly_version):
     """
     Displays information about one version of a game.
     """
-    if not Game.query.filter(Game.short == gameshort).first():
+    game = Game.get(gameshort)
+    if not game:
         return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
-    if not GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == game_id(gameshort)).first():
+    version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == game.id).first()
+    if not version:
         return {'error': True, 'reasons': ['This version name does not exist.'], 'codes': ['2185']}, 400
 
-    # Get the ID
-    gameid = game_id(gameshort)
-
-    # get game version
-    version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == gameid).first()
+    # Return info
     return {'error': False, 'count': 1, 'data': game_version_info(version)}
 
 @route('/api/games/<gameshort>/versions/<friendly_version>/edit', methods=['POST'])
@@ -222,16 +218,14 @@ def game_version_edit(gameshort, friendly_version):
     """
     Edits a version of the game
     """
-    if not Game.query.filter(Game.short == gameshort).first():
+    game = Game.get(gameshort)
+    if not game:
         return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
-    if not GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == game_id(gameshort)).first():
+    version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == game.id).first()
+    if not version:
         return {'error': True, 'reasons': ['This version name does not exist.'], 'codes': ['2185']}, 400
 
-    # Get the ID
-    gameid = game_id(gameshort)
-
-    # get game version
-    version = GameVersion.query.filter(GameVersion.friendly_version == friendly_version).filter(GameVersion.game_id == gameid).first()
+    # edit game version
     code = edit_object(version, request.json)
 
     # Error check

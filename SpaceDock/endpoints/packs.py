@@ -106,10 +106,11 @@ def packs_add_mod(gameshort, packid):
     # Error check
     errors = []
     codes = []
-    if not isinstance(mod_id, int) or not Mod.query.filter(Mod.id == mod_id).first():
+    mod = Mod.get(mod_id)
+    if not mod:
         errors.append('The mod ID is invalid')
         codes.append('2130')
-    elif isinstance(mod_id, int) and not Mod.query.filter(Mod.published).filter(Mod.id == mod_id).first():
+    elif not mod.published:
         errors.append('The mod is not published.')
         codes.append('3020')
     if not packid.isdigit() or not ModList.query.filter(ModList.id == int(packid)).first():
@@ -118,7 +119,7 @@ def packs_add_mod(gameshort, packid):
     if packid.isdigit() and not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
         errors.append('The gameshort is invalid')
         codes.append('2125')
-    if isinstance(mod_id, int) and packid.isdigit() and ModListItem.query.filter(ModListItem.mod_id == mod_id).filter(ModListItem.mod_list_id == int(packid)).first():
+    if packid.isdigit() and ModListItem.query.filter(ModListItem.mod_id == mod.id).filter(ModListItem.mod_list_id == int(packid)).first():
         errors.append('The specified mod was already added to the modlist')
         codes.append('2030')
     if any(errors):
@@ -126,7 +127,7 @@ def packs_add_mod(gameshort, packid):
 
     # Get the list
     pack = ModList.query.filter(ModList.id == int(packid)).first()
-    moditem = ModListItem(mod=Mod.query.filter(Mod.id == mod_id).first(), modlist=pack)
+    moditem = ModListItem(mod=mod, modlist=pack)
 
     db.add(moditem)
     db.flush()
@@ -145,7 +146,8 @@ def packs_del_mod(gameshort, packid):
     # Error check
     errors = []
     codes = []
-    if not isinstance(mod_id, int) or not Mod.query.filter(Mod.id == mod_id).first():
+    mod = Mod.get(mod_id)
+    if not mod:
         errors.append('The mod ID is invalid')
         codes.append('2130')
     if not packid.isdigit() or not ModList.query.filter(ModList.id == int(packid)).first():
@@ -154,7 +156,7 @@ def packs_del_mod(gameshort, packid):
     if not ModList.query.filter(ModList.id == int(packid)).filter(ModList.game_id == game_id(gameshort)).first():
         errors.append('The gameshort is invalid')
         codes.append('2125')
-    if not ModListItem.query.filter(ModListItem.mod_id == mod_id).filter(ModListItem.mod_list_id == int(packid)).first():
+    if not ModListItem.query.filter(ModListItem.mod_id == mod.id).filter(ModListItem.mod_list_id == int(packid)).first():
         errors.append('The specified mod is not included in the modlist')
         codes.append('3053')
     if any(errors):
@@ -162,7 +164,7 @@ def packs_del_mod(gameshort, packid):
 
     # Get the list
     pack = ModList.query.filter(ModList.id == int(packid)).first()
-    moditem = ModListItem.query.filter(ModListItem.mod_list_id == int(packid)).filter(ModListItem.mod_id == mod_id).first()
+    moditem = ModListItem.query.filter(ModListItem.mod_list_id == int(packid)).filter(ModListItem.mod_id == mod.id).first()
 
     db.delete(moditem)
 

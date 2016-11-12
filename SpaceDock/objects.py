@@ -176,6 +176,14 @@ class User(Base, MetaObject):
             if r in self.roles:
                 self.roles.remove(r)
 
+    # Grab a user by an id
+    @staticmethod
+    def get(id):
+        if isinstance(id, int) or id.isdigit():
+            return User.query.filter(User.id == int(id)).first()
+        else:
+            return User.query.filter(User.username == id).first()
+
 
 class Role(Base, MetaObject):
     __tablename__ = 'role'
@@ -420,6 +428,10 @@ class Game(Base, MetaObject):
     def __repr__(self):
         return '<Game %r %r>' % (self.id, self.name)
 
+    @staticmethod
+    def get(id):
+        return Game.query.filter(Game.short == id).first()
+
 
 class Mod(Base, MetaObject):
     __tablename__ = 'mod'
@@ -504,6 +516,13 @@ class Mod(Base, MetaObject):
 
     def __repr__(self):
         return '<Mod %r %r>' % (self.id, self.name)
+
+    @staticmethod
+    def get(id):
+        if isinstance(id, int) or id.isdigit():
+            return Mod.query.filter(Mod.id == int(id)).first()
+        else:
+            return None
 
 
 class ModList(Base, MetaObject):
