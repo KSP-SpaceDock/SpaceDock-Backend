@@ -1,3 +1,4 @@
+from flask_login import current_user
 from SpaceDock.objects import Game, DownloadEvent, FollowEvent, ReferralEvent
 
 import json
@@ -138,7 +139,7 @@ def admin_user_info(user):
         'backgroundMedia': user.backgroundMedia,
         #Password reset skipped    
         'roles': roles_format(user._roles),
-        'meta': json.loads(user.meta)
+        'meta': compile_meta(user)
     }
 
 def user_info(user):
@@ -171,7 +172,7 @@ def user_info(user):
         #Password reset skipped
 		'ratings': user.ratings,
         'roles': roles_format(user._roles),
-        'meta': json.loads(user.meta)
+        'meta': compile_meta(user)
     }
 
 def feature_info(feature):
@@ -261,3 +262,15 @@ def token_format(token):
         'content': token.token,
         'ips': token['ips']
     }
+
+def compile_meta(obj):
+    loaded = json.loads(obj.meta)
+    output = {}
+    for field in loaded.keys():
+        if not field == 'private':
+            output[field] = loaded[field]
+        elif not current_user == None:
+            if obj == current_user:
+                output[field] = loaded[field]
+    return output
+    

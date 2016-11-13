@@ -23,7 +23,7 @@ def upgrade():
         sa.Column('meta', sa.String(512), server_default='{}'),
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('name', sa.String(120), unique=True),
-        sa.Column('params',  sa.String(512))
+        sa.Column('params',  sa.String(4096))
     )
     op.create_table('ability', 
         sa.Column('meta', sa.String(512), server_default='{}'),

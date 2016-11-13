@@ -193,7 +193,7 @@ class Role(Base, MetaObject):
     id = Column(Integer, primary_key=True)
     name = Column(String(120), unique=True)
     abilities = relationship('Ability', secondary=role_ability_table, backref='roles')
-    params = Column(String(512))
+    params = Column(String(4096))
 
     def __init__(self, name):
         self.meta = '{}'
