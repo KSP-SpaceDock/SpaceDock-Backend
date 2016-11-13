@@ -5,7 +5,7 @@ from SpaceDock.common import edit_object, with_session
 from SpaceDock.config import cfg
 from SpaceDock.database import db
 from SpaceDock.email import send_confirmation, send_reset
-from SpaceDock.formatting import user_info
+from SpaceDock.formatting import admin_user_info, user_info
 from SpaceDock.objects import Mod, Role, User
 from SpaceDock.routing import route
 
