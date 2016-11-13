@@ -139,7 +139,7 @@ def admin_user_info(user):
         'backgroundMedia': user.backgroundMedia,
         #Password reset skipped    
         'roles': roles_format(user._roles),
-        'meta': compile_meta(user)
+        'meta': compile_meta(user, True)
     }
 
 def user_info(user):
@@ -172,7 +172,7 @@ def user_info(user):
         #Password reset skipped
 		'ratings': user.ratings,
         'roles': roles_format(user._roles),
-        'meta': compile_meta(user)
+        'meta': compile_meta(user, False)
     }
 
 def feature_info(feature):
@@ -263,14 +263,13 @@ def token_format(token):
         'ips': token['ips']
     }
 
-def compile_meta(obj):
+def compile_meta(obj, admin):
     loaded = json.loads(obj.meta)
     output = {}
     for field in loaded.keys():
         if not field == 'private':
             output[field] = loaded[field]
-        elif not current_user == None:
-            if obj == current_user:
-                output[field] = loaded[field]
+        elif admin:
+            output[field] = loaded[field]
     return output
     
