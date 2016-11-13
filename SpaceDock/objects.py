@@ -49,6 +49,7 @@ class Featured(Base, MetaObject):
     created = Column(DateTime)
 
     def __init__(self, mod):
+        self.meta = '{}'
         self.created = datetime.now()
         self.mod_id = mod.id
         self.mod = mod
@@ -66,6 +67,7 @@ class BlogPost(Base, MetaObject):
     created = Column(DateTime)
 
     def __init__(self):
+        self.meta = '{}'
         self.created = datetime.now()
 
     def __repr__(self):
@@ -119,6 +121,7 @@ class User(Base, MetaObject):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     def __init__(self, username, email, password, roles=None, default_role='unconfirmed'):
+        self.meta = '{}'
         self.username = username
         self.email = email
         self.showEmail = False
@@ -193,6 +196,7 @@ class Role(Base, MetaObject):
     params = Column(String(512))
 
     def __init__(self, name):
+        self.meta = '{}'
         self.name = name
         self.params = '{}'
 
@@ -252,6 +256,7 @@ class Ability(Base, MetaObject):
     name = Column(String(120), unique=True)
 
     def __init__(self, name):
+        self.meta = '{}'
         self.name = name
 
     def __repr__(self):
@@ -273,6 +278,7 @@ class UserAuth(Base, MetaObject):
     # on behalf of the user.
 
     def __init__(self, user_id, remote_user, provider):
+        self.meta = '{}'
         self.user_id = user_id
         self.provider = provider
         self.remote_user = remote_user
@@ -294,6 +300,7 @@ class Rating(Base, MetaObject):
     updated = Column(DateTime)
 
     def __init__(self, user, mod, score):
+        self.meta = '{}'
         from SpaceDock.common import clamp_number
         self.user_id = user.id
         self.user = user
@@ -327,6 +334,7 @@ class Review(Base, MetaObject):
     updated = Column(DateTime)
 
     def __init__(self, user, mod, title, text):
+        self.meta = '{}'
         self.user_id = user.id
         self.user = user
         self.mod_id = mod.id
@@ -360,6 +368,7 @@ class Publisher(Base, MetaObject):
     games = relationship('Game', back_populates='publisher')
 
     def __init__(self, name):
+        self.meta = '{}'
         self.name = name
         self.short_description = ''
         self.description = ''
@@ -409,6 +418,7 @@ class Game(Base, MetaObject):
         return thumbPath
 
     def __init__(self, name, publisher, short):
+        self.meta = '{}'
         self.name = name
         self.active = False
         self.fileformats = ''
@@ -490,6 +500,7 @@ class Mod(Base, MetaObject):
         return versions[0]
 
     def __init__(self, name, user, game, license):
+        self.meta = '{}'
         self.name = name
         self.user_id = user.id
         self.user = user
@@ -541,6 +552,7 @@ class ModList(Base, MetaObject):
     mods = relationship('ModListItem', order_by="asc(ModListItem.sort_index)")
 
     def __init__(self, name, game, user):
+        self.meta = '{}'
         self.user = user
         self.user_id = user.id
         self.created = datetime.now()
@@ -566,6 +578,7 @@ class ModListItem(Base, MetaObject):
     sort_index = Column(Integer)
 
     def __init__(self, mod, modlist):
+        self.meta = '{}'
         self.mod_id = mod.id
         self.mod = mod
         self.mod_list_id = modlist.id
@@ -586,6 +599,7 @@ class SharedAuthor(Base, MetaObject):
     accepted = Column(Boolean)
 
     def __init__(self, user, mod):
+        self.meta = '{}'
         self.mod_id = mod.id
         self.mod = mod
         self.user_id = user.id
@@ -607,6 +621,7 @@ class DownloadEvent(Base, MetaObject):
     created = Column(DateTime)
 
     def __init__(self, mod, version):
+        self.meta = '{}'
         self.mod_id = mod.id
         self.mod = mod
         self.version_id = version.id
@@ -628,6 +643,7 @@ class FollowEvent(Base, MetaObject):
     created = Column(DateTime)
 
     def __init__(self, mod):
+        self.meta = '{}'
         self.mod_id = mod.id
         self.mod = mod
         self.events = 0
@@ -648,6 +664,7 @@ class ReferralEvent(Base, MetaObject):
     created = Column(DateTime)
 
     def __init__(self, mod, host):
+        self.meta = '{}'
         self.mod_id = mod.id
         self.mod = mod
         self.host = host
@@ -675,6 +692,7 @@ class ModVersion(Base, MetaObject):
     file_size = Column(Integer)
 
     def __init__(self, mod, friendly_version, gameversion, download_path,is_beta):
+        self.meta = '{}'
         self.mod_id = mod.id
         self.mod = mod
         self.friendly_version = friendly_version
@@ -705,6 +723,7 @@ class Media(Base, MetaObject):
     data = Column(String(512))
 
     def __init__(self, mod, hash, type, data):
+        self.meta = '{}'
         self.mod_id = mod.id
         self.mod = mod
         self.hash = hash
@@ -725,6 +744,7 @@ class ReviewMedia(Base, MetaObject):
     data = Column(String(512))
 
     def __init__(self, review, hash, type, data):
+        self.meta = '{}'
         self.review_id = review.id
         self.review = review
         self.hash = hash
@@ -745,6 +765,7 @@ class GameVersion(Base, MetaObject):
     game = relationship('Game', back_populates='version')
 
     def __init__(self, friendly_version, game, is_beta):
+        self.meta = '{}'
         self.friendly_version = friendly_version
         self.is_beta = is_beta
         self.game_id = game.id
@@ -759,6 +780,7 @@ class Token(Base, MetaObject):
     token = Column(String(32))
 
     def __init__(self):
+        self.meta = '{}'
         self.token = hashlib.md5(binascii.b2a_hex(os.urandom(20))).hexdigest()
 
     def __repr__(self):

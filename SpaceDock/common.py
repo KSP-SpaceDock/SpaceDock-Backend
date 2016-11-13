@@ -49,29 +49,49 @@ def edit_object(object, patch):
     """
     Edits an object using a patch dictionary. Edits only fields that aren't listed in __lock__
     """
-    patched_patch = {}
-    for field in patch.keys():
-        if field in dir(object):
-            if '__lock__' in dir(object) and field in getattr(object, '__lock__') or field == '__lock__':
-                return 1
-        else:
-            return 2
-        if isinstance(getattr(object, field), (int, bool, str, float)):
-            patched_patch[field] = patch[field]
-        else:
-            o = getattr(object, field)
-            code = edit_object(o, patch[field])
-            if not code == 0:
-                return code
-            patched_patch[field] = o
-    for field2 in patched_patch:
-        setattr(object, field2, patched_patch[field2])
+    obj = object.__dict__.copy()
+    lock = None
+    if hasattr(object, '__lock__'):
+        lock = getattr(object, '__lock__')
+    if 'meta' in obj.keys():
+        obj['meta'] = json.loads(obj['meta'])
+    code = edit_object_internal(obj, patch, lock, False)
+    if 'meta' in obj.keys():
+        obj['meta'] = json.dumps(obj['meta'])
+    for field in obj.keys():
+        setattr(object, field, obj[field])
     try:
         db.commit()
     except:
         db.rollback()
         return 3
+    return code
+
+def edit_object_internal(obj, patch, lock, allowAdd):
+    c = 0
+    for field in patch.keys():
+        if lock != None:
+            if field in lock or field == 'lock':
+                return 1
+        if field in obj:
+            c += 1
+            if not obj[field] == None and not type(obj[field]) == type(patch[field]):
+                return 3
+            if not isinstance(obj[field], dict):
+                obj[field] = patch[field]
+            else:
+                o = obj[field]
+                code = edit_object_internal(o, patch[field], None, True)
+                obj[field] = o
+                if code != 0:
+                    return code
+        elif allowAdd:
+            obj[field] = patch[field]
+            c += 1
+    if not c == len(patch):
+        return 2    
     return 0
+    
 
 def user_has(ability, public=True, params=None):
     """
