@@ -65,7 +65,7 @@ def edit_object(object, patch):
                 return code
             patched_patch[field] = o
     for field2 in patched_patch:
-        setattr(object, field, patched_patch[field2])
+        setattr(object, field2, patched_patch[field2])
     try:
         db.commit()
     except:
