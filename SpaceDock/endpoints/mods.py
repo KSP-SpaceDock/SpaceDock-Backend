@@ -533,6 +533,7 @@ def mods_rate(gameshort, modid):
     current_user.ratings.append(rating)
     mod.rating_count += 1
     mod.ratings.append(rating)
+    mod.calculate_score()
 
     return {'error': False, 'count': 1, 'data': rating_info(rating)}
 
@@ -567,6 +568,7 @@ def mods_unrate(gameshort, modid):
     current_user.ratings.remove(rating)
     mod.rating_count -= 1
     mod.ratings.remove(rating)
+    mod.calculate_score()
 
     return {'error': False}
 

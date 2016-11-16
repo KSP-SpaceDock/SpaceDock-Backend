@@ -480,6 +480,13 @@ class Mod(Base, MetaObject):
     total_score = Column(Float, nullable=True)
     rating_count = Column(Integer, nullable=False, server_default=text('0'))
 
+    def calculate_score(self):
+        score = 0
+        ratings = Rating.query.filter(Rating.mod_id == self.id).all()
+        for r in ratings:
+            score += r.score
+        self.total_score = score / rating_count
+
     def background_thumb(self):
         if (cfg['thumbnail_size'] == ''):
             return self.background
