@@ -46,9 +46,9 @@ def mod_game_list(gameshort):
     for mod in mods:
         if not mod.published:
             if current_user == mod.user:
-                results.append(mod_info(mod))
+                result.append(mod_info(mod))
         else:
-            results.append(mod_info(mod))
+            result.append(mod_info(mod))
     return {'error': False, 'count': len(result), 'data': result}
 
 @route('/api/mods/<gameshort>/<modid>')
@@ -550,7 +550,7 @@ def mods_unrate(gameshort, modid):
     if not mod:
         errors.append('The Mod ID is invalid.')
         codes.append('2130')
-    if mod and mod.game_id == game_id(gameshort):
+    if mod and mod.game_id != game_id(gameshort):
         errors.append('The gameshort is invalid.')
         codes.append('2125')
     if mod and not Rating.query.filter(Rating.mod_id == mod.id).filter(Rating.user_id == current_user.id).first():
