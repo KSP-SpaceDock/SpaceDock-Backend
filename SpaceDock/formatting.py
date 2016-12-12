@@ -170,7 +170,7 @@ def user_info(user):
         'showLocation': user.showLocation,
         'backgroundMedia': user.backgroundMedia,
         #Password reset skipped
-		'ratings': user.ratings,
+		#'ratings': user.ratings,
         'roles': roles_format(user._roles),
         'meta': compile_meta(user, False)
     }
