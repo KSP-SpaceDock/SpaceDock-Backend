@@ -76,6 +76,7 @@ def mod_info(mod, includeFollowers=False):
         'background': mod.background,
         'medias': mod.medias,
         'default_version_id': mod.default_version_id,
+        'default_version': mod_version_info(mod.default_version()) if not mod.default_version() == None else None,
         #'downloads': [download_event_format(d) for d in DownloadEvent.query.filter(DownloadEvent.mod_id == mod.id).order_by(DownloadEvent.created).all()],
         #'follow_events': [follow_event_format(f) for f in FollowEvent.query.filter(FollowEvent.mod_id == mod.id).order_by(FollowEvent.created).all()],
         #'referrals': [referral_event_format(r) for r in ReferralEvent.query.filter(ReferralEvent.mod_id == mod.id).order_by(ReferralEvent.created).all()],
@@ -137,6 +138,7 @@ def admin_user_info(user):
         'location': user.location,
         'showLocation': user.showLocation,
         'backgroundMedia': user.backgroundMedia,
+        'following': [f.id for f in user.following],
         #Password reset skipped    
         'roles': roles_format(user._roles),
         'meta': compile_meta(user, True)
@@ -169,6 +171,7 @@ def user_info(user):
         'location': user.location if user.showLocation else "",
         'showLocation': user.showLocation,
         'backgroundMedia': user.backgroundMedia,
+        'following': [f.id for f in user.following],
         #Password reset skipped
 		#'ratings': user.ratings,
         'roles': roles_format(user._roles),
