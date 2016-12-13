@@ -66,6 +66,21 @@ def mods_info(gameshort, modid):
         return {'error': True, 'reasons': ['The mod is not published.'], 'codes': ['3020']}, 400
     return {'error': False, 'count': 1, 'data': mod_info(mod, boolean(request.args.get('includeFollowers')))}
 
+@route('/api/mods/<gameshort>/<modid>/thumbnail')
+def mods_thumb(gameshort, modid):
+    """
+    Returns the thumbnail for one mod
+    """
+    mod = Mod.get(modid)
+    if not mod:
+        return {'error': True, 'reasons': ['The modid is invalid'], 'codes': ['2130']}, 400
+    if not mod.game_id == game_id(gameshort):
+        return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
+    # Display info
+    if not mod.published and current_user != mod.user:
+        return {'error': True, 'reasons': ['The mod is not published.'], 'codes': ['3020']}, 400
+    return redirect(mod.background_thumb())
+
 @route('/api/mods/<gameshort>/<modid>/download/<versionname>')
 @with_session
 def mods_download(gameshort, modid, versionname):
