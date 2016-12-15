@@ -703,3 +703,20 @@ def mods_revoke(gameshort, modid):
     db.delete(author)
     return {'error': False}
 
+@route('/api/mods/random')
+def mods_random():
+    """
+    Returns a random mod published on the website. Optional fields: gameshort
+    """
+    gameshort = request.args.get('gameshort')
+    if not gameshort:
+        mods = Mod.query.filter(Mod.published == True).all()
+    else:
+        game = Game.get(gameshort)
+        if not game:
+            return {'error': True, 'reasons': ['The gameshort is invalid.'], 'codes': ['2125']}, 400
+
+        mods = Mod.query.filter(Mod.game_id == game.id).filter(Mod.published == True).all()
+
+    mod = random.choice(mods)
+    return {'error': False, 'data': {'mod_id': mod.id, 'mod_name': mod.name}}
