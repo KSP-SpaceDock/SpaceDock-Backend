@@ -8,7 +8,7 @@
 
 package SpaceDock
 
-import "fmt"
+import "log"
 
 /*
  Entrypoint wrapper that is called from the main() function.
@@ -17,5 +17,11 @@ import "fmt"
  and startup the webserver to serve JSON
 */
 func Run() {
-    fmt.Print("Hello World!")
+    log.Print("SpaceDock-Backend -- Version: {$VERSION}")
+    log.Print("* Loading configuration")
+    LoadSettings()
+
+    // Debug
+    log.Print(settings.SiteName)
+
 }
