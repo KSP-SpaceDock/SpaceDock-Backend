@@ -4,14 +4,14 @@
 
  SpaceDock Backend is licensed under the Terms of the MIT License.
  Copyright (c) 2017 Dorian Stoll (ThomasKerman/TMSP), RockyTV
-*/
+ */
 
 package SpaceDock
 
 import (
     "flag"
-    "log"
     "gopkg.in/gcfg.v1"
+    "log"
 )
 
 /*
@@ -19,6 +19,9 @@ import (
  a dedicated config file
  */
 type SettingsData struct {
+    // Whether the app should run in debug mode
+    Debug bool
+
     // The displayed name of this site
     SiteName string
 
@@ -27,7 +30,7 @@ type SettingsData struct {
 
     // The actual location of your site
     Protocol string
-    Domain string
+    Domain   string
 
     // Set this to false to disable registration
     Registration bool
@@ -37,14 +40,15 @@ type SettingsData struct {
     Port int
 
     // Details for sending emails
-    SmtpHost string
-    SmtpPort int
-    SmtpUser string
+    SmtpHost     string
+    SmtpPort     int
+    SmtpUser     string
     SmtpPassword string
-    SmtpTls bool
+    SmtpTls      bool
 
     // Database connection
-    ConnectionString string
+    Dialect string
+    ConnectionData string
 
     // The directory where files are stored
     Storage string
@@ -84,6 +88,7 @@ func LoadSettings() {
  Loads the settings from commandline parameters
  */
 func loadFromCommandLine() {
+    flag.BoolVar(&settings.Debug, "debug", false, "Whether the app should run in debug mode")
     flag.StringVar(&settings.SiteName, "sitename", "", "The displayed name of this site")
     flag.StringVar(&settings.SupportMail, "support-mail", "", "The email where users who need help write to")
     flag.StringVar(&settings.Protocol, "protocol", "http", "The protocol your site is using (http/https)")
@@ -91,16 +96,17 @@ func loadFromCommandLine() {
     flag.BoolVar(&settings.Registration, "registration", true, "Whether registering new users on the site is allowed")
     flag.StringVar(&settings.Host, "host", "0.0.0.0", "The IP Address to bind to")
     flag.IntVar(&settings.Port, "port", 5000, "The port to bind to")
-    flag.StringVar(&settings.SmtpHost, "smtp-host", "", "The hostname of your SMTP server (leave empty if you dont want to send emails)")
-    flag.IntVar(&settings.SmtpPort, "smtp-port", 0, "The port your SMTP Server listens on")
-    flag.StringVar(&settings.SmtpUser, "smtp-user", "", "The username that should get used to log into your SMTP server")
-    flag.StringVar(&settings.SmtpPassword, "smtp-password", "", "The password of your SMTP User")
-    flag.BoolVar(&settings.SmtpTls, "smtp-tls", false, "Whether TLS should be used (STARTTLS)")
-    flag.StringVar(&settings.ConnectionString, "connection-string", "", "Describes the connection to your SQL Database")
+    flag.StringVar(&settings.SmtpHost, "smtphost", "", "The hostname of your SMTP server (leave empty if you dont want to send emails)")
+    flag.IntVar(&settings.SmtpPort, "smtpport", 0, "The port your SMTP Server listens on")
+    flag.StringVar(&settings.SmtpUser, "smtpuser", "", "The username that should get used to log into your SMTP server")
+    flag.StringVar(&settings.SmtpPassword, "smtppassword", "", "The password of your SMTP User")
+    flag.BoolVar(&settings.SmtpTls, "smtptls", false, "Whether TLS should be used (STARTTLS)")
+    flag.StringVar(&settings.Dialect, "dialect", "", "The SQL dialect used by your database")
+    flag.StringVar(&settings.ConnectionData, "connectiondata", "", "Describes the connection to your SQL Database")
     flag.StringVar(&settings.Storage, "storage", "", "The directory where all modfiles should get stored")
-    flag.StringVar(&settings.CdnDomain, "cdn-domain", "", "Whether a custom CDN should be used instead of the local storage")
-    flag.StringVar(&settings.ThumbnailSize, "thumbnail-size", "", "Thumbnail size in WxH format")
-    flag.BoolVar(&settings.DisableSameOrigin, "disable-same-origin", false, "Enables CORS (Cross Origin Requests)")
+    flag.StringVar(&settings.CdnDomain, "cdndomain", "", "Whether a custom CDN should be used instead of the local storage")
+    flag.StringVar(&settings.ThumbnailSize, "thumbnailsize", "", "Thumbnail size in WxH format")
+    flag.BoolVar(&settings.DisableSameOrigin, "disablesameorigin", false, "Enables CORS (Cross Origin Requests)")
 
     flag.StringVar(&configFile, "config-file", "", "The path for a dedicated configuration file")
     flag.Parse()
@@ -118,4 +124,3 @@ func loadFromConfigFile() {
         }
     }
 }
-
