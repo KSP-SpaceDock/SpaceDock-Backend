@@ -13,6 +13,7 @@ import (
     "github.com/jinzhu/gorm"
     "time"
     "SpaceDock"
+    "errors"
 )
 
 type User struct {
@@ -26,6 +27,7 @@ type User struct {
     Confirmation string `gorm:"size:128"`
     PasswordReset string `gorm:"size:128"`
     PasswordResetExpiry time.Time
+    Authed bool
 }
 
 func (user User) SetPassword(password string) {
@@ -33,4 +35,29 @@ func (user User) SetPassword(password string) {
     user.Password, _ = bcrypt.Hash(password, salt)
     SpaceDock.Database.Save(user)
 }
+
+func (user User) IsAuthenticated() bool {
+    return user.Authed
+}
+
+func (user User) Login() {
+    user.Authed = true
+    SpaceDock.Database.Save(user)
+}
+
+func (user User) Logout() {
+    user.Authed = false
+    SpaceDock.Database.Save(user)
+}
+
+func (user User) UniqueId() interface{} {
+    return user.ID
+}
+
+func (user User) GetById(id interface{}) error {
+    SpaceDock.Database.First(&user, id)
+    if user.Username != "" {
+        return errors.New("Invalid user ID")
+    }
+    return nil
 }
