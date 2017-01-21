@@ -6,12 +6,13 @@
  Copyright (c) 2017 Dorian Stoll (ThomasKerman/TMSP), RockyTV
  */
 
-package SpaceDock
+package objects
 
 import (
     "github.com/jameskeane/bcrypt"
     "github.com/jinzhu/gorm"
     "time"
+    "SpaceDock"
 )
 
 type User struct {
@@ -30,4 +31,6 @@ type User struct {
 func (user User) SetPassword(password string) {
     salt, _ := bcrypt.Salt()
     user.Password, _ = bcrypt.Hash(password, salt)
+    SpaceDock.Database.Save(user)
+}
 }

@@ -8,7 +8,10 @@
 
 package main
 
-import "SpaceDock"
+import (
+    "SpaceDock"
+    _ "SpaceDock/objects"
+)
 
 /*
  The entrypoint for the spacedock application.

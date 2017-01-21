@@ -6,6 +6,13 @@
  Copyright (c) 2017 Dorian Stoll (ThomasKerman/TMSP), RockyTV
  */
 
-package SpaceDock
+package objects
 
-import _ "SpaceDock/objects"
+import "SpaceDock"
+
+/*
+ This function creates tables for all datatypes
+ */
+func init() {
+    SpaceDock.CreateTable(&User{})
+}
