@@ -37,4 +37,4 @@ src/*
 !src/SpaceDock
 
 # SpaceDock specific
-config/config.ini
+config/config.yml

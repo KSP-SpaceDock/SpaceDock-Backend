@@ -1,0 +1,27 @@
+debug: false
+
+sitename: ""
+supportmail: ""
+
+protocol: "http"
+domain: "localhost:5000"
+
+registration: true
+
+host: "0.0.0.0"
+port: 5000
+
+smtphost: ""
+smtpport: ""
+smtpuser: ""
+smtppassword: ""
+smtptls: ""
+
+dialect: "mysql"
+connectiondata: ""
+
+storage: ""
+cdndomain: ""
+thumbnailsize: ""
+
+disablesameorigin: false
