@@ -32,13 +32,14 @@ func Run() {
 
     // Connect to the database
     log.Print("* Establishing Database connection")
+    LoadDatabase()
 
     // Create the App
     log.Print("* Initializing Iris-Framework")
-    app = *iris.New(iris.Configuration{IsDevelopment: settings.Debug })
+    app = *iris.New(iris.Configuration{IsDevelopment: Settings.Debug })
 
     // Load routes here
 
     // Start listening
-    app.Listen(settings.Host + ":" + strconv.Itoa(settings.Port))
+    app.Listen(Settings.Host + ":" + strconv.Itoa(Settings.Port))
 }

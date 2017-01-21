@@ -9,38 +9,39 @@
 package SpaceDock
 
 import (
+    "SpaceDock/objects"
     "github.com/jinzhu/gorm"
     _ "github.com/jinzhu/gorm/dialects/mssql"
     _ "github.com/jinzhu/gorm/dialects/mysql"
     _ "github.com/jinzhu/gorm/dialects/postgres"
-    _ "github.com/jinzhu/gorm/dialects/sqlite"
     "log"
 )
 
 /*
  The database handler that provides the API to interact with the the DB
  */
-var database gorm.DB
+var Database gorm.DB
 
 /*
  Establishes the connection to the database
  */
 func LoadDatabase() {
-    db, err := gorm.Open(settings.Dialect, settings.ConnectionData)
+    db, err := gorm.Open(Settings.Dialect, Settings.ConnectionData)
     if err != nil {
         log.Fatalf("* Failed to connect to the database: %s", err)
     }
-    database = *db
+    Database = *db
     log.Print("* Database connection successfull")
 
     // Init Tables
+    CreateTable(&SpaceDock.User{})
 }
 
 /*
  Creates a table only if it doesn't exist
  */
 func CreateTable(models interface{}) {
-    if !database.HasTable(models) {
-        database.CreateTable(models)
+    if !Database.HasTable(models) {
+        Database.CreateTable(models)
     }
 }

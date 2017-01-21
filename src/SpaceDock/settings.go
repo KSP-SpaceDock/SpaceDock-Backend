@@ -10,7 +10,8 @@ package SpaceDock
 
 import (
     "flag"
-    "gopkg.in/gcfg.v1"
+    "github.com/jinzhu/configor"
+    "os"
     "log"
 )
 
@@ -69,7 +70,7 @@ type SettingsData struct {
 /*
  The instance of the settings store
  */
-var settings SettingsData
+var Settings SettingsData
 
 /*
  The path of the configuration file (if it exists)
@@ -88,27 +89,27 @@ func LoadSettings() {
  Loads the settings from commandline parameters
  */
 func loadFromCommandLine() {
-    flag.BoolVar(&settings.Debug, "debug", false, "Whether the app should run in debug mode")
-    flag.StringVar(&settings.SiteName, "sitename", "", "The displayed name of this site")
-    flag.StringVar(&settings.SupportMail, "support-mail", "", "The email where users who need help write to")
-    flag.StringVar(&settings.Protocol, "protocol", "http", "The protocol your site is using (http/https)")
-    flag.StringVar(&settings.Domain, "domain", "localhost:5000", "The actual location of your site")
-    flag.BoolVar(&settings.Registration, "registration", true, "Whether registering new users on the site is allowed")
-    flag.StringVar(&settings.Host, "host", "0.0.0.0", "The IP Address to bind to")
-    flag.IntVar(&settings.Port, "port", 5000, "The port to bind to")
-    flag.StringVar(&settings.SmtpHost, "smtphost", "", "The hostname of your SMTP server (leave empty if you dont want to send emails)")
-    flag.IntVar(&settings.SmtpPort, "smtpport", 0, "The port your SMTP Server listens on")
-    flag.StringVar(&settings.SmtpUser, "smtpuser", "", "The username that should get used to log into your SMTP server")
-    flag.StringVar(&settings.SmtpPassword, "smtppassword", "", "The password of your SMTP User")
-    flag.BoolVar(&settings.SmtpTls, "smtptls", false, "Whether TLS should be used (STARTTLS)")
-    flag.StringVar(&settings.Dialect, "dialect", "", "The SQL dialect used by your database")
-    flag.StringVar(&settings.ConnectionData, "connectiondata", "", "Describes the connection to your SQL Database")
-    flag.StringVar(&settings.Storage, "storage", "", "The directory where all modfiles should get stored")
-    flag.StringVar(&settings.CdnDomain, "cdndomain", "", "Whether a custom CDN should be used instead of the local storage")
-    flag.StringVar(&settings.ThumbnailSize, "thumbnailsize", "", "Thumbnail size in WxH format")
-    flag.BoolVar(&settings.DisableSameOrigin, "disablesameorigin", false, "Enables CORS (Cross Origin Requests)")
+    flag.BoolVar(&Settings.Debug, "debug", false, "Whether the app should run in debug mode")
+    flag.StringVar(&Settings.SiteName, "sitename", "", "The displayed name of this site")
+    flag.StringVar(&Settings.SupportMail, "support-mail", "", "The email where users who need help write to")
+    flag.StringVar(&Settings.Protocol, "protocol", "http", "The protocol your site is using (http/https)")
+    flag.StringVar(&Settings.Domain, "domain", "localhost:5000", "The actual location of your site")
+    flag.BoolVar(&Settings.Registration, "registration", true, "Whether registering new users on the site is allowed")
+    flag.StringVar(&Settings.Host, "host", "0.0.0.0", "The IP Address to bind to")
+    flag.IntVar(&Settings.Port, "port", 5000, "The port to bind to")
+    flag.StringVar(&Settings.SmtpHost, "smtphost", "", "The hostname of your SMTP server (leave empty if you dont want to send emails)")
+    flag.IntVar(&Settings.SmtpPort, "smtpport", 0, "The port your SMTP Server listens on")
+    flag.StringVar(&Settings.SmtpUser, "smtpuser", "", "The username that should get used to log into your SMTP server")
+    flag.StringVar(&Settings.SmtpPassword, "smtppassword", "", "The password of your SMTP User")
+    flag.BoolVar(&Settings.SmtpTls, "smtptls", false, "Whether TLS should be used (STARTTLS)")
+    flag.StringVar(&Settings.Dialect, "dialect", "", "The SQL dialect used by your database")
+    flag.StringVar(&Settings.ConnectionData, "connectiondata", "", "Describes the connection to your SQL Database")
+    flag.StringVar(&Settings.Storage, "storage", "", "The directory where all modfiles should get stored")
+    flag.StringVar(&Settings.CdnDomain, "cdndomain", "", "Whether a custom CDN should be used instead of the local storage")
+    flag.StringVar(&Settings.ThumbnailSize, "thumbnailsize", "", "Thumbnail size in WxH format")
+    flag.BoolVar(&Settings.DisableSameOrigin, "disablesameorigin", false, "Enables CORS (Cross Origin Requests)")
 
-    flag.StringVar(&configFile, "config-file", "", "The path for a dedicated configuration file")
+    flag.StringVar(&configFile, "configfile", "", "The path for a dedicated configuration file")
     flag.Parse()
 }
 
@@ -117,8 +118,9 @@ func loadFromCommandLine() {
  */
 func loadFromConfigFile() {
     if configFile != "" {
-        log.Printf("* Found loading configuration file: %s", configFile)
-        err := gcfg.ReadFileInto(&settings, configFile)
+        log.Printf("* Found configuration file: %s", configFile)
+        os.Setenv("CONFIGOR_ENV_PREFIX", "SPACEDOCK")
+        err := configor.Load(&Settings, configFile)
         if err != nil {
             log.Fatalf("* Failed to parse configuration file: %s", err)
         }
