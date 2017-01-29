@@ -6,15 +6,12 @@
  Copyright (c) 2017 Dorian Stoll (ThomasKerman/TMSP), RockyTV
  */
 
-package objects
+package utils
 
-import "SpaceDock"
+import "reflect"
 
-/*
- This function creates tables for all datatypes
- */
-func init() {
-    SpaceDock.CreateTable(&User{})
-    SpaceDock.CreateTable(&Role{})
-    SpaceDock.CreateTable(&RoleUser{})
+func ReadField(value *interface{}, field string) interface{} {
+    v := reflect.ValueOf(*value)
+    y := v.FieldByName(field)
+    return y.Interface()
 }

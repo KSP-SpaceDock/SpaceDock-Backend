@@ -9,11 +9,11 @@
 package objects
 
 import (
+    "SpaceDock"
+    "errors"
     "github.com/jameskeane/bcrypt"
     "github.com/jinzhu/gorm"
     "time"
-    "SpaceDock"
-    "errors"
 )
 
 type User struct {
@@ -28,6 +28,23 @@ type User struct {
     PasswordReset string `gorm:"size:128"`
     PasswordResetExpiry time.Time
     Authed bool
+
+    RoleUsers []RoleUser
+}
+
+func NewUser(name string, email string, password string) *User {
+    user := &User {
+        Username: name,
+        Email: email,
+        Public: false,
+        Description: "",
+        Confirmation: "",
+        PasswordReset: "",
+        PasswordResetExpiry: time.Now(),
+        Authed: false,
+    }
+    user.SetPassword(password)
+    return user
 }
 
 func (user User) SetPassword(password string) {
@@ -60,4 +77,59 @@ func (user User) GetById(id interface{}) error {
         return errors.New("Invalid user ID")
     }
     return nil
+}
+
+func (user User) AddRole(name string) Role {
+    role := Role {}
+    SpaceDock.Database.Where("name = ?", name).First(&role)
+    if role.Name == "" {
+        role.Name = name
+        role.Params = "{}"
+        SpaceDock.Database.Save(&role)
+    }
+    ru := RoleUser{}
+    SpaceDock.Database.Where("roleid = ?", role.ID).Where("userid = ?", user.ID).First(&ru)
+    if ru.RoleID != role.ID || ru.UserID != user.ID {
+        SpaceDock.Database.Save(NewRoleUser(user, role))
+    }
+    return role
+}
+
+func (user User) RemoveRole(name string) {
+    role := Role{}
+    SpaceDock.Database.Where("name = ?", name).First(&role)
+    if role.Name == "" {
+        return
+    }
+    ru := RoleUser{}
+    SpaceDock.Database.Where("roleid = ?", role.ID).Where("userid = ?", user.ID).First(&ru)
+    if ru.RoleID == role.ID && ru.UserID == user.ID {
+        SpaceDock.Database.Delete(&ru)
+    }
+}
+
+func (user User) GetRoles() []Role {
+    value := make([]Role, len(user.RoleUsers))
+    for index,element := range user.RoleUsers {
+        role := Role {}
+        SpaceDock.Database.First(&role, element.RoleID)
+        value[index] = role
+    }
+    return value
+}
+
+func (user User) GetAbilities() []Ability {
+    count := 0
+    for _,element := range user.GetRoles() {
+        count = count + len(element.GetAbilities())
+    }
+    value := make([]Ability, count)
+    c := 0
+    for _,element := range user.GetRoles() {
+        for _,element2 := range element.GetAbilities() {
+            value[c] = element2
+            c = c + 1
+        }
+    }
+    return value
 }

@@ -25,7 +25,7 @@ var Database gorm.DB
  Establishes the connection to the database
  */
 func LoadDatabase() {
-    db, err := gorm.Open(Settings.Dialect, Settings.ConnectionData)
+    var db, err = gorm.Open(Settings.Dialect, Settings.ConnectionData)
     if err != nil {
         log.Fatalf("* Failed to connect to the database: %s", err)
     }

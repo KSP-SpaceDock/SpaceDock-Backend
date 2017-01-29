@@ -11,8 +11,8 @@ package SpaceDock
 import (
     "flag"
     "github.com/jinzhu/configor"
-    "os"
     "log"
+    "os"
 )
 
 /*

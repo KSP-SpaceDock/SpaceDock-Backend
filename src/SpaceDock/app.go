@@ -17,15 +17,15 @@ import (
 /*
  The webserver that will listen for Requests
  */
-var app iris.Framework
+var App iris.Framework
 
 /*
- Entrypoint wrapper that is called from the main() function.
+ Startup function for the app
 
  This will load the config, establish a connection to the database
  and startup the webserver to serve JSON
  */
-func Run() {
+func init() {
     log.Print("SpaceDock-Backend -- Version: {$VERSION}")
     log.Print("* Loading configuration")
     LoadSettings()
@@ -36,10 +36,15 @@ func Run() {
 
     // Create the App
     log.Print("* Initializing Iris-Framework")
-    app = *iris.New(iris.Configuration{IsDevelopment: Settings.Debug })
+    App = *iris.New(iris.Configuration{IsDevelopment: Settings.Debug })
 
     // Load routes here
+}
 
+/*
+ Entrypoint wrapper that is called from the main() function
+ */
+func Run() {
     // Start listening
-    app.Listen(Settings.Host + ":" + strconv.Itoa(Settings.Port))
+    App.Listen(Settings.Host + ":" + strconv.Itoa(Settings.Port))
 }
