@@ -13,7 +13,7 @@ import (
     "log"
 )
 
-func GetJSON(ctx *iris.Context) map[string]interface{} {
+func GetFullJSON(ctx *iris.Context) map[string]interface{} {
     var value map[string]interface{}
     err := ctx.ReadJSON(value)
     if err != nil {
@@ -22,3 +22,19 @@ func GetJSON(ctx *iris.Context) map[string]interface{} {
     }
     return value
 }
+
+func GetJSON(ctx *iris.Context, key string) interface{} {
+    full := GetFullJSON(ctx)
+    if value,ok := full[key]; ok {
+        return value
+    }
+    return nil
+}
+
+func WriteJSON(ctx *iris.Context, status int, v interface {}) error {
+    if _,ok := ctx.URLParams()["callback"]; ok {
+        return ctx.JSONP(status, ctx.URLParam("callback"), v)
+    }
+    return ctx.JSON(status, v)
+}
+
