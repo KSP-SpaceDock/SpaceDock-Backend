@@ -11,6 +11,7 @@ package main
 import (
     "SpaceDock"
     _ "SpaceDock/objects"
+    _ "SpaceDock/routes"
 )
 
 /*
