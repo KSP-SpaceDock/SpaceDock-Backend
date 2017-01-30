@@ -39,13 +39,13 @@ func LogoutUser(ctx *iris.Context, user objects.User) {
     ctx.Session().Delete("SessionID")
 }
 
-func CurrentUser(ctx *iris.Context) (objects.User, bool) {
+func CurrentUser(ctx *iris.Context) (*objects.User, bool) {
     userID, err := ctx.Session().GetInt("SessionID")
     if err == nil {
         var user objects.User
         err = user.GetById(userID)
         if err != nil {
-            return user, true
+            return &user, true
         } else {
             return nil, false
         }

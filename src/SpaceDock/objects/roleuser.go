@@ -23,20 +23,20 @@ func NewRoleUser(user User, role Role) *RoleUser {
     return &RoleUser{ UserID: user.ID, RoleID: role.ID }
 }
 
-func (ru RoleUser) GetUser() User {
+func (ru RoleUser) GetUser() *User {
     user := User {}
     err := user.GetById(ru.UserID)
     if err != nil {
-        return User{}
+        return nil
     }
-    return user
+    return &user
 }
 
-func (ru RoleUser) GetRole() Role {
+func (ru RoleUser) GetRole() *Role {
     role := Role {}
     err := role.GetById(ru.RoleID)
     if err != nil {
-        return Role{}
+        return nil
     }
-    return role
+    return &role
 }

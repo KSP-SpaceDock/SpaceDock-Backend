@@ -23,20 +23,20 @@ func NewRoleAbility(role Role, ability Ability) *RoleAbility {
     return &RoleAbility{ RoleID: role.ID, AbilityID: ability.ID }
 }
 
-func (ra RoleAbility) GetRole() Role {
+func (ra RoleAbility) GetRole() *Role {
     role := Role {}
     err := role.GetById(ra.RoleID)
     if err != nil {
-        return Role {}
+        return nil
     }
-    return role
+    return &role
 }
 
-func (ra RoleAbility) GetAbility() Ability {
+func (ra RoleAbility) GetAbility() *Ability {
     ability := Ability {}
     err := ability.GetById(ra.AbilityID)
     if err != nil {
-        return Ability {}
+        return nil
     }
-    return ability
+    return &ability
 }
