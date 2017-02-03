@@ -15,6 +15,8 @@ import (
     "regexp"
     "SpaceDock/objects"
     "SpaceDock/middleware"
+    "strconv"
+    "github.com/jameskeane/bcrypt"
 )
 
 /*
@@ -22,8 +24,11 @@ import (
  */
 func AccountsRegister() {
     Register(POST, "/api/register", register)
+    Register(GET, "/api/confirm/:confirmation", confirm)
+    Register(POST, "/api/login", login)
+    Register(GET, "/api/logout", logout)
 
-    Register(GET, "/api/", middleware.LoginRequired, func (ctx *iris.Context) {
+    Register(GET, "/api/", func (ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"hi": true})
     })
 }
@@ -110,7 +115,7 @@ func register(ctx *iris.Context) {
         return
     }
     if len(errors) > 0 {
-        utils.WriteJSON(ctx, iris.StatusOK, utils.Error(errors...).Code(codes...))
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error(errors...).Code(codes...))
         return
     }
 
@@ -160,3 +165,89 @@ func checkEmailForRegistration(email string) string {
     return ""
 }
 
+/*
+ Path:   /api/confirm/:confirmation
+ Method: GET
+ Description: Confirms a newly created useraccount using a random text sequence
+ */
+func confirm(ctx *iris.Context) {
+    // Grab the confirmation sequence
+    confirmation := ctx.GetString("confirmation")
+
+    // Try to get a valid user account
+    var user objects.User
+    SpaceDock.Database.Where("confirmation = ?", confirmation).First(&user)
+    if user.Confirmation != confirmation {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("User does not exist or it is already confirmed. Did you mistype the confirmation?").Code(2165))
+        return
+    }
+
+    // Everything is valid
+    user.Confirmation = ""
+    middleware.LoginUser(ctx, user)
+    role := user.AddRole(user.Username)
+    role.AddAbility("user-edit")
+    role.AddAbility("mods-add")
+    role.AddAbility("packs-add")
+    role.AddAbility("logged-in")
+    role.AddParam("user-edit", "userid", strconv.Itoa(int(user.ID)))
+    role.AddParam("mods-add", "gameshort", ".*")
+    role.AddParam("packs-add", "gameshort", ".*")
+    SpaceDock.Database.Save(&role)
+    SpaceDock.Database.Save(&user)
+
+    // Follow Mod
+
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/login
+ Method: POST
+ */
+func login(ctx *iris.Context) {
+    // Grab information
+    username := utils.GetJSON(ctx, "username").(string)
+    password := utils.GetJSON(ctx, "password").(string)
+
+    // Check if the values are valid
+    if username == "" || password == "" {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Missing username or password").Code(2515))
+        return
+    }
+    if middleware.CurrentUser(ctx) != nil {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You are already logged in").Code(3060))
+        return
+    }
+    var user objects.User
+    SpaceDock.Database.Where("username = ?", username).First(&user)
+    if user.Username != username {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Username or password is incorrect").Code(2175))
+        return
+    }
+    if s,_ := bcrypt.Hash(password, user.Password); s != user.Password {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Username or password is incorrect").Code(2175))
+        return
+    }
+    if user.Confirmation != "" {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("User is not confirmed").Code(3055))
+        return
+    }
+    middleware.LoginUser(ctx, user)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user})
+}
+
+/*
+ Path: /api/logout
+ Method: GET
+ */
+func logout(ctx *iris.Context) {
+    // Check if a user is logged in
+    user := middleware.CurrentUser(ctx)
+    if user == nil {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You are not logged in. Logging out now would be a bit difficult, right?").Code(3070))
+        return
+    }
+    middleware.LogoutUser(ctx, *user)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
