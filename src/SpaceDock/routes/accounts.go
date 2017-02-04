@@ -9,14 +9,15 @@
 package routes
 
 import (
-    "github.com/kataras/iris"
     "SpaceDock"
-    "SpaceDock/utils"
-    "regexp"
-    "SpaceDock/objects"
     "SpaceDock/middleware"
-    "strconv"
+    "SpaceDock/objects"
+    "SpaceDock/utils"
     "github.com/jameskeane/bcrypt"
+    "github.com/kataras/iris"
+    "regexp"
+    "strconv"
+    "time"
 )
 
 /*
@@ -27,10 +28,8 @@ func AccountsRegister() {
     Register(GET, "/api/confirm/:confirmation", confirm)
     Register(POST, "/api/login", login)
     Register(GET, "/api/logout", logout)
-
-    Register(GET, "/api/", func (ctx *iris.Context) {
-        utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"hi": true})
-    })
+    Register(POST, "/api/reset", reset)
+    Register(POST, "/api/reset/:username/:confirmation", resetConfirm)
 }
 
 /*
@@ -46,7 +45,7 @@ func register(ctx *iris.Context) {
     }
 
     // Grab parameters from the JSON
-    //followMod := utils.GetJSON(ctx,"follow-mod")
+    followMod := utils.GetJSON(ctx,"follow-mod").(string)
     email := utils.GetJSON(ctx,"email").(string)
     username := utils.GetJSON(ctx,"username").(string)
     password := utils.GetJSON(ctx,"password").(string)
@@ -125,9 +124,8 @@ func register(ctx *iris.Context) {
 
     // Eval userdata
 
-    SpaceDock.Database.Save(&user)
-
-    // Send confirmation mail
+    SpaceDock.Database.Save(user)
+    utils.SendConfirmation(*user, followMod)
 
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user})
 }
@@ -249,5 +247,68 @@ func logout(ctx *iris.Context) {
         return
     }
     middleware.LogoutUser(ctx, *user)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/reset
+ Method: POST
+ */
+func reset(ctx *iris.Context) {
+    // Get the email
+    email := utils.GetJSON(ctx, "email").(string)
+
+    // Check if the values are valid
+    if email == "" {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("No email address").Code(2520))
+        return
+    }
+    var user objects.User
+    SpaceDock.Database.Where("email = ?", email).First(&user)
+    if user.Email != email {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("No user for provided email address").Code(2115))
+        return
+    }
+    user.PasswordReset,_ = utils.RandomHex(20)
+    user.PasswordResetExpiry = time.Now().Add(time.Hour * 24)
+    SpaceDock.Database.Save(&user)
+    utils.SendReset(user)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/reset/:username/:confirmation
+ Method: POST
+ */
+func resetConfirm(ctx *iris.Context) {
+    username := ctx.GetString("username")
+    confirmation := ctx.GetString("confirmation")
+    var user objects.User
+    SpaceDock.Database.Where("username = ?", username).First(&user)
+    if user.Username != username {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Username is incorrect").Code(2170))
+        return
+    }
+    if user.PasswordReset == "" || user.PasswordResetExpiry.Before(time.Now()) || user.PasswordReset != confirmation {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Password reset invalid").Code(3000))
+        return
+    }
+    password := utils.GetJSON(ctx, "password").(string)
+    password2 := utils.GetJSON(ctx, "password2").(string)
+    if password == "" || password2 == "" {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Passwords not provided").Code(2525))
+        return
+    }
+    if password != password2 {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Passwords do not match").Code(3005))
+        return
+    }
+    user.SetPassword(password)
+    user.PasswordReset = ""
+    user.PasswordResetExpiry = time.Now()
+    SpaceDock.Database.Save(&user)
+    if middleware.CurrentUser(ctx) != nil {
+        middleware.LogoutUser(ctx)
+    }
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
