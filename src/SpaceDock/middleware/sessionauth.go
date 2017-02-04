@@ -34,8 +34,8 @@ func LoginUser(ctx *iris.Context, user objects.User) {
     ctx.Session().Set("SessionID", user.ID)
 }
 
-func LogoutUser(ctx *iris.Context, user objects.User) {
-    user.Logout()
+func LogoutUser(ctx *iris.Context) {
+    CurrentUser(ctx).Logout()
     ctx.Session().Delete("SessionID")
 }
 
