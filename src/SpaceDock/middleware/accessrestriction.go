@@ -28,8 +28,8 @@ import (
     4 - Role params are invalid
  */
 func UserHasPermission(ctx *iris.Context, permission string, public bool, params []string) int {
-    user,found := CurrentUser(ctx)
-    if !found {
+    user := CurrentUser(ctx)
+    if user == nil {
         return 1
     } else if (public && !user.Public) {
         return 2

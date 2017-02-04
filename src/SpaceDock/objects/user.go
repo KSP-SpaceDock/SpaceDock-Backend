@@ -59,12 +59,12 @@ func (user User) IsAuthenticated() bool {
 
 func (user User) Login() {
     user.Authed = true
-    SpaceDock.Database.Save(user)
+    SpaceDock.Database.Save(&user)
 }
 
 func (user User) Logout() {
     user.Authed = false
-    SpaceDock.Database.Save(user)
+    SpaceDock.Database.Save(&user)
 }
 
 func (user User) UniqueId() interface{} {
