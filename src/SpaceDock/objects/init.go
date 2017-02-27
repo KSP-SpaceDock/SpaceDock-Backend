@@ -14,7 +14,11 @@ import "SpaceDock"
  This function creates tables for all datatypes
  */
 func init() {
-    SpaceDock.CreateTable(&User{})
+    SpaceDock.CreateTable(&Ability{})
+    SpaceDock.CreateTable(&Game{})
+    SpaceDock.CreateTable(&Publisher{})
     SpaceDock.CreateTable(&Role{})
+    SpaceDock.CreateTable(&RoleAbility{})
     SpaceDock.CreateTable(&RoleUser{})
+    SpaceDock.CreateTable(&User{})
 }

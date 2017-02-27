@@ -14,13 +14,16 @@ import (
 
 type RoleAbility struct {
     gorm.Model
+    MetaObject
 
     RoleID uint
     AbilityID uint
 }
 
 func NewRoleAbility(role Role, ability Ability) *RoleAbility {
-    return &RoleAbility{ RoleID: role.ID, AbilityID: ability.ID }
+    ra := &RoleAbility{ RoleID: role.ID, AbilityID: ability.ID }
+    ra.Meta = "{}"
+    return ra
 }
 
 func (ra RoleAbility) GetRole() *Role {

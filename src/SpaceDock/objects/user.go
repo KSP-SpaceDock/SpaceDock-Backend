@@ -14,28 +14,33 @@ import (
     "github.com/jameskeane/bcrypt"
     "github.com/jinzhu/gorm"
     "time"
+    "SpaceDock/utils"
+    "github.com/kataras/iris"
 )
 
 type User struct {
     gorm.Model
+    MetaObject
 
-    Username string `gorm:"size:128;unique_index;not null"`
-    Email string `gorm:"size:256;unique_index;not null"`
-    Public bool
-    Password string `gorm:"size:128"`
-    Description string `gorm:"size:10000"`
-    Confirmation string `gorm:"size:128"`
-    PasswordReset string `gorm:"size:128"`
+    Username            string `gorm:"size:128;unique_index;not null"`
+    Email               string `gorm:"size:256;unique_index;not null"`
+    ShowEmail           bool
+    Public              bool
+    Password            string `gorm:"size:128"`
+    Description         string `gorm:"size:10000"`
+    Confirmation        string `gorm:"size:128"`
+    PasswordReset       string `gorm:"size:128"`
     PasswordResetExpiry time.Time
-    Authed bool
+    Authed              bool
 
-    RoleUsers []RoleUser
+    roleUsers []RoleUser
 }
 
 func NewUser(name string, email string, password string) *User {
     user := &User {
         Username: name,
         Email: email,
+        ShowEmail: false,
         Public: false,
         Description: "",
         Confirmation: "",
@@ -44,6 +49,7 @@ func NewUser(name string, email string, password string) *User {
         Authed: false,
     }
     user.SetPassword(password)
+    user.Meta = "{}"
     return user
 }
 
@@ -85,6 +91,7 @@ func (user User) AddRole(name string) Role {
     if role.Name == "" {
         role.Name = name
         role.Params = "{}"
+        role.Meta = "{}"
         SpaceDock.Database.Save(&role)
     }
     ru := RoleUser{}
@@ -109,8 +116,8 @@ func (user User) RemoveRole(name string) {
 }
 
 func (user User) GetRoles() []Role {
-    value := make([]Role, len(user.RoleUsers))
-    for index,element := range user.RoleUsers {
+    value := make([]Role, len(user.roleUsers))
+    for index,element := range user.roleUsers {
         role := Role {}
         SpaceDock.Database.First(&role, element.RoleID)
         value[index] = role
@@ -132,4 +139,45 @@ func (user User) GetAbilities() []Ability {
         }
     }
     return value
+}
+
+func (user User) Format(ctx *iris.Context, admin bool) map[string]interface{} {
+    if (admin) {
+        roles := user.GetRoles()
+        names := make([]string, len(roles))
+        for i,element := range roles {
+            names[i] = element.Name
+        }
+        return map[string]interface{}{
+            "id": user.ID,
+            "username": user.Username,
+            "email": user.Email,
+            "showEmail": user.ShowEmail,
+            "public": user.Public,
+            "description": user.Description,
+            "roles": names,
+            "meta": utils.LoadJSON(user.Meta),
+        }
+    } else {
+        roles := user.GetRoles()
+        names := make([]string, len(roles))
+        for i,element := range roles {
+            names[i] = element.Name
+        }
+        meta := utils.LoadJSON(user.Meta)
+        userID,_ := ctx.Session().GetInt("SessionID")
+        if _,ok := meta["private"]; ok && user.ID != uint(userID) {
+            meta["private"] = map[string]string {}
+        }
+        return map[string]interface{}{
+            "id": user.ID,
+            "username": user.Username,
+            "email": utils.Ternary(user.ShowEmail, user.Email, ""),
+            "showEmail": user.ShowEmail,
+            "public": user.Public,
+            "description": user.Description,
+            "roles": names,
+            "meta": utils.LoadJSON(user.Meta),
+        }
+    }
 }

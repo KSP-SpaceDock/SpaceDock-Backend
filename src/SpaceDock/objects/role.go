@@ -18,11 +18,12 @@ import (
 
 type Role struct {
     gorm.Model
+    MetaObject
 
-    Name string `gorm:"size:128;unique_index;not null"`
-    Params string `gorm:"size:4096"`
-    RoleUsers []RoleUser
-    RoleAbilities []RoleAbility
+    Name          string `gorm:"size:128;unique_index;not null"`
+    Params        string `gorm:"size:4096"`
+    roleUsers     []RoleUser
+    roleAbilities []RoleAbility
 }
 
 func (role Role) GetById(id interface{}) error {
@@ -38,6 +39,7 @@ func (role Role) AddAbility(name string) Ability {
     SpaceDock.Database.Where("name = ?", name).First(&ability)
     if ability.Name == "" {
         ability.Name = name
+        ability.Meta = "{}"
         SpaceDock.Database.Save(&ability)
     }
     ra := RoleAbility {}
@@ -62,8 +64,8 @@ func (role Role) RemoveAbility(name string) {
 }
 
 func (role Role) GetAbilities() []Ability {
-    value := make([]Ability, len(role.RoleAbilities))
-    for index,element := range role.RoleAbilities {
+    value := make([]Ability, len(role.roleAbilities))
+    for index,element := range role.roleAbilities {
         ability := Ability {}
         SpaceDock.Database.First(&ability, element.AbilityID)
         value[index] = ability

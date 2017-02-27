@@ -17,7 +17,9 @@ import (
  Init function, here we register the routes in iris
  */
 func init() {
+    AccessRegister()
     AccountsRegister()
+    AdminRegister()
 }
 
 const (

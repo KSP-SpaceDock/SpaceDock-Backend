@@ -35,6 +35,7 @@ func AdminRegister() {
  Path: /api/admin/impersonate/:userid
  Method: GET
  Description: Log into another persons account from an admin account
+ Abilities: admin-impersonate
  */
 func impersonate(ctx *iris.Context) {
     id, err := ctx.GetInt("userid")
@@ -57,6 +58,7 @@ func impersonate(ctx *iris.Context) {
 /*
  Path: /api/admin/manual-confirmation/:userid
  Method: GET
+ Abilities: admin-confirm
  */
 func manualConfirmation(ctx *iris.Context) {
     id, err := ctx.GetInt("userid")
