@@ -12,6 +12,7 @@ package utils
 import (
     "crypto/rand"
     "encoding/hex"
+    "encoding/json"
 )
 
 func RandomHex(n int) (string, error) {
@@ -20,4 +21,13 @@ func RandomHex(n int) (string, error) {
         return "", err
     }
     return hex.EncodeToString(bytes), nil
+}
+
+func LoadJSON(data string) map[string]interface{} {
+    var temp map[string]interface{}
+    err := json.Unmarshal([]byte(data), &temp)
+    if err != nil {
+        return nil
+    }
+    return temp
 }
