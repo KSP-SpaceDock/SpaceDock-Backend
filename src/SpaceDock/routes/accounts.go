@@ -125,7 +125,7 @@ func register(ctx *iris.Context) {
     // Eval userdata
 
     SpaceDock.Database.Save(user)
-    utils.SendConfirmation(*user, followMod)
+    utils.SendConfirmation(user.Confirmation, user.Username, user.Email, followMod)
 
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user})
 }
@@ -246,7 +246,7 @@ func logout(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You are not logged in. Logging out now would be a bit difficult, right?").Code(3070))
         return
     }
-    middleware.LogoutUser(ctx, *user)
+    middleware.LogoutUser(ctx)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -272,7 +272,7 @@ func reset(ctx *iris.Context) {
     user.PasswordReset,_ = utils.RandomHex(20)
     user.PasswordResetExpiry = time.Now().Add(time.Hour * 24)
     SpaceDock.Database.Save(&user)
-    utils.SendReset(user)
+    utils.SendReset(user.Username, user.PasswordReset, user.Email)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 

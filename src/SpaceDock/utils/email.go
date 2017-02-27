@@ -10,7 +10,6 @@ package utils
 
 import (
     "SpaceDock"
-    "SpaceDock/objects"
     "bytes"
     "github.com/go-gomail/gomail"
     "io/ioutil"
@@ -47,19 +46,19 @@ func SendMail(sender string, recipients []string, subject string, message string
     log.Printf("Sending email from %s to %d recipients", sender, len(recipients))
 }
 
-func SendConfirmation(user objects.User, followMod string) {
+func SendConfirmation(userConfirmation string, userUsername string, userEmail string, followMod string) {
     buffer,err := ioutil.ReadFile("emails/confirm-account")
     if err != nil {
         log.Fatalf("Error while reading Email Template confirm-account: %s", err)
         return
     }
-    confirmation := user.Confirmation
+    confirmation := userConfirmation
     if followMod != "" {
         confirmation += "?f=" + followMod
     }
     data := map[string]interface{}{
-        "SiteName":     SpaceDock.Settings.SiteName,
-        "Username": user.Username,
+        "SiteName": SpaceDock.Settings.SiteName,
+        "Username": userUsername,
         "Domain": SpaceDock.Settings.Domain,
         "Confirmation": confirmation,
     }
@@ -71,10 +70,10 @@ func SendConfirmation(user objects.User, followMod string) {
         return
     }
     s := buf.String()
-    go SendMail(SpaceDock.Settings.SupportMail, []string{user.Email}, "Welcome to " + SpaceDock.Settings.SiteName + "!", s, true)
+    go SendMail(SpaceDock.Settings.SupportMail, []string{userEmail}, "Welcome to " + SpaceDock.Settings.SiteName + "!", s, true)
 }
 
-func SendReset(user objects.User) {
+func SendReset(userUsername string, userPasswordReset string, userEmail string) {
     buffer,err := ioutil.ReadFile("emails/password-reset")
     if err != nil {
         log.Fatalf("Error while reading Email Template password-reset: %s", err)
@@ -82,9 +81,9 @@ func SendReset(user objects.User) {
     }
     data := map[string]interface{}{
         "SiteName":     SpaceDock.Settings.SiteName,
-        "Username": user.Username,
+        "Username": userUsername,
         "Domain": SpaceDock.Settings.Domain,
-        "Confirmation": user.PasswordReset,
+        "Confirmation": userPasswordReset,
     }
     text := string(buffer)
     t := template.Must(template.New("email").Parse(text))
@@ -94,5 +93,5 @@ func SendReset(user objects.User) {
         return
     }
     s := buf.String()
-    go SendMail(SpaceDock.Settings.SupportMail, []string{user.Email}, "Reset your password on " + SpaceDock.Settings.SiteName, s, true)
+    go SendMail(SpaceDock.Settings.SupportMail, []string{userEmail}, "Reset your password on " + SpaceDock.Settings.SiteName, s, true)
 }
