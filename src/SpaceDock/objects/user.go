@@ -23,7 +23,7 @@ type User struct {
     MetaObject
 
     Username            string `gorm:"size:128;unique_index;not null"`
-    Email               string `gorm:"size:256;unique_index;not null"`
+    Email               string `gorm:"size:256;not null"`
     ShowEmail           bool
     Public              bool
     Password            string `gorm:"size:128"`
@@ -53,10 +53,9 @@ func NewUser(name string, email string, password string) *User {
     return user
 }
 
-func (user User) SetPassword(password string) {
+func (user *User) SetPassword(password string) {
     salt, _ := bcrypt.Salt()
     user.Password, _ = bcrypt.Hash(password, salt)
-    SpaceDock.Database.Save(user)
 }
 
 func (user User) IsAuthenticated() bool {
@@ -77,7 +76,7 @@ func (user User) UniqueId() interface{} {
     return user.ID
 }
 
-func (user User) GetById(id interface{}) error {
+func (user *User) GetById(id interface{}) error {
     SpaceDock.Database.First(&user, id)
     if user.Username != "" {
         return errors.New("Invalid user ID")
@@ -95,7 +94,7 @@ func (user User) AddRole(name string) Role {
         SpaceDock.Database.Save(&role)
     }
     ru := RoleUser{}
-    SpaceDock.Database.Where("roleid = ?", role.ID).Where("userid = ?", user.ID).First(&ru)
+    SpaceDock.Database.Where("role_id = ?", role.ID).Where("user_id = ?", user.ID).First(&ru)
     if ru.RoleID != role.ID || ru.UserID != user.ID {
         SpaceDock.Database.Save(NewRoleUser(user, role))
     }
@@ -109,7 +108,7 @@ func (user User) RemoveRole(name string) {
         return
     }
     ru := RoleUser{}
-    SpaceDock.Database.Where("roleid = ?", role.ID).Where("userid = ?", user.ID).First(&ru)
+    SpaceDock.Database.Where("role_id = ?", role.ID).Where("user_id = ?", user.ID).First(&ru)
     if ru.RoleID == role.ID && ru.UserID == user.ID {
         SpaceDock.Database.Delete(&ru)
     }

@@ -10,10 +10,10 @@ package objects
 
 import (
     "SpaceDock"
+    "SpaceDock/utils"
+    "encoding/json"
     "errors"
     "github.com/jinzhu/gorm"
-    "encoding/json"
-    "SpaceDock/utils"
 )
 
 type Role struct {
@@ -26,7 +26,7 @@ type Role struct {
     roleAbilities []RoleAbility
 }
 
-func (role Role) GetById(id interface{}) error {
+func (role *Role) GetById(id interface{}) error {
     SpaceDock.Database.First(&role, id)
     if role.Name != "" {
         return errors.New("Invalid role ID")
@@ -43,7 +43,7 @@ func (role Role) AddAbility(name string) Ability {
         SpaceDock.Database.Save(&ability)
     }
     ra := RoleAbility {}
-    SpaceDock.Database.Where("roleid = ?", role.ID).Where("abilityid = ?", ability.ID).First(&ra)
+    SpaceDock.Database.Where("role_id = ?", role.ID).Where("ability_id = ?", ability.ID).First(&ra)
     if ra.RoleID != role.ID || ra.AbilityID != ability.ID {
         SpaceDock.Database.Save(NewRoleAbility(role, ability))
     }
@@ -57,7 +57,7 @@ func (role Role) RemoveAbility(name string) {
         return
     }
     ra := RoleAbility {}
-    SpaceDock.Database.Where("roleid = ?", role.ID).Where("abilityid = ?", ability.ID).First(&ra)
+    SpaceDock.Database.Where("role_id = ?", role.ID).Where("ability_id = ?", ability.ID).First(&ra)
     if ra.RoleID == role.ID && ra.AbilityID == ability.ID {
         SpaceDock.Database.Delete(&ra)
     }
@@ -87,7 +87,7 @@ func (role Role) GetParams(ability string, param string) []string {
     return nil
 }
 
-func (role Role) AddParam(ability string, param string, value string) error  {
+func (role *Role) AddParam(ability string, param string, value string) error  {
     var temp map[string]map[string][]string
     err := json.Unmarshal([]byte(role.Params), &temp)
     if err != nil {
@@ -110,7 +110,7 @@ func (role Role) AddParam(ability string, param string, value string) error  {
     return nil
 }
 
-func (role Role) RemoveParam(ability string, param string, value string) error {
+func (role *Role) RemoveParam(ability string, param string, value string) error {
     var temp map[string]map[string][]string
     err := json.Unmarshal([]byte(role.Params), &temp)
     if err != nil {

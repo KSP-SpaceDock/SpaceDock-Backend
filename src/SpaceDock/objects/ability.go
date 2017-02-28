@@ -10,9 +10,9 @@ package objects
 
 import (
     "SpaceDock"
+    "SpaceDock/utils"
     "errors"
     "github.com/jinzhu/gorm"
-    "SpaceDock/utils"
 )
 
 type Ability struct {
@@ -23,7 +23,7 @@ type Ability struct {
     RoleAbilities []RoleAbility
 }
 
-func (ability Ability) GetById(id interface{}) error {
+func (ability *Ability) GetById(id interface{}) error {
     SpaceDock.Database.First(&ability, id)
     if ability.Name != "" {
         return errors.New("Invalid ability ID")

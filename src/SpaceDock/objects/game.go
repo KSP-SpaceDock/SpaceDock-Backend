@@ -9,9 +9,11 @@
 package objects
 
 import (
+    "SpaceDock"
+    "SpaceDock/utils"
+    "errors"
     "github.com/jinzhu/gorm"
     "time"
-    "SpaceDock/utils"
 )
 
 type Game struct {
@@ -49,6 +51,14 @@ func NewGame(name string, publisher Publisher, short string) *Game {
     }
     game.Meta = "{}"
     return game
+}
+
+func (game *Game) GetById(id interface{}) error {
+    SpaceDock.Database.First(&game, id)
+    if game.Name != "" {
+        return errors.New("Invalid ability ID")
+    }
+    return nil
 }
 
 func (game Game) GetPublisher() *Publisher {

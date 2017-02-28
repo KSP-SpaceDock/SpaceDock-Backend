@@ -29,7 +29,7 @@ func (meta MetaObject) GetValue(key string) (error,interface{}) {
     return nil,temp[key]
 }
 
-func (meta MetaObject) SetValue(key string, value interface{}) error {
+func (meta *MetaObject) SetValue(key string, value interface{}) error {
     var temp map[string]interface{}
     err := json.Unmarshal([]byte(meta.Meta), &temp)
     if err != nil {

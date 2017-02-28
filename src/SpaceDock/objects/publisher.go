@@ -10,9 +10,9 @@ package objects
 
 import (
     "SpaceDock"
+    "SpaceDock/utils"
     "errors"
     "github.com/jinzhu/gorm"
-    "SpaceDock/utils"
 )
 
 type Publisher struct {
@@ -34,8 +34,8 @@ func (pub Publisher) GetGames() *gorm.DB {
     return SpaceDock.Database.Where("publisherid = ?", pub.ID)
 }
 
-func (pub Publisher) GetById(id interface{}) error {
-    SpaceDock.Database.First(&pub, id)
+func (pub *Publisher) GetById(id interface{}) error {
+    SpaceDock.Database.First(pub, id)
     if pub.Name != "" {
         return errors.New("Invalid user ID")
     }
