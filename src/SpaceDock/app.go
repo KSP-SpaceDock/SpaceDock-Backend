@@ -10,6 +10,8 @@ package SpaceDock
 
 import (
     "github.com/kataras/iris"
+    "github.com/kataras/iris/adaptors/httprouter"
+    "github.com/kataras/iris/adaptors/sessions"
     "log"
     "strconv"
 )
@@ -17,7 +19,7 @@ import (
 /*
  The webserver that will listen for Requests
  */
-var App iris.Framework
+var App *iris.Framework
 
 /*
  Startup function for the app
@@ -36,9 +38,19 @@ func init() {
 
     // Create the App
     log.Print("* Initializing Iris-Framework")
-    App = *iris.New(iris.Configuration{IsDevelopment: Settings.Debug })
-
-    // Load routes here
+    App = iris.New()
+    App.Adapt(httprouter.New())
+    App.Adapt(iris.DevLogger())
+    mySessions := sessions.New(sessions.Config{
+        Cookie: "spacedocksid",
+        DecodeCookie: false,
+        Expires: 0,
+        CookieLength: 32,
+        DisableSubdomainPersistence: false,
+    })
+    App.Adapt(mySessions)
+    App.Config.Gzip = true
+    App.Config.DisableBodyConsumptionOnUnmarshal = true
 }
 
 /*

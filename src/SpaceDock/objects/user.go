@@ -10,11 +10,11 @@ package objects
 
 import (
     "SpaceDock"
+    "SpaceDock/utils"
     "errors"
     "github.com/jameskeane/bcrypt"
     "github.com/jinzhu/gorm"
     "time"
-    "SpaceDock/utils"
     "github.com/kataras/iris"
 )
 

@@ -15,7 +15,7 @@ import (
 
 func GetFullJSON(ctx *iris.Context) map[string]interface{} {
     var value map[string]interface{}
-    err := ctx.ReadJSON(value)
+    err := ctx.ReadJSON(&value)
     if err != nil {
         log.Fatal("Tried to parse invalid JSON")
         return nil

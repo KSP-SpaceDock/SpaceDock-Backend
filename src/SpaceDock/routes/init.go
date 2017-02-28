@@ -27,7 +27,7 @@ const (
     POST = 2
 )
 
-func Register(mode int, path string, handlers ...iris.HandlerFunc) iris.RouteNameFunc {
+func Register(mode int, path string, handlers ...iris.HandlerFunc) iris.RouteInfo {
     if mode == 1 {
         return SpaceDock.App.Get(path, handlers...)
     } else {

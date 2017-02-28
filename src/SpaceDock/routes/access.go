@@ -10,10 +10,10 @@ package routes
 
 import (
     "SpaceDock"
+    "SpaceDock/middleware"
     "SpaceDock/objects"
     "SpaceDock/utils"
     "github.com/kataras/iris"
-    "SpaceDock/middleware"
 )
 
 /*
