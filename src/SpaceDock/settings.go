@@ -65,6 +65,9 @@ type SettingsData struct {
 
     // Whether CORS should be enabled
     DisableSameOrigin bool
+
+    // Whether the code should generate a dummy database
+    CreateDefaultDatabase bool
 }
 
 /*
@@ -108,6 +111,7 @@ func loadFromCommandLine() {
     flag.StringVar(&Settings.CdnDomain, "cdndomain", "", "Whether a custom CDN should be used instead of the local storage")
     flag.StringVar(&Settings.ThumbnailSize, "thumbnailsize", "", "Thumbnail size in WxH format")
     flag.BoolVar(&Settings.DisableSameOrigin, "disablesameorigin", false, "Enables CORS (Cross Origin Requests)")
+    flag.BoolVar(&Settings.CreateDefaultDatabase, "createdefaultdatabase", false, "")
 
     flag.StringVar(&configFile, "configfile", "", "The path for a dedicated configuration file")
     flag.Parse()
