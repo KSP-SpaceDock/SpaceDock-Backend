@@ -73,6 +73,17 @@ func (role Role) GetAbilities() []Ability {
     return value
 }
 
+func (role Role) HasAbility(name string) bool {
+    ability := Ability {}
+    SpaceDock.Database.Where("name = ?", name).First(&ability)
+    if ability.Name == "" {
+        return false
+    }
+    ra := RoleAbility{}
+    SpaceDock.Database.Where("role_id = ?", role.ID).Where("ability_id = ?", ability.ID).First(&ra)
+    return ra.RoleID == role.ID && ra.AbilityID == ability.ID
+}
+
 func (role Role) GetParams(ability string, param string) []string {
     var temp map[string]map[string][]string
     err := json.Unmarshal([]byte(role.Params), &temp)

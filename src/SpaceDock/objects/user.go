@@ -114,6 +114,17 @@ func (user User) RemoveRole(name string) {
     }
 }
 
+func (user User) HasRole(name string) bool {
+    role := Role {}
+    SpaceDock.Database.Where("name = ?", name).First(&role)
+    if role.Name == "" {
+        return false
+    }
+    ru := RoleUser{}
+    SpaceDock.Database.Where("role_id = ?", role.ID).Where("user_id = ?", user.ID).First(&ru)
+    return ru.RoleID == role.ID && ru.UserID == user.ID
+}
+
 func (user User) GetRoles() []Role {
     value := make([]Role, len(user.roleUsers))
     for index,element := range user.roleUsers {
