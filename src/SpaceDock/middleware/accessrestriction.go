@@ -13,7 +13,7 @@ import (
     "SpaceDock/objects"
     "SpaceDock/utils"
     "encoding/json"
-    "github.com/kataras/iris"
+    "gopkg.in/kataras/iris.v6"
     "log"
 )
 

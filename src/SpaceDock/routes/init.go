@@ -10,7 +10,7 @@ package routes
 
 import (
     "SpaceDock"
-    "github.com/kataras/iris"
+    "gopkg.in/kataras/iris.v6"
 )
 
 /*

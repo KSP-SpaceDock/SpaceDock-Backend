@@ -9,10 +9,11 @@
 package SpaceDock
 
 import (
-    "github.com/kataras/iris"
-    "github.com/kataras/iris/adaptors/httprouter"
-    "github.com/kataras/iris/adaptors/sessions"
+    "gopkg.in/kataras/iris.v6"
+    "gopkg.in/kataras/iris.v6/adaptors/httprouter"
+    "gopkg.in/kataras/iris.v6/adaptors/sessions"
     "log"
+    "os"
     "strconv"
 )
 

@@ -14,8 +14,8 @@ import (
     "errors"
     "github.com/jameskeane/bcrypt"
     "github.com/jinzhu/gorm"
+    "gopkg.in/kataras/iris.v6"
     "time"
-    "github.com/kataras/iris"
 )
 
 type User struct {

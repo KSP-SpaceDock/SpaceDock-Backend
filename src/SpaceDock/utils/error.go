@@ -8,7 +8,7 @@
 
 package utils
 
-import "github.com/kataras/iris"
+import "gopkg.in/kataras/iris.v6"
 
 type ErrorMessage struct {
     reasons []string

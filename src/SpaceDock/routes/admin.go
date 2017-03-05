@@ -13,7 +13,7 @@ import (
     "SpaceDock/middleware"
     "SpaceDock/objects"
     "SpaceDock/utils"
-    "github.com/kataras/iris"
+    "gopkg.in/kataras/iris.v6"
     "strconv"
 )
 

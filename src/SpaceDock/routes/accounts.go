@@ -14,7 +14,7 @@ import (
     "SpaceDock/objects"
     "SpaceDock/utils"
     "github.com/jameskeane/bcrypt"
-    "github.com/kataras/iris"
+    "gopkg.in/kataras/iris.v6"
     "regexp"
     "strconv"
     "time"

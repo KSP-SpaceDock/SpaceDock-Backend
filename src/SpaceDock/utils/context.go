@@ -9,7 +9,7 @@
 package utils
 
 import (
-    "github.com/kataras/iris"
+    "gopkg.in/kataras/iris.v6"
     "log"
 )
 
