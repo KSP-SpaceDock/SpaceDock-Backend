@@ -13,12 +13,10 @@ import (
     "SpaceDock/utils"
     "encoding/json"
     "errors"
-    "github.com/jinzhu/gorm"
 )
 
 type Role struct {
-    gorm.Model
-    MetaObject
+    Model
 
     Name          string `gorm:"size:128;unique_index;not null"`
     Params        string `gorm:"size:4096"`

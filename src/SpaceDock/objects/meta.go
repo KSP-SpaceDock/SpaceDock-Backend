@@ -11,13 +11,18 @@ package objects
 import (
     "encoding/json"
     "errors"
+    "time"
 )
 
-type MetaObject struct {
-    Meta string `gorm:"size:4096"`
+type Model struct {
+    ID        uint `gorm:"primary_key" json:"id"`
+    CreatedAt time.Time `json:"created"`
+    UpdatedAt time.Time `json:"updated"`
+    DeletedAt *time.Time `sql:"index" json:"-"`
+    Meta string `gorm:"size:4096" json:"meta"`
 }
 
-func (meta MetaObject) GetValue(key string) (error,interface{}) {
+func (meta Model) GetValue(key string) (error,interface{}) {
     var temp map[string]interface{}
     err := json.Unmarshal([]byte(meta.Meta), &temp)
     if err != nil {
@@ -29,7 +34,7 @@ func (meta MetaObject) GetValue(key string) (error,interface{}) {
     return nil,temp[key]
 }
 
-func (meta *MetaObject) SetValue(key string, value interface{}) error {
+func (meta *Model) SetValue(key string, value interface{}) error {
     var temp map[string]interface{}
     err := json.Unmarshal([]byte(meta.Meta), &temp)
     if err != nil {

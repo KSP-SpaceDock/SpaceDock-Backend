@@ -12,24 +12,22 @@ import (
     "SpaceDock"
     "SpaceDock/utils"
     "errors"
-    "github.com/jinzhu/gorm"
     "time"
 )
 
 type Game struct {
-    gorm.Model
-    MetaObject
+    Model
 
-    Name string `gorm:"size:1024;unique_index;not null"`
-    Active bool
-    Fileformats string `gorm:"size:1024"`
-    Altname string `gorm:"size:1024"`
-    Rating float32
-    Releasedate time.Time
-    Short string `gorm:"size:1024"`
-    publisherID uint
-    Description string `gorm:"size:100000"`
-    ShortDescription string `gorm:"size:1000"`
+    Name string `gorm:"size:1024;unique_index;not null" json:"name"`
+    Active bool `json:"active"`
+    Fileformats string `gorm:"size:1024" json:"fileformats" spacedock:"json"`
+    Altname string `gorm:"size:1024" json:"altname"`
+    Rating float32 `json:"rating"`
+    Releasedate time.Time `json:"releasedate"`
+    Short string `gorm:"size:1024" json:"short"`
+    publisherID uint `json:"publisher"`
+    Description string `gorm:"size:100000" json:"description"`
+    ShortDescription string `gorm:"size:1000" json:"short_description"`
     // Mods []Mod
     // Modlists []ModList
     // Versions []GameVersion
@@ -40,7 +38,6 @@ func NewGame(name string, publisher Publisher, short string) *Game {
     game := &Game {
         Name: name,
         Active: false,
-        Fileformats: "{\"zip\": \"application/zip\"}",
         Altname: "",
         Rating: 0,
         Releasedate: time.Now(),
@@ -75,7 +72,6 @@ func (game Game) Format() map[string]interface{} {
         "id": game.ID,
         "name": game.Name,
         "active": game.Active,
-        "fileformats": utils.LoadJSON(game.Fileformats),
         "rating": game.Rating,
         "releasedate": game.Releasedate,
         "short": game.Short,

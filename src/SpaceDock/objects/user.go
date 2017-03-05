@@ -13,14 +13,12 @@ import (
     "SpaceDock/utils"
     "errors"
     "github.com/jameskeane/bcrypt"
-    "github.com/jinzhu/gorm"
     "gopkg.in/kataras/iris.v6"
     "time"
 )
 
 type User struct {
-    gorm.Model
-    MetaObject
+    Model
 
     Username            string `gorm:"size:128;unique_index;not null"`
     Email               string `gorm:"size:256;not null"`

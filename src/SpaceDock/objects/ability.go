@@ -12,15 +12,13 @@ import (
     "SpaceDock"
     "SpaceDock/utils"
     "errors"
-    "github.com/jinzhu/gorm"
 )
 
 type Ability struct {
-    gorm.Model
-    MetaObject
+    Model
 
-    Name string `gorm:"size:128;unique_index;not null"`
-    RoleAbilities []RoleAbility
+    Name string `gorm:"size:128;unique_index;not null" json:"name"`
+    RoleAbilities []RoleAbility `json:"-"`
 }
 
 func (ability *Ability) GetById(id interface{}) error {

@@ -16,8 +16,7 @@ import (
 )
 
 type Publisher struct {
-    gorm.Model
-    MetaObject
+    Model
 
     Name             string `gorm:"size:1024;unique_index;not null"`
     Description      string `gorm:"size:100000"`

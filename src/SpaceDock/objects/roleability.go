@@ -8,13 +8,8 @@
 
 package objects
 
-import (
-    "github.com/jinzhu/gorm"
-)
-
 type RoleAbility struct {
-    gorm.Model
-    MetaObject
+    Model
 
     RoleID uint
     AbilityID uint
