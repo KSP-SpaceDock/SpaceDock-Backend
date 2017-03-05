@@ -125,9 +125,11 @@ func removerole(ctx *iris.Context) {
     user.GetById(userid)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid.").Code(2145))
+        return
     }
     if user.HasRole(rolename) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The user doesn't have this role").Code(1015))
+        return
     }
 
     // Everything is valid, remove the role
@@ -171,6 +173,7 @@ func assignability(ctx *iris.Context) {
     SpaceDock.Database.Where("name = ?", rolename).First(&role)
     if role.Name != rolename {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The role does not exist. Please add it to a user to create it internally.").Code(3030))
+        return
     }
 
     // Role is valid, assign the new ability
@@ -207,11 +210,13 @@ func removeability(ctx *iris.Context) {
     }
     if len(errors) > 0 {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error(errors...).Code(codes...))
+        return
     }
 
     // Both objects are valid, check if they are linked
     if !role.HasAbility(abname) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The ability isn't assigned to this role").Code(1010))
+        return
     }
 
     // Remove the ability
@@ -250,6 +255,7 @@ func addparam(ctx *iris.Context) {
     }
     if len(errors) > 0 {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error(errors...).Code(codes...))
+        return
     }
 
     // Both objects are valid, check if they are linked
@@ -288,6 +294,7 @@ func removeparam(ctx *iris.Context) {
     }
     if len(errors) > 0 {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error(errors...).Code(codes...))
+        return
     }
 
     // Both objects are valid, check if the param exists

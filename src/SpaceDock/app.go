@@ -29,6 +29,7 @@ var App *iris.Framework
  and startup the webserver to serve JSON
  */
 func init() {
+    log.SetOutput(os.Stdout)
     log.Print("SpaceDock-Backend -- Version: {$VERSION}")
     log.Print("* Loading configuration")
     LoadSettings()
