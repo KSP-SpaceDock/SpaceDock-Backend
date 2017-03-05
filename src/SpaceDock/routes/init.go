@@ -20,6 +20,7 @@ func init() {
     AccessRegister()
     AccountsRegister()
     AdminRegister()
+    GameRegister()
 }
 
 const (
