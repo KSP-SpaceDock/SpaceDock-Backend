@@ -19,7 +19,7 @@ type Role struct {
     Model
 
     Name      string `gorm:"size:128;unique_index;not null"`
-    Params    string `gorm:"size:4096"`
+    Params    string `gorm:"size:4096" spacedock:"json"`
     Abilities []Ability `gorm:"many2many:role_abilities"`
     Users     []User `gorm:"many2many:role_users"`
 }
