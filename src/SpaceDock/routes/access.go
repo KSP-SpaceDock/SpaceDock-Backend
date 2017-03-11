@@ -13,6 +13,7 @@ import (
     "SpaceDock/middleware"
     "SpaceDock/objects"
     "SpaceDock/utils"
+    "github.com/spf13/cast"
     "gopkg.in/kataras/iris.v6"
 )
 
@@ -20,51 +21,52 @@ import (
  Registers the routes for the account management
  */
 func AccessRegister() {
-    Register(GET, "/api/access",
+    Register(GET, "/api/access/roles/",
         middleware.NeedsPermission("access-view", true),
         listroles,
     )
-    Register(POST, "/api/access/roles/assign",
+    Register(POST, "/api/access/roles/",
         middleware.NeedsPermission("access-edit", true),
         assignrole,
     )
-    Register(POST, "/api/access/roles/remove",
+    Register(DELETE, "/api/access/roles/",
         middleware.NeedsPermission("access-edit", true),
         removerole,
     )
-    Register(GET, "/api/access/abilities",
+    Register(GET, "/api/access/abilities/",
         middleware.NeedsPermission("access-view", true),
         listabilities,
     )
-    Register(POST, "/api/access/abilities/assign",
+    Register(POST, "/api/access/abilities/",
         middleware.NeedsPermission("access-edit", true),
         assignability,
     )
-    Register(POST, "/api/access/abilities/remove",
+    Register(DELETE, "/api/access/abilities/",
         middleware.NeedsPermission("access-edit", true),
         removeability,
     )
-    Register(POST, "/api/access/params/add/:rolename",
+    Register(POST, "/api/access/roles/:rolename/params/",
         middleware.NeedsPermission("access-edit", true),
         addparam,
     )
-    Register(POST, "/api/access/params/remove/:rolename",
+    Register(DELETE, "/api/access/roles/:rolename/params/",
         middleware.NeedsPermission("access-edit", true),
         removeparam,
     )
 }
 
 /*
- Path:   /api/access
+ Path: /api/access/roles/
  Method: GET
  Description: Displays  list of all roles with the matching abilities
+ Abilities: access-view
  */
 func listroles(ctx *iris.Context) {
     var roles []objects.Role
     SpaceDock.Database.Find(&roles)
     output := make([]map[string]interface{}, len(roles))
     for i,element := range roles {
-        abilities := element.GetAbilities()
+        abilities := element.Abilities
         abilitiesout := make([]map[string]interface{}, len(abilities))
         for j,element2 := range abilities {
             abilitiesout[j] = map[string]interface{} {
@@ -84,19 +86,19 @@ func listroles(ctx *iris.Context) {
 }
 
 /*
- Path:   /api/access/roles/assign
+ Path: /api/access/roles/
  Method: POST
  Description: Promotes a user for the given role. Required parameters: userid, rolename
  Abilities: access-edit
  */
 func assignrole(ctx *iris.Context) {
     // Grab parameters from the JSON
-    userid := utils.GetJSON(ctx,"userid").(uint)
-    rolename := utils.GetJSON(ctx,"rolename").(string)
+    userid := cast.ToUint(utils.GetJSON(ctx,"userid"))
+    rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
 
     // Try to get the user
     var user objects.User
-    user.GetById(userid)
+    SpaceDock.Database.Where("id = ?", userid).First(&user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid.").Code(2145))
     }
@@ -110,19 +112,19 @@ func assignrole(ctx *iris.Context) {
 
 
 /*
- Path:   /api/access/roles/remove
- Method: POST
+ Path: /api/access/roles/
+ Method: DELETE
  Description: Promotes a user for the given role. Required parameters: userid, rolename
  Abilities: access-edit
  */
 func removerole(ctx *iris.Context) {
     // Grab parameters from the JSON
-    userid := utils.GetJSON(ctx,"userid").(uint)
-    rolename := utils.GetJSON(ctx,"rolename").(string)
+    userid := cast.ToUint(utils.GetJSON(ctx,"userid"))
+    rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
 
     // Try to get the user
     var user objects.User
-    user.GetById(userid)
+    SpaceDock.Database.Where("id = ?", userid).First(&user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid.").Code(2145))
         return
@@ -139,9 +141,10 @@ func removerole(ctx *iris.Context) {
 }
 
 /*
- Path:   /api/access/abilities
+ Path: /api/access/abilities
  Method: GET
  Description: Displays a list of all abilities.
+ Abilities: access-view
  */
 func listabilities(ctx *iris.Context) {
     var abilities []objects.Ability
@@ -158,15 +161,15 @@ func listabilities(ctx *iris.Context) {
 }
 
 /*
- Path:   /api/access/abilities/assign
+ Path: /api/access/abilities/
  Method: POST
  Description: Adds a permission to a group. Required parameters: rolename, abname
  Abilities: access-edit
  */
 func assignability(ctx *iris.Context) {
     // Grab parameters from the JSON
-    rolename := utils.GetJSON(ctx,"rolename").(string)
-    abname := utils.GetJSON(ctx,"abname").(string)
+    rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
+    abname := cast.ToString(utils.GetJSON(ctx,"abname"))
 
     // Try to get the role
     var role objects.Role
@@ -183,15 +186,15 @@ func assignability(ctx *iris.Context) {
 }
 
 /*
- Path:   /api/access/abilities/remove
- Method: POST
+ Path: /api/access/abilities/
+ Method: DELETE
  Description: Removes a permission from a group. Required parameters: rolename, abname
  Abilities: access-edit
  */
 func removeability(ctx *iris.Context) {
     // Grab parameters from the JSON
-    rolename := utils.GetJSON(ctx,"rolename").(string)
-    abname := utils.GetJSON(ctx,"abname").(string)
+    rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
+    abname := cast.ToString(utils.GetJSON(ctx,"abname"))
 
     // Try to get the role
     var role objects.Role
@@ -226,7 +229,7 @@ func removeability(ctx *iris.Context) {
 }
 
 /*
- Path:   /api/access/params/add/:rolename
+ Path: /api/access/roles/:rolename/params/
  Method: POST
  Description: Adds a parameter for an ability. Required parameters: abname, param, value
  Abilities: access-edit
@@ -234,9 +237,9 @@ func removeability(ctx *iris.Context) {
 func addparam(ctx *iris.Context) {
     // Grab parameters from the JSON
     rolename := ctx.GetString("rolename")
-    abname := utils.GetJSON(ctx,"abname").(string)
-    param := utils.GetJSON(ctx,"param").(string)
-    value := utils.GetJSON(ctx,"value").(string)
+    abname := cast.ToString(utils.GetJSON(ctx,"abname"))
+    param := cast.ToString(utils.GetJSON(ctx,"param"))
+    value := cast.ToString(utils.GetJSON(ctx,"value"))
 
     // Try to get the role
     var role objects.Role
@@ -265,17 +268,17 @@ func addparam(ctx *iris.Context) {
 }
 
 /*
- Path:   /api/access/params/remove/:rolename
- Method: POST
+ Path: /api/access/roles/:rolename/params/
+ Method: DELETE
  Description: Removes a parameter from an ability. Required parameters: abname, param, value
  Abilities: access-edit
  */
 func removeparam(ctx *iris.Context) {
     // Grab parameters from the JSON
     rolename := ctx.GetString("rolename")
-    abname := utils.GetJSON(ctx,"abname").(string)
-    param := utils.GetJSON(ctx,"param").(string)
-    value := utils.GetJSON(ctx,"value").(string)
+    abname := cast.ToString(utils.GetJSON(ctx,"abname"))
+    param := cast.ToString(utils.GetJSON(ctx,"param"))
+    value := cast.ToString(utils.GetJSON(ctx,"value"))
 
     // Try to get the role
     var role objects.Role

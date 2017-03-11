@@ -18,7 +18,5 @@ func init() {
     SpaceDock.CreateTable(&Game{})
     SpaceDock.CreateTable(&Publisher{})
     SpaceDock.CreateTable(&Role{})
-    SpaceDock.CreateTable(&RoleAbility{})
-    SpaceDock.CreateTable(&RoleUser{})
     SpaceDock.CreateTable(&User{})
 }

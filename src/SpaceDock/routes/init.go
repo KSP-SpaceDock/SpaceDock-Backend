@@ -26,12 +26,17 @@ func init() {
 const (
     GET = 1
     POST = 2
+    PUT = 3
+    DELETE = 4
 )
 
 func Register(mode int, path string, handlers ...iris.HandlerFunc) iris.RouteInfo {
-    if mode == 1 {
-        return SpaceDock.App.Get(path, handlers...)
-    } else {
+    if mode == 2 {
         return SpaceDock.App.Post(path, handlers...)
+    } else if mode == 3 {
+        return SpaceDock.App.Put(path, handlers...)
+    } else if mode == 4 {
+        return SpaceDock.App.Delete(path, handlers...)
     }
+    return SpaceDock.App.Get(path, handlers...)
 }

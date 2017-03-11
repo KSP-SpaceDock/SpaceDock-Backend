@@ -13,6 +13,7 @@ import (
     "SpaceDock/middleware"
     "SpaceDock/objects"
     "SpaceDock/utils"
+    "github.com/spf13/cast"
     "gopkg.in/kataras/iris.v6"
     "strconv"
 )
@@ -21,11 +22,11 @@ import (
  Registers the routes for the admin section
  */
 func AdminRegister() {
-    Register(GET, "/api/admin/impersonate/:userid",
+    Register(POST, "/api/admin/impersonate/:userid",
         middleware.NeedsPermission("admin-impersonate", true, "userid"),
         impersonate,
     )
-    Register(GET, "/api/admin/manual-confirmation/:userid",
+    Register(POST, "/api/admin/manual-confirmation/:userid",
         middleware.NeedsPermission("admin-confirm", true),
         manualConfirmation,
     )
@@ -33,42 +34,42 @@ func AdminRegister() {
 
 /*
  Path: /api/admin/impersonate/:userid
- Method: GET
+ Method: POST
  Description: Log into another persons account from an admin account
  Abilities: admin-impersonate
  */
 func impersonate(ctx *iris.Context) {
     id, err := ctx.GetInt("userid")
-    userid := uint(id)
+    userid := cast.ToUint(id)
     if err != nil {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid").Code(2145))
         return
     }
     var user objects.User
-    user.GetById(userid)
+    SpaceDock.Database.Where("id = ?", userid).First(&user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid").Code(2145))
         return
     }
     middleware.LogoutUser(ctx)
-    middleware.LoginUser(ctx, user)
+    middleware.LoginUser(ctx, &user)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
 /*
  Path: /api/admin/manual-confirmation/:userid
- Method: GET
+ Method: POST
  Abilities: admin-confirm
  */
 func manualConfirmation(ctx *iris.Context) {
     id, err := ctx.GetInt("userid")
-    userid := uint(id)
+    userid := cast.ToUint(id)
     if err != nil {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid").Code(2145))
         return
     }
     var user objects.User
-    user.GetById(userid)
+    SpaceDock.Database.Where("id = ?", userid).First(&user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid").Code(2145))
         return

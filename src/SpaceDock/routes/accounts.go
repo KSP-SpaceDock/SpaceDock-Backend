@@ -18,6 +18,7 @@ import (
     "regexp"
     "strconv"
     "time"
+    "github.com/spf13/cast"
 )
 
 /*
@@ -25,15 +26,15 @@ import (
  */
 func AccountsRegister() {
     Register(POST, "/api/register", register)
-    Register(GET, "/api/confirm/:confirmation", confirm)
+    Register(GET, "/api/confirm/:confirmation", confirm) // Maybe switch to POST too?
     Register(POST, "/api/login", login)
-    Register(GET, "/api/logout", logout)
+    Register(POST, "/api/logout", logout)
     Register(POST, "/api/reset", reset)
     Register(POST, "/api/reset/:username/:confirmation", resetConfirm)
 }
 
 /*
- Path:   /api/register
+ Path: /api/register
  Method: POST
  Description: Creates a new useraccount
  */
@@ -45,13 +46,13 @@ func register(ctx *iris.Context) {
     }
 
     // Grab parameters from the JSON
-    followMod := utils.GetJSON(ctx,"follow-mod").(string)
-    email := utils.GetJSON(ctx,"email").(string)
-    username := utils.GetJSON(ctx,"username").(string)
-    password := utils.GetJSON(ctx,"password").(string)
-    confirmPassword := utils.GetJSON(ctx,"repeatPassword").(string)
-    //data := utils.GetJSON(ctx,"userdata")
-    check := utils.GetJSON(ctx,"check")
+    followMod := cast.ToString(utils.GetJSON(ctx,"follow-mod"))
+    email := cast.ToString(utils.GetJSON(ctx,"email"))
+    username := cast.ToString(utils.GetJSON(ctx,"username"))
+    password := cast.ToString(utils.GetJSON(ctx,"password"))
+    confirmPassword := cast.ToString(utils.GetJSON(ctx,"repeatPassword"))
+    data := cast.ToStringMap(utils.GetJSON(ctx,"userdata"))
+    check := cast.ToString(utils.GetJSON(ctx,"check"))
 
     var errors []string
     var codes []int
@@ -122,7 +123,20 @@ func register(ctx *iris.Context) {
     user := objects.NewUser(username, email, password)
     user.Confirmation,_ = utils.RandomHex(20)
 
-    // Eval userdata
+    // Edit user
+    if data != nil {
+        code := utils.EditObject(&user, data)
+        if code == 3 {
+            utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The value you submitted is invalid").Code(2180))
+            return
+        } else if code == 2 {
+            utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You tried to edit a value that doesn't exist.").Code(3090))
+            return
+        } else if code == 1 {
+            utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You tried to edit a value that is marked as read-only.").Code(3095))
+            return
+        }
+    }
 
     SpaceDock.Database.Save(user)
     utils.SendConfirmation(user.Confirmation, user.Username, user.Email, followMod)
@@ -164,7 +178,7 @@ func checkEmailForRegistration(email string) string {
 }
 
 /*
- Path:   /api/confirm/:confirmation
+ Path: /api/confirm/:confirmation
  Method: GET
  Description: Confirms a newly created useraccount using a random text sequence
  */
@@ -173,8 +187,8 @@ func confirm(ctx *iris.Context) {
     confirmation := ctx.GetString("confirmation")
 
     // Try to get a valid user account
-    var user objects.User
-    SpaceDock.Database.Where("confirmation = ?", confirmation).First(&user)
+    var user *objects.User
+    SpaceDock.Database.Where("confirmation = ?", confirmation).First(user)
     if user.Confirmation != confirmation {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("User does not exist or it is already confirmed. Did you mistype the confirmation?").Code(2165))
         return
@@ -205,8 +219,8 @@ func confirm(ctx *iris.Context) {
  */
 func login(ctx *iris.Context) {
     // Grab information
-    username := utils.GetJSON(ctx, "username").(string)
-    password := utils.GetJSON(ctx, "password").(string)
+    username := cast.ToString(utils.GetJSON(ctx, "username"))
+    password := cast.ToString(utils.GetJSON(ctx, "password"))
 
     // Check if the values are valid
     if username == "" || password == "" {
@@ -231,7 +245,7 @@ func login(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("User is not confirmed").Code(3055))
         return
     }
-    middleware.LoginUser(ctx, user)
+    middleware.LoginUser(ctx, &user)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user})
 }
 
@@ -256,7 +270,7 @@ func logout(ctx *iris.Context) {
  */
 func reset(ctx *iris.Context) {
     // Get the email
-    email := utils.GetJSON(ctx, "email").(string)
+    email := cast.ToString(utils.GetJSON(ctx, "email"))
 
     // Check if the values are valid
     if email == "" {

@@ -19,7 +19,12 @@ import (
 /*
  The database handler that provides the API to interact with the the DB
  */
-var Database gorm.DB
+var Database *gorm.DB
+
+/*
+ Counter for recursive reference fetching
+ */
+var DBRecursion int
 
 /*
  Establishes the connection to the database
@@ -29,8 +34,10 @@ func LoadDatabase() {
     if err != nil {
         log.Fatalf("* Failed to connect to the database: %s", err)
     }
-    Database = *db
+    Database = db
     log.Print("* Database connection successfull")
+    Database.LogMode(Settings.Debug)
+    DBRecursion = 0
 }
 
 /*

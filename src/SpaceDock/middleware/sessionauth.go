@@ -11,6 +11,7 @@ package middleware
 import (
     "SpaceDock/objects"
     "gopkg.in/kataras/iris.v6"
+    "github.com/spf13/cast"
 )
 
 func LoginRequired(ctx *iris.Context) {
@@ -29,9 +30,9 @@ func LoginRequired(ctx *iris.Context) {
     ctx.Next()
 }
 
-func LoginUser(ctx *iris.Context, user objects.User) {
+func LoginUser(ctx *iris.Context, user *objects.User) {
     user.Login()
-    ctx.Session().Set("SessionID", user.ID)
+    ctx.Session().Set("SessionID", cast.ToInt(user.ID))
 }
 
 func LogoutUser(ctx *iris.Context) {
@@ -43,7 +44,7 @@ func CurrentUser(ctx *iris.Context) *objects.User {
     userID, err := ctx.Session().GetInt("SessionID")
     if err == nil {
         var user objects.User
-        err = user.GetById(userID)
+        err = user.GetById(cast.ToUint(userID))
         if err != nil {
             return &user
         } else {

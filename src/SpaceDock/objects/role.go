@@ -18,10 +18,22 @@ import (
 type Role struct {
     Model
 
-    Name          string `gorm:"size:128;unique_index;not null"`
-    Params        string `gorm:"size:4096"`
-    roleUsers     []RoleUser
-    roleAbilities []RoleAbility
+    Name      string `gorm:"size:128;unique_index;not null"`
+    Params    string `gorm:"size:4096"`
+    Abilities []Ability `gorm:"many2many:role_abilities"`
+    Users     []User `gorm:"many2many:role_users"`
+}
+
+func (s *Role) AfterFind() {
+    if SpaceDock.DBRecursion == 2 {
+        return
+    }
+    isRoot := SpaceDock.DBRecursion == 0
+    SpaceDock.DBRecursion += 1
+    SpaceDock.Database.Model(s).Related(&(s.Abilities), "Abilities").Related(&(s.Users), "Users")
+    if isRoot {
+        SpaceDock.DBRecursion = 0
+    }
 }
 
 func (role *Role) GetById(id interface{}) error {
@@ -40,11 +52,8 @@ func (role Role) AddAbility(name string) Ability {
         ability.Meta = "{}"
         SpaceDock.Database.Save(&ability)
     }
-    ra := RoleAbility {}
-    SpaceDock.Database.Where("role_id = ?", role.ID).Where("ability_id = ?", ability.ID).First(&ra)
-    if ra.RoleID != role.ID || ra.AbilityID != ability.ID {
-        SpaceDock.Database.Save(NewRoleAbility(role, ability))
-    }
+    role.Abilities = append(role.Abilities, ability)
+    SpaceDock.Database.Save(role)
     return ability
 }
 
@@ -54,21 +63,10 @@ func (role Role) RemoveAbility(name string) {
     if ability.Name == "" {
         return
     }
-    ra := RoleAbility {}
-    SpaceDock.Database.Where("role_id = ?", role.ID).Where("ability_id = ?", ability.ID).First(&ra)
-    if ra.RoleID == role.ID && ra.AbilityID == ability.ID {
-        SpaceDock.Database.Delete(&ra)
+    if e,i := utils.ArrayContains(&ability, role.Abilities); e {
+        role.Abilities = append(role.Abilities[:i], role.Abilities[i + 1:]...)
+        SpaceDock.Database.Save(&role)
     }
-}
-
-func (role Role) GetAbilities() []Ability {
-    value := make([]Ability, len(role.roleAbilities))
-    for index,element := range role.roleAbilities {
-        ability := Ability {}
-        SpaceDock.Database.First(&ability, element.AbilityID)
-        value[index] = ability
-    }
-    return value
 }
 
 func (role Role) HasAbility(name string) bool {
@@ -77,9 +75,8 @@ func (role Role) HasAbility(name string) bool {
     if ability.Name == "" {
         return false
     }
-    ra := RoleAbility{}
-    SpaceDock.Database.Where("role_id = ?", role.ID).Where("ability_id = ?", ability.ID).First(&ra)
-    return ra.RoleID == role.ID && ra.AbilityID == ability.ID
+    e,_ := utils.ArrayContains(&ability, &role.Abilities)
+    return e
 }
 
 func (role Role) GetParams(ability string, param string) []string {

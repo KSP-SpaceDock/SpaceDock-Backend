@@ -40,7 +40,7 @@ func UserHasPermission(ctx *iris.Context, permission string, public bool, params
 
     user_abilities := user.GetAbilities()
     user_params := map[string]map[string][]string{}
-    for _,element := range user.GetRoles() {
+    for _,element := range user.Roles {
         var temp map[string]map[string][]string
         err := json.Unmarshal([]byte(element.Params), &temp)
         if err != nil {

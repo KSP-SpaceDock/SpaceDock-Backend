@@ -19,7 +19,7 @@ type Model struct {
     CreatedAt time.Time `json:"created"`
     UpdatedAt time.Time `json:"updated"`
     DeletedAt *time.Time `sql:"index" json:"-"`
-    Meta string `gorm:"size:4096" json:"meta"`
+    Meta      string `gorm:"size:4096" json:"meta"`
 }
 
 func (meta Model) GetValue(key string) (error,interface{}) {

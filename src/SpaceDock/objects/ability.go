@@ -17,8 +17,20 @@ import (
 type Ability struct {
     Model
 
-    Name string `gorm:"size:128;unique_index;not null" json:"name"`
-    RoleAbilities []RoleAbility `json:"-"`
+    Name  string `gorm:"size:128;unique_index;not null" json:"name"`
+    Roles []Role `gorm:"many2many:role_abilities"`
+}
+
+func (s *Ability) AfterFind() {
+    if SpaceDock.DBRecursion == 2 {
+        return
+    }
+    isRoot := SpaceDock.DBRecursion == 0
+    SpaceDock.DBRecursion += 1
+    SpaceDock.Database.Model(s).Related(&(s.Roles), "Roles")
+    if isRoot {
+        SpaceDock.DBRecursion = 0
+    }
 }
 
 func (ability *Ability) GetById(id interface{}) error {

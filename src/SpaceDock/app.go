@@ -12,6 +12,7 @@ import (
     "gopkg.in/kataras/iris.v6"
     "gopkg.in/kataras/iris.v6/adaptors/httprouter"
     "gopkg.in/kataras/iris.v6/adaptors/sessions"
+    "gopkg.in/kataras/iris.v6/middleware/logger"
     "log"
     "os"
     "strconv"
@@ -43,6 +44,7 @@ func init() {
     App = iris.New()
     App.Adapt(httprouter.New())
     App.Adapt(iris.DevLogger())
+    App.Use(logger.New())
     mySessions := sessions.New(sessions.Config{
         Cookie: "spacedocksid",
         DecodeCookie: false,

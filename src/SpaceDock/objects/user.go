@@ -29,9 +29,20 @@ type User struct {
     Confirmation        string `gorm:"size:128"`
     PasswordReset       string `gorm:"size:128"`
     PasswordResetExpiry time.Time
-    Authed              bool
+    Roles               []Role `gorm:"many2many:role_users" json:"-"`
+    authed              bool
+}
 
-    roleUsers []RoleUser
+func (s *User) AfterFind() {
+    if SpaceDock.DBRecursion == 2 {
+        return
+    }
+    isRoot := SpaceDock.DBRecursion == 0
+    SpaceDock.DBRecursion += 1
+    SpaceDock.Database.Model(s).Related(&(s.Roles), "Roles")
+    if isRoot {
+        SpaceDock.DBRecursion = 0
+    }
 }
 
 func NewUser(name string, email string, password string) *User {
@@ -44,7 +55,8 @@ func NewUser(name string, email string, password string) *User {
         Confirmation: "",
         PasswordReset: "",
         PasswordResetExpiry: time.Now(),
-        Authed: false,
+        authed: false,
+        Roles: []Role{},
     }
     user.SetPassword(password)
     user.Meta = "{}"
@@ -56,18 +68,18 @@ func (user *User) SetPassword(password string) {
     user.Password, _ = bcrypt.Hash(password, salt)
 }
 
+/* Login Interface */
+
 func (user User) IsAuthenticated() bool {
-    return user.Authed
+    return user.authed
 }
 
-func (user User) Login() {
-    user.Authed = true
-    SpaceDock.Database.Save(&user)
+func (user *User) Login() {
+    user.authed = true
 }
 
-func (user User) Logout() {
-    user.Authed = false
-    SpaceDock.Database.Save(&user)
+func (user *User) Logout() {
+    user.authed = false
 }
 
 func (user User) UniqueId() interface{} {
@@ -82,6 +94,8 @@ func (user *User) GetById(id interface{}) error {
     return nil
 }
 
+/* Login Interface End */
+
 func (user User) AddRole(name string) Role {
     role := Role {}
     SpaceDock.Database.Where("name = ?", name).First(&role)
@@ -91,11 +105,8 @@ func (user User) AddRole(name string) Role {
         role.Meta = "{}"
         SpaceDock.Database.Save(&role)
     }
-    ru := RoleUser{}
-    SpaceDock.Database.Where("role_id = ?", role.ID).Where("user_id = ?", user.ID).First(&ru)
-    if ru.RoleID != role.ID || ru.UserID != user.ID {
-        SpaceDock.Database.Save(NewRoleUser(user, role))
-    }
+    user.Roles = append(user.Roles, role)
+    SpaceDock.Database.Save(&user)
     return role
 }
 
@@ -105,10 +116,9 @@ func (user User) RemoveRole(name string) {
     if role.Name == "" {
         return
     }
-    ru := RoleUser{}
-    SpaceDock.Database.Where("role_id = ?", role.ID).Where("user_id = ?", user.ID).First(&ru)
-    if ru.RoleID == role.ID && ru.UserID == user.ID {
-        SpaceDock.Database.Delete(&ru)
+    if e,i := utils.ArrayContains(&role, user.Roles); e {
+        user.Roles = append(user.Roles[:i], user.Roles[i + 1:]...)
+        SpaceDock.Database.Save(&user)
     }
 }
 
@@ -118,30 +128,19 @@ func (user User) HasRole(name string) bool {
     if role.Name == "" {
         return false
     }
-    ru := RoleUser{}
-    SpaceDock.Database.Where("role_id = ?", role.ID).Where("user_id = ?", user.ID).First(&ru)
-    return ru.RoleID == role.ID && ru.UserID == user.ID
-}
-
-func (user User) GetRoles() []Role {
-    value := make([]Role, len(user.roleUsers))
-    for index,element := range user.roleUsers {
-        role := Role {}
-        SpaceDock.Database.First(&role, element.RoleID)
-        value[index] = role
-    }
-    return value
+    e,_ := utils.ArrayContains(&role, &user.Roles)
+    return e
 }
 
 func (user User) GetAbilities() []Ability {
     count := 0
-    for _,element := range user.GetRoles() {
-        count = count + len(element.GetAbilities())
+    for _,element := range user.Roles {
+        count = count + len(element.Abilities)
     }
     value := make([]Ability, count)
     c := 0
-    for _,element := range user.GetRoles() {
-        for _,element2 := range element.GetAbilities() {
+    for _,element := range user.Roles {
+        for _,element2 := range element.Abilities {
             value[c] = element2
             c = c + 1
         }
@@ -151,7 +150,7 @@ func (user User) GetAbilities() []Ability {
 
 func (user User) Format(ctx *iris.Context, admin bool) map[string]interface{} {
     if (admin) {
-        roles := user.GetRoles()
+        roles := user.Roles
         names := make([]string, len(roles))
         for i,element := range roles {
             names[i] = element.Name
@@ -167,7 +166,7 @@ func (user User) Format(ctx *iris.Context, admin bool) map[string]interface{} {
             "meta": utils.LoadJSON(user.Meta),
         }
     } else {
-        roles := user.GetRoles()
+        roles := user.Roles
         names := make([]string, len(roles))
         for i,element := range roles {
             names[i] = element.Name
