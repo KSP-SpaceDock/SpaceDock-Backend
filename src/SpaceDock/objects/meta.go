@@ -15,10 +15,10 @@ import (
 )
 
 type Model struct {
-    ID        uint `gorm:"primary_key" json:"id"`
-    CreatedAt time.Time `json:"created"`
-    UpdatedAt time.Time `json:"updated"`
-    DeletedAt *time.Time `sql:"index" json:"-"`
+    ID        uint `gorm:"primary_key" json:"id" spacedock:"lock"`
+    CreatedAt time.Time `json:"created" spacedock:"lock"`
+    UpdatedAt time.Time `json:"updated" spacedock:"lock"`
+    DeletedAt *time.Time `sql:"index" json:"-" spacedock:"lock"`
     Meta      string `gorm:"size:4096" json:"meta"`
 }
 

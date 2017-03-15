@@ -20,11 +20,11 @@ type Game struct {
     Active           bool `json:"active"`
     Fileformats      string `gorm:"size:1024" json:"fileformats" spacedock:"json"`
     Altname          string `gorm:"size:1024" json:"altname"`
-    Rating           float32 `json:"rating"`
-    Releasedate      time.Time `json:"releasedate"`
-    Short            string `gorm:"size:1024" json:"short"`
-    Publisher        Publisher `json:"-"`
-    PublisherID      uint `json:"publisher"`
+    Rating           float32 `json:"rating" spacedock:"lock"`
+    Releasedate      time.Time `json:"releasedate" spacedock:"lock"`
+    Short            string `gorm:"size:1024" json:"short" spacedock:"lock"`
+    Publisher        Publisher `json:"-" spacedock:"lock"`
+    PublisherID      uint `json:"publisher" spacedock:"lock"`
     Description      string `gorm:"size:100000" json:"description"`
     ShortDescription string `gorm:"size:1000" json:"short_description"`
     // Mods []Mod

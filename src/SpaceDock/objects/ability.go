@@ -17,8 +17,8 @@ import (
 type Ability struct {
     Model
 
-    Name  string `gorm:"size:128;unique_index;not null" json:"name"`
-    Roles []Role `gorm:"many2many:role_abilities"`
+    Name  string `gorm:"size:128;unique_index;not null" json:"name" spacedock:"lock"`
+    Roles []Role `gorm:"many2many:role_abilities" json:"-" spacedock:"lock"`
 }
 
 func (s *Ability) AfterFind() {

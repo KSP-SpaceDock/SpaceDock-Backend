@@ -16,7 +16,7 @@ type Publisher struct {
     Name             string `gorm:"size:1024;unique_index;not null"`
     Description      string `gorm:"size:100000"`
     ShortDescription string `gorm:"size:1000"`
-    Games            []Game
+    Games            []Game `json:"-" spacedock:"lock"`
 }
 
 func (s *Publisher) AfterFind() {

@@ -20,16 +20,16 @@ import (
 type User struct {
     Model
 
-    Username            string `gorm:"size:128;unique_index;not null"`
-    Email               string `gorm:"size:256;not null"`
-    ShowEmail           bool
-    Public              bool
-    Password            string `gorm:"size:128"`
-    Description         string `gorm:"size:10000"`
-    Confirmation        string `gorm:"size:128"`
-    PasswordReset       string `gorm:"size:128"`
-    PasswordResetExpiry time.Time
-    Roles               []Role `gorm:"many2many:role_users" json:"-"`
+    Username            string `gorm:"size:128;unique_index;not null" json:"username"`
+    Email               string `gorm:"size:256;not null" json:"email"`
+    ShowEmail           bool `json:"showEmail"`
+    Public              bool `json:"public"`
+    Password            string `gorm:"size:128" json:"-" spacedock:"lock"`
+    Description         string `gorm:"size:10000" json:"description"`
+    Confirmation        string `gorm:"size:128" json:"-" spacedock:"lock"`
+    PasswordReset       string `gorm:"size:128" json:"-" spacedock:"lock"`
+    PasswordResetExpiry time.Time `json:"-" spacedock:"lock"`
+    Roles               []Role `gorm:"many2many:role_users" json:"-" spacedock:"lock"`
     authed              bool
 }
 
