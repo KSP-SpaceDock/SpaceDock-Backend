@@ -57,18 +57,24 @@ func NewDummyUser(name string, password string, email string, admin bool) *objec
         admin_role := user.AddRole("admin")
 
         // access.go
+        admin_role.AddAbility("access-view")
         admin_role.AddAbility("access-edit")
 
         // admin.go
         admin_role.AddAbility("admin-impersonate")
         admin_role.AddAbility("admin-confirm")
 
+        // game.go
+        admin_role.AddAbility("game-add")
+        admin_role.AddAbility("game-edit")
+        admin_role.AddAbility("game-remove")
+
         // Params
         admin_role.AddParam("admin-impersonate", "userid", ".*")
-        /*admin_role.AddParam("mods-feature", "gameshort", ".*")
         admin_role.AddParam("game-edit", "gameshort", ".*")
         admin_role.AddParam("game-add", "pubid", ".*")
         admin_role.AddParam("game-remove", "short", ".*")
+        /*admin_role.AddParam("mods-feature", "gameshort", ".*")
         admin_role.AddParam("mods-edit", "gameshort", ".*")
         admin_role.AddParam("mods-add", "gameshort", ".*")
         admin_role.AddParam("mods-remove", "gameshort", ".*")
