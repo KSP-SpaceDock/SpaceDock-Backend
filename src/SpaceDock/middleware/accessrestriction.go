@@ -53,7 +53,7 @@ func UserHasPermission(ctx *iris.Context, permission string, public bool, params
     }
 
     has := false
-    if ok,_ := utils.ArrayContains(ability, user_abilities); ok {
+    if ok,_ := utils.ArrayContains(ability.Name, user_abilities); ok {
         if len(params) > 0 {
             for _,element := range params {
                 if utils.ArrayContainsRe(getParam(ability.Name, element, user_params), ctx.GetString(element)) || utils.ArrayContainsRe(getParam(ability.Name, element, user_params), utils.GetFullJSON(ctx)[element].(string)) {
@@ -101,4 +101,12 @@ func getParam(ability string, param string, p map[string]map[string][]string) []
         }
     }
     return nil
+}
+
+func IsCurrentUser(ctx *iris.Context, user *objects.User) bool {
+    if CurrentUser(ctx) == nil {
+        return false
+    } else {
+        return CurrentUser(ctx).ID == user.ID
+    }
 }

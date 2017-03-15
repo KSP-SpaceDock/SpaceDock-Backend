@@ -13,7 +13,6 @@ import (
     "SpaceDock/utils"
     "errors"
     "github.com/jameskeane/bcrypt"
-    "gopkg.in/kataras/iris.v6"
     "time"
 )
 
@@ -132,23 +131,23 @@ func (user User) HasRole(name string) bool {
     return e
 }
 
-func (user User) GetAbilities() []Ability {
+func (user User) GetAbilities() []string {
     count := 0
     for _,element := range user.Roles {
         count = count + len(element.Abilities)
     }
-    value := make([]Ability, count)
+    value := make([]string, count)
     c := 0
     for _,element := range user.Roles {
         for _,element2 := range element.Abilities {
-            value[c] = element2
+            value[c] = element2.Name
             c = c + 1
         }
     }
     return value
 }
 
-func (user User) Format(ctx *iris.Context, admin bool) map[string]interface{} {
+func (user User) Format(admin bool) map[string]interface{} {
     if (admin) {
         roles := user.Roles
         names := make([]string, len(roles))
@@ -157,6 +156,8 @@ func (user User) Format(ctx *iris.Context, admin bool) map[string]interface{} {
         }
         return map[string]interface{}{
             "id": user.ID,
+            "created": user.CreatedAt,
+            "updated": user.UpdatedAt,
             "username": user.Username,
             "email": user.Email,
             "showEmail": user.ShowEmail,
@@ -172,12 +173,13 @@ func (user User) Format(ctx *iris.Context, admin bool) map[string]interface{} {
             names[i] = element.Name
         }
         meta := utils.LoadJSON(user.Meta)
-        userID,_ := ctx.Session().GetInt("SessionID")
-        if _,ok := meta["private"]; ok && user.ID != uint(userID) {
+        if _,ok := meta["private"]; ok {
             meta["private"] = map[string]string {}
         }
         return map[string]interface{}{
             "id": user.ID,
+            "created": user.CreatedAt,
+            "updated": user.UpdatedAt,
             "username": user.Username,
             "email": utils.Ternary(user.ShowEmail, user.Email, ""),
             "showEmail": user.ShowEmail,

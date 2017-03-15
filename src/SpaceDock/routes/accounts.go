@@ -15,166 +15,20 @@ import (
     "SpaceDock/utils"
     "github.com/jameskeane/bcrypt"
     "gopkg.in/kataras/iris.v6"
-    "regexp"
     "strconv"
     "time"
     "github.com/spf13/cast"
 )
 
 /*
- Registers the routes for the account management
+ Registers the routes for the account management (aka. stuff that doesn't fit anywhere)
  */
 func AccountsRegister() {
-    Register(POST, "/api/register", register)
     Register(GET, "/api/confirm/:confirmation", confirm) // Maybe switch to POST too?
     Register(POST, "/api/login", login)
     Register(POST, "/api/logout", logout)
     Register(POST, "/api/reset", reset)
     Register(POST, "/api/reset/:username/:confirmation", resetConfirm)
-}
-
-/*
- Path: /api/register
- Method: POST
- Description: Creates a new useraccount
- */
-func register(ctx *iris.Context) {
-    // Check if registration is allowed
-    if !SpaceDock.Settings.Registration {
-        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("Registration is disabled").Code(3010))
-        return
-    }
-
-    // Grab parameters from the JSON
-    followMod := cast.ToString(utils.GetJSON(ctx,"follow-mod"))
-    email := cast.ToString(utils.GetJSON(ctx,"email"))
-    username := cast.ToString(utils.GetJSON(ctx,"username"))
-    password := cast.ToString(utils.GetJSON(ctx,"password"))
-    confirmPassword := cast.ToString(utils.GetJSON(ctx,"repeatPassword"))
-    data := cast.ToStringMap(utils.GetJSON(ctx,"userdata"))
-    check := cast.ToString(utils.GetJSON(ctx,"check"))
-
-    var errors []string
-    var codes []int
-    emailError := checkEmailForRegistration(email)
-    if emailError != "" {
-        errors = append(errors, emailError)
-        codes = append(codes, 4000)
-        if check == "email" {
-            utils.WriteJSON(ctx, iris.StatusOK, utils.Error(emailError).Code(4000))
-            return
-        }
-    }
-
-    usernameError := checkUsernameForRegistration(username)
-    if usernameError != "" {
-        errors = append(errors, usernameError)
-        codes = append(codes, 4000)
-        if check == "username" {
-            utils.WriteJSON(ctx, iris.StatusOK, utils.Error(usernameError).Code(4000))
-            return
-        }
-    }
-
-    if password == "" {
-        errors = append(errors, "Password is required")
-        codes = append(codes, 2515)
-        if check == "password" {
-            utils.WriteJSON(ctx, iris.StatusOK, utils.Error("Password is required").Code(2515))
-            return
-        }
-    } else {
-        if password != confirmPassword {
-            errors = append(errors, "Passwords do not match")
-            codes = append(codes, 3005)
-            if check == "password" {
-                utils.WriteJSON(ctx, iris.StatusOK, utils.Error("Passwords do not match").Code(3005))
-                return
-            }
-        }
-        if len(password) < 5 {
-            errors = append(errors, "Your password must be greater than 5 characters")
-            codes = append(codes, 2101)
-            if check == "password" {
-                utils.WriteJSON(ctx, iris.StatusOK, utils.Error("Your password must be greater than 5 characters").Code(2101))
-                return
-            }
-        }
-        if len(password) > 256 {
-            errors = append(errors, "We admire your dedication to security, but please use a shorter password")
-            codes = append(codes, 2102)
-            if check == "password" {
-                utils.WriteJSON(ctx, iris.StatusOK, utils.Error("We admire your dedication to security, but please use a shorter password").Code(2102))
-                return
-            }
-        }
-    }
-
-    if check == "email" || check == "password" || check == "username" {
-        utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
-        return
-    }
-    if len(errors) > 0 {
-        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error(errors...).Code(codes...))
-        return
-    }
-
-    // Everything is valid, make them an account
-    user := objects.NewUser(username, email, password)
-    user.Confirmation,_ = utils.RandomHex(20)
-
-    // Edit user
-    if data != nil {
-        code := utils.EditObject(&user, data)
-        if code == 3 {
-            utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The value you submitted is invalid").Code(2180))
-            return
-        } else if code == 2 {
-            utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You tried to edit a value that doesn't exist.").Code(3090))
-            return
-        } else if code == 1 {
-            utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You tried to edit a value that is marked as read-only.").Code(3095))
-            return
-        }
-    }
-
-    SpaceDock.Database.Save(user)
-    utils.SendConfirmation(user.Confirmation, user.Username, user.Email, followMod)
-
-    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user})
-}
-
-func checkUsernameForRegistration(username string) string {
-    if username == "" {
-        return "Username is required"
-    }
-    r,_ := regexp.Compile("^[A-Za-z0-9_]+$")
-    var user objects.User
-    if !r.MatchString(username) {
-        return "Please only use letters, numbers, and underscores"
-    }
-    if len(username) < 3 || len(username) > 24 {
-        return "Usernames must be between 3 and 24 characters"
-    }
-    if SpaceDock.Database.Where("username = ?", username).First(&user); user.Username != "" {
-        return "A user by this name already exists"
-    }
-    return ""
-
-}
-
-func checkEmailForRegistration(email string) string {
-    if email == "" {
-        return "Email is required"
-    }
-    r,_ := regexp.Compile("^[^@]+@[^@]+.[^@]+$")
-    var user objects.User
-    if !r.MatchString(email) {
-        return "Please specify a valid email address."
-    } else if SpaceDock.Database.Where("email = ?", email).First(&user); user.Username != "" {
-        return "A user with this email already exists."
-    }
-    return ""
 }
 
 /*
@@ -246,7 +100,7 @@ func login(ctx *iris.Context) {
         return
     }
     middleware.LoginUser(ctx, &user)
-    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user})
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user.Format(true)})
 }
 
 /*
