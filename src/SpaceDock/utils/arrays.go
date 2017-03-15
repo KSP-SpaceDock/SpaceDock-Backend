@@ -39,15 +39,15 @@ func ArrayContainsRe(itr []string, value string) bool {
         return false
     }
 
-    r,err := regexp.Compile(value)
-
-    if err != nil {
-        log.Fatalf("Invalid regular expression detected: %s", value)
-        return false
-    }
-
     for _,element := range itr {
-        if r.MatchString(element) {
+        r,err := regexp.Compile(element)
+
+        if err != nil {
+            log.Fatalf("Invalid regular expression detected: %s", value)
+            return false
+        }
+
+        if r.MatchString(value) {
             return true
         }
     }
