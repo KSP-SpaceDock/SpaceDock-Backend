@@ -10,7 +10,6 @@ package objects
 
 import (
     "SpaceDock"
-    "math"
 )
 
 type SharedAuthor struct {

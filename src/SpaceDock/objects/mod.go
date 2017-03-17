@@ -13,10 +13,10 @@ import "SpaceDock"
 type Mod struct {
     Model
 
-    User   User `json:"-" spacedock:"lock"`
-    UserID uint `json:"user" spacedock:"lock"`
-    Game   Game `json:"-" spacedock:"lock"`
-    GameID uint `json:"game" spacedock:"lock"`
+    User             User `json:"-" spacedock:"lock"`
+    UserID           uint `json:"user" spacedock:"lock"`
+    Game             Game `json:"-" spacedock:"lock"`
+    GameID           uint `json:"game" spacedock:"lock"`
     SharedAuthors    []SharedAuthor `json:"-" spacedock:"lock"`
     Name             string `gorm:"size:1024;unique_index;not null"`
     Description      string `gorm:"size:100000"`
@@ -24,13 +24,13 @@ type Mod struct {
     Approved         bool `spacedock:"lock"`
     Published        bool `spacedock:"lock"`
     License          string `gorm:"size:512"`
-    DefaultVersion   ModVersion `json:"-" spacedock:"lock"`
+    DefaultVersion   *ModVersion `json:"-" spacedock:"lock"`
     DefaultVersionID uint `json:"default_version"`
     Versions         []ModVersion `spacedock:"lock"`
     // Todo: Tracking API
-    Followers        []User `gorm:"many2many:mod_followers" spacedock:"lock"`
-    Ratings          []Rating `spacedock:"lock"`
-    TotalScore       float64 `gorm:"not null" json:"total_score" spacedock:"lock"`
+    Followers  []User `gorm:"many2many:mod_followers" spacedock:"lock"`
+    Ratings    []Rating `spacedock:"lock"`
+    TotalScore float64 `gorm:"not null" json:"total_score" spacedock:"lock"`
 }
 
 func (s *Mod) AfterFind() {
@@ -41,7 +41,7 @@ func (s *Mod) AfterFind() {
     SpaceDock.DBRecursion += 1
     SpaceDock.Database.Model(s).Related(&(s.User), "User")
     SpaceDock.Database.Model(s).Related(&(s.Game), "Game")
-    SpaceDock.Database.Model(s).Related(&(s.DefaultVersion), "DefaultVersion")
+    SpaceDock.Database.Model(s).Related(s.DefaultVersion, "DefaultVersion")
     SpaceDock.Database.Model(s).Related(&(s.Versions), "Versions")
     SpaceDock.Database.Model(s).Related(&(s.Followers), "Followers")
     SpaceDock.Database.Model(s).Related(&(s.Ratings), "Ratings")

@@ -9,16 +9,12 @@
 package SpaceDock
 
 import (
-    "github.com/iris-contrib/middleware/cors"
     "gopkg.in/kataras/iris.v6"
     "gopkg.in/kataras/iris.v6/adaptors/httprouter"
     "gopkg.in/kataras/iris.v6/adaptors/sessions"
-    "gopkg.in/kataras/iris.v6/middleware/logger"
     "log"
     "os"
     "strconv"
-    "github.com/KSP-SpaceDock/limiter"
-    "SpaceDock/middleware"
 )
 
 /*
@@ -47,15 +43,6 @@ func init() {
     App = iris.New()
     App.Adapt(httprouter.New())
     App.Adapt(iris.DevLogger())
-    App.Use(logger.New())
-    if Settings.DisableSameOrigin {
-        App.Use(cors.New(cors.Options{
-            AllowedOrigins:   []string{"*"},
-            AllowedHeaders:   []string{"*"},
-            AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
-            AllowCredentials: true,
-        }))
-    }
     mySessions := sessions.New(sessions.Config{
         Cookie: "spacedocksid",
         DecodeCookie: false,
@@ -64,7 +51,6 @@ func init() {
         DisableSubdomainPersistence: false,
     })
     App.Adapt(mySessions)
-    CreateLimiter()
     App.Config.Gzip = true
     App.Config.DisableBodyConsumptionOnUnmarshal = true
 }
@@ -75,15 +61,4 @@ func init() {
 func Run() {
     // Start listening
     App.Listen(Settings.Host + ":" + strconv.Itoa(Settings.Port))
-}
-
-func CreateLimiter() {
-    rate,err := limiter.NewRateFromFormatted(Settings.RequestLimit)
-    if err != nil {
-        log.Fatal("Failed to parse the request limit")
-        return
-    }
-    store := limiter.NewMemoryStore()
-    limiterInstance := limiter.NewLimiter(store, rate)
-    App.Use(middleware.NewAccessLimiter(limiterInstance))
 }

@@ -9,9 +9,6 @@
 package objects
 
 import (
-    "SpaceDock"
-    "SpaceDock/utils"
-    "errors"
     "crypto/md5"
     "crypto/rand"
 )

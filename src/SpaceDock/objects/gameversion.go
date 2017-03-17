@@ -10,8 +10,6 @@ package objects
 
 import (
     "SpaceDock"
-    "os"
-    "path/filepath"
 )
 
 type GameVersion struct {

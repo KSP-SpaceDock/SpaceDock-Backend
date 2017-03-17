@@ -11,12 +11,20 @@ package routes
 import (
     "SpaceDock"
     "gopkg.in/kataras/iris.v6"
+    "gopkg.in/kataras/iris.v6/middleware/logger"
+    "github.com/iris-contrib/middleware/cors"
+    "github.com/KSP-SpaceDock/limiter"
+    "SpaceDock/middleware"
+    "log"
 )
 
 /*
  Init function, here we register the routes in iris
  */
 func init() {
+    // Middlewares
+    MiddlewareRegister()
+
     AccessRegister()
     AccountsRegister()
     AdminRegister()
@@ -40,4 +48,29 @@ func Register(mode int, path string, handlers ...iris.HandlerFunc) iris.RouteInf
         return SpaceDock.App.Delete(path, handlers...)
     }
     return SpaceDock.App.Get(path, handlers...)
+}
+
+func MiddlewareRegister() {
+    // Logging
+    SpaceDock.App.Use(logger.New())
+
+    // Cross-Origin Requests
+    if SpaceDock.Settings.DisableSameOrigin {
+        SpaceDock.App.Use(cors.New(cors.Options{
+            AllowedOrigins:   []string{"*"},
+            AllowedHeaders:   []string{"*"},
+            AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+            AllowCredentials: true,
+        }))
+    }
+
+    // Request limiting
+    rate,err := limiter.NewRateFromFormatted(SpaceDock.Settings.RequestLimit)
+    if err != nil {
+        log.Fatal("Failed to parse the request limit")
+        return
+    }
+    store := limiter.NewMemoryStore()
+    limiterInstance := limiter.NewLimiter(store, rate)
+    SpaceDock.App.Use(middleware.NewAccessLimiter(limiterInstance))
 }
