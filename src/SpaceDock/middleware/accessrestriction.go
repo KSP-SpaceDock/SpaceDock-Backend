@@ -31,7 +31,7 @@ func UserHasPermission(ctx *iris.Context, permission string, public bool, params
     user := CurrentUser(ctx)
     if user == nil {
         return 1
-    } else if (public && !user.Public) {
+    } else if public && !user.Public {
         return 2
     }
 
