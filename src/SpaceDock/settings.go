@@ -68,6 +68,9 @@ type SettingsData struct {
 
     // Whether the code should generate a dummy database
     CreateDefaultDatabase bool
+
+    // How many requests can be made in a defined time span
+    RequestLimit string
 }
 
 /*
@@ -112,6 +115,7 @@ func loadFromCommandLine() {
     flag.StringVar(&Settings.ThumbnailSize, "thumbnailsize", "", "Thumbnail size in WxH format")
     flag.BoolVar(&Settings.DisableSameOrigin, "disablesameorigin", false, "Enables CORS (Cross Origin Requests)")
     flag.BoolVar(&Settings.CreateDefaultDatabase, "createdefaultdatabase", false, "")
+    flag.StringVar(&Settings.RequestLimit, "requestlimit", "1-S", "How many requests can be made in a defined time span")
 
     flag.StringVar(&configFile, "configfile", "", "The path for a dedicated configuration file")
     flag.Parse()
