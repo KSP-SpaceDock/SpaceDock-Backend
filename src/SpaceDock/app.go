@@ -9,6 +9,7 @@
 package SpaceDock
 
 import (
+    "github.com/iris-contrib/middleware/cors"
     "gopkg.in/kataras/iris.v6"
     "gopkg.in/kataras/iris.v6/adaptors/httprouter"
     "gopkg.in/kataras/iris.v6/adaptors/sessions"
@@ -45,6 +46,12 @@ func init() {
     App.Adapt(httprouter.New())
     App.Adapt(iris.DevLogger())
     App.Use(logger.New())
+    App.Use(cors.New(cors.Options{
+        AllowedOrigins:[]string{"*"},
+        AllowedHeaders:[]string{"*"},
+        AllowedMethods:[]string{"GET", "POST", "PUT", "DELETE"},
+        AllowCredentials:true,
+    }))
     mySessions := sessions.New(sessions.Config{
         Cookie: "spacedocksid",
         DecodeCookie: false,
