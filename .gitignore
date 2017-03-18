@@ -33,8 +33,6 @@ _testmain.go
 vendor/
 pkg/
 bin/
-src/*
-!src/SpaceDock
 
 # SpaceDock specific
 config/config.yml

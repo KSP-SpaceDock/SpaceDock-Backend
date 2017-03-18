@@ -25,3 +25,5 @@ cdndomain: ""
 thumbnailsize: ""
 
 disablesameorigin: false
+
+requestlimit: "1-S"
