@@ -13,7 +13,7 @@ import (
     "gopkg.in/kataras/iris.v6"
     "gopkg.in/kataras/iris.v6/middleware/logger"
     "github.com/iris-contrib/middleware/cors"
-    "github.com/KSP-SpaceDock/limiter"
+    "github.com/ulule/limiter"
     "SpaceDock/middleware"
     "log"
 )
@@ -55,16 +55,6 @@ func MiddlewareRegister() {
     // Logging
     SpaceDock.App.Use(logger.New())
 
-    // Cross-Origin Requests
-    if SpaceDock.Settings.DisableSameOrigin {
-        SpaceDock.App.Use(cors.New(cors.Options{
-            AllowedOrigins:   []string{"*"},
-            AllowedHeaders:   []string{"*"},
-            AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
-            AllowCredentials: true,
-        }))
-    }
-
     // Request limiting
     rate,err := limiter.NewRateFromFormatted(SpaceDock.Settings.RequestLimit)
     if err != nil {
@@ -74,4 +64,14 @@ func MiddlewareRegister() {
     store := limiter.NewMemoryStore()
     limiterInstance := limiter.NewLimiter(store, rate)
     SpaceDock.App.Use(middleware.NewAccessLimiter(limiterInstance))
+
+    // Cross-Origin Requests
+    if SpaceDock.Settings.DisableSameOrigin {
+        SpaceDock.App.Use(cors.New(cors.Options{
+            AllowedOrigins:   []string{"*"},
+            AllowedHeaders:   []string{"*"},
+            AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+            AllowCredentials: true,
+        }))
+    }
 }
