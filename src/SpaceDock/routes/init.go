@@ -29,6 +29,7 @@ func init() {
     AccountsRegister()
     AdminRegister()
     GameRegister()
+    TokensRegister()
     UserRegister()
 }
 

@@ -34,6 +34,9 @@ func UserHasPermission(ctx *iris.Context, permission string, public bool, params
     } else if public && !user.Public {
         return 2
     }
+    if params == nil {
+        params = []string{}
+    }
 
     ability := objects.Ability {}
     SpaceDock.Database.Where("name = ?", permission).First(&ability)
