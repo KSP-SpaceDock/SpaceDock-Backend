@@ -11,6 +11,7 @@ package objects
 import (
     "crypto/md5"
     "crypto/rand"
+    "encoding/hex"
 )
 
 type Token struct {
@@ -25,8 +26,10 @@ func NewToken() *Token {
     if err != nil {
         panic(err) // aahhh
     }
+    hash := md5.New()
+    hash.Write(key)
     t := &Token{
-        Token:string(md5.New().Sum(key)),
+        Token:string(hex.EncodeToString(hash.Sum(nil))),
     }
     t.Meta = "{}"
     return t

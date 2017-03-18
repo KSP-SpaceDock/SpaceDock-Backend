@@ -15,6 +15,7 @@ import (
     "encoding/json"
     "gopkg.in/kataras/iris.v6"
     "log"
+    "github.com/spf13/cast"
 )
 
 /*
@@ -59,7 +60,7 @@ func UserHasPermission(ctx *iris.Context, permission string, public bool, params
     if ok,_ := utils.ArrayContains(ability.Name, user_abilities); ok {
         if len(params) > 0 {
             for _,element := range params {
-                if utils.ArrayContainsRe(getParam(ability.Name, element, user_params), ctx.GetString(element)) || utils.ArrayContainsRe(getParam(ability.Name, element, user_params), utils.GetFullJSON(ctx)[element].(string)) {
+                if utils.ArrayContainsRe(getParam(ability.Name, element, user_params), ctx.GetString(element)) || utils.ArrayContainsRe(getParam(ability.Name, element, user_params), cast.ToString(utils.GetFullJSON(ctx)[element])) {
                     has = true
                 }
             }

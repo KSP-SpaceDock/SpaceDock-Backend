@@ -10,8 +10,8 @@ package middleware
 
 import (
     "SpaceDock/objects"
-    "gopkg.in/kataras/iris.v6"
     "github.com/spf13/cast"
+    "gopkg.in/kataras/iris.v6"
 )
 
 func LoginRequired(ctx *iris.Context) {
