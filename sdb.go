@@ -32,9 +32,15 @@ func CreateDefaultData() {
     NewDummyUser("Administrator", "admin", "admin@example.com", true)
     NewDummyUser("SpaceDockUser", "user", "user@example.com", false)
 
-    // Setup games
-    NewDummyGame("Kerbal Space Program", "kerbal-space-program", "Squad MX")
-    NewDummyGame("Factorio", "factorio", "Wube Software")
+    // Game 1
+    ksp := NewDummyGame("Kerbal Space Program", "kerbal-space-program", "Squad MX")
+    NewDummyVersion(*ksp, "1.2.1", false)
+    NewDummyVersion(*ksp, "1.2.2", false)
+    NewDummyVersion(*ksp, "1.2.9", true)
+
+    // Game 2
+    fac := NewDummyGame("Factorio", "factorio", "Wube Software")
+    NewDummyVersion(*fac, "0.12", false)
 }
 
 func NewDummyUser(name string, password string, email string, admin bool) *objects.User {
@@ -69,21 +75,29 @@ func NewDummyUser(name string, password string, email string, admin bool) *objec
         admin_role.AddAbility("game-edit")
         admin_role.AddAbility("game-remove")
 
+        // tokens.go
+        admin_role.AddAbility("token-generate")
+        admin_role.AddAbility("token-edit")
+        admin_role.AddAbility("token-revoke")
+
+        // user.go
+        admin_role.AddAbility("user-edit")
+
         // Params
         admin_role.AddParam("admin-impersonate", "userid", ".*")
         admin_role.AddParam("game-edit", "gameshort", ".*")
         admin_role.AddParam("game-add", "pubid", ".*")
         admin_role.AddParam("game-remove", "short", ".*")
-        /*admin_role.AddParam("mods-feature", "gameshort", ".*")
-        admin_role.AddParam("mods-edit", "gameshort", ".*")
-        admin_role.AddParam("mods-add", "gameshort", ".*")
-        admin_role.AddParam("mods-remove", "gameshort", ".*")
-        admin_role.AddParam("packs-add", "gameshort", ".*")
-        admin_role.AddParam("packs-remove", "gameshort", ".*")
-        admin_role.AddParam("publisher-edit", "publid", ".*")
+        //admin_role.AddParam("mods-feature", "gameshort", ".*")
+        //admin_role.AddParam("mods-edit", "gameshort", ".*")
+        //admin_role.AddParam("mods-add", "gameshort", ".*")
+        //admin_role.AddParam("mods-remove", "gameshort", ".*")
+        //admin_role.AddParam("packs-add", "gameshort", ".*")
+        //admin_role.AddParam("packs-remove", "gameshort", ".*")
+        //admin_role.AddParam("publisher-edit", "publid", ".*")
         admin_role.AddParam("token-edit", "tokenid", ".*")
         admin_role.AddParam("token-remove", "tokenid", ".*")
-        admin_role.AddParam("user-edit", "userid", ".*")*/
+        admin_role.AddParam("user-edit", "userid", ".*")
 
         SpaceDock.Database.Save(&admin_role)
     }
@@ -104,4 +118,10 @@ func NewDummyGame(name string, short string, publisher string) *objects.Game {
     game.Active = true
     SpaceDock.Database.Save(game)
     return game
+}
+
+func NewDummyVersion(game objects.Game, name string, beta bool) *objects.GameVersion {
+    version := objects.NewGameVersion(name, game, beta)
+    SpaceDock.Database.Save(version)
+    return version
 }
