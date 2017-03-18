@@ -10,11 +10,11 @@ package routes
 
 import (
     "SpaceDock"
-    "gopkg.in/kataras/iris.v6"
-    "gopkg.in/kataras/iris.v6/middleware/logger"
+    "SpaceDock/middleware"
     "github.com/iris-contrib/middleware/cors"
     "github.com/ulule/limiter"
-    "SpaceDock/middleware"
+    "gopkg.in/kataras/iris.v6"
+    "gopkg.in/kataras/iris.v6/middleware/logger"
     "log"
 )
 
@@ -29,6 +29,7 @@ func init() {
     AccountsRegister()
     AdminRegister()
     GameRegister()
+    PublisherRegister()
     TokensRegister()
     UserRegister()
 }

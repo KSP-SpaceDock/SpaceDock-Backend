@@ -17,7 +17,7 @@ import (
 type Token struct {
     Model
 
-    Token  string `gorm:"size:32" spacedock:"lock"`
+    Token  string `gorm:"size:32" spacedock:"lock" json:"token"`
 }
 
 func NewToken() *Token {

@@ -13,9 +13,9 @@ import "SpaceDock"
 type Publisher struct {
     Model
 
-    Name             string `gorm:"size:1024;unique_index;not null"`
-    Description      string `gorm:"size:100000"`
-    ShortDescription string `gorm:"size:1000"`
+    Name             string `gorm:"size:1024;unique_index;not null" json:"name"`
+    Description      string `gorm:"size:100000" json:"description"`
+    ShortDescription string `gorm:"size:1000" json:"short_description"`
     Games            []Game `json:"-" spacedock:"lock"`
 }
 
