@@ -27,8 +27,8 @@ import (
  Registers the routes for the user management
  */
 func UserRegister() {
-    Register(GET, "/api/users/", list_users)
-    Register(POST, "/api/users/", register)
+    Register(GET, "/api/users", list_users)
+    Register(POST, "/api/users", register)
     Register(GET, "/api/users/:userid", show_user)
     Register(PUT, "/api/users/:userid",
         middleware.NeedsPermission("user-edit", false, "userid"),

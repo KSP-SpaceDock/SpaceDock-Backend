@@ -21,35 +21,35 @@ import (
  Registers the routes for the account management
  */
 func AccessRegister() {
-    Register(GET, "/api/access/roles/",
+    Register(GET, "/api/access/roles",
         middleware.NeedsPermission("access-view", true),
         list_roles,
     )
-    Register(POST, "/api/access/roles/",
+    Register(POST, "/api/access/roles",
         middleware.NeedsPermission("access-edit", true),
         assign_role,
     )
-    Register(DELETE, "/api/access/roles/",
+    Register(DELETE, "/api/access/roles",
         middleware.NeedsPermission("access-edit", true),
         remove_role,
     )
-    Register(GET, "/api/access/abilities/",
+    Register(GET, "/api/access/abilities",
         middleware.NeedsPermission("access-view", true),
         list_abilities,
     )
-    Register(POST, "/api/access/abilities/",
+    Register(POST, "/api/access/abilities",
         middleware.NeedsPermission("access-edit", true),
         assign_ability,
     )
-    Register(DELETE, "/api/access/abilities/",
+    Register(DELETE, "/api/access/abilities",
         middleware.NeedsPermission("access-edit", true),
         remove_ability,
     )
-    Register(POST, "/api/access/roles/:rolename/params/",
+    Register(POST, "/api/access/roles/:rolename/params",
         middleware.NeedsPermission("access-edit", true),
         add_param,
     )
-    Register(DELETE, "/api/access/roles/:rolename/params/",
+    Register(DELETE, "/api/access/roles/:rolename/params",
         middleware.NeedsPermission("access-edit", true),
         remove_param,
     )

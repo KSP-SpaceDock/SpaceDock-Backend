@@ -22,17 +22,17 @@ import (
  Registers the routes for the game management
  */
 func GameRegister() {
-    Register(GET, "/api/games/", list_games)
+    Register(GET, "/api/games", list_games)
     Register(GET, "/api/games/:gameshort", show_game)
     Register(PUT, "/api/games/:gameshort",
         middleware.NeedsPermission("game-edit", true, "gameshort"),
         edit_game,
     )
-    Register(POST, "/api/games/",
+    Register(POST, "/api/games",
         middleware.NeedsPermission("game-add", true, "pubid"),
         add_game,
     )
-    Register(DELETE, "/api/games/",
+    Register(DELETE, "/api/games",
         middleware.NeedsPermission("game-remove", true, "pubid"),
         remove_game,
     )
