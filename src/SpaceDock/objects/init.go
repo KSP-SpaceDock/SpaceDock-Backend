@@ -16,7 +16,13 @@ import "SpaceDock"
 func init() {
     SpaceDock.CreateTable(&Ability{})
     SpaceDock.CreateTable(&Game{})
+    SpaceDock.CreateTable(&GameVersion{})
+    SpaceDock.CreateTable(&Mod{})
+    SpaceDock.CreateTable(&ModVersion{})
     SpaceDock.CreateTable(&Publisher{})
+    SpaceDock.CreateTable(&Rating{})
     SpaceDock.CreateTable(&Role{})
+    SpaceDock.CreateTable(&SharedAuthor{})
+    SpaceDock.CreateTable(&Token{})
     SpaceDock.CreateTable(&User{})
 }

@@ -27,9 +27,9 @@ type Game struct {
     PublisherID      uint `json:"publisher" spacedock:"lock"`
     Description      string `gorm:"size:100000" json:"description"`
     ShortDescription string `gorm:"size:1000" json:"short_description"`
-    // Mods []Mod
+    Mods []Mod
     // Modlists []ModList
-    // Versions []GameVersion
+    Versions []GameVersion
 }
 
 func (s *Game) AfterFind() {
