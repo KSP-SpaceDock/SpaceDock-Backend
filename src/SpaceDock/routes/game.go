@@ -22,19 +22,19 @@ import (
  Registers the routes for the game management
  */
 func GameRegister() {
-    Register(GET, "/api/games/", listgames)
-    Register(GET, "/api/games/:gameshort", showgame)
+    Register(GET, "/api/games/", list_games)
+    Register(GET, "/api/games/:gameshort", show_game)
     Register(PUT, "/api/games/:gameshort",
         middleware.NeedsPermission("game-edit", true, "gameshort"),
-        editgame,
+        edit_game,
     )
     Register(POST, "/api/games/",
         middleware.NeedsPermission("game-add", true, "pubid"),
-        addgame,
+        add_game,
     )
     Register(DELETE, "/api/games/",
         middleware.NeedsPermission("game-remove", true, "pubid"),
-        removegame,
+        remove_game,
     )
 }
 
@@ -43,7 +43,7 @@ func GameRegister() {
  Method: GET
  Description: Displays a list of all games in the database.
  */
-func listgames(ctx *iris.Context) {
+func list_games(ctx *iris.Context) {
     var games []objects.Game
     includeInactive := ctx.URLParam("includeInactive")
     val, err  := strconv.ParseBool(includeInactive)
@@ -64,7 +64,7 @@ func listgames(ctx *iris.Context) {
  Method: GET
  Description: Displays information about a game.
  */
-func showgame(ctx *iris.Context) {
+func show_game(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     var game objects.Game
     SpaceDock.Database.Where("short = ?", gameshort).First(&game)
@@ -81,7 +81,7 @@ func showgame(ctx *iris.Context) {
  Description: Edits a game, based on the request parameters.
  Abilities: game-edit
  */
-func editgame(ctx *iris.Context) {
+func edit_game(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     var game objects.Game
     SpaceDock.Database.Where("short = ?", gameshort).First(&game)
@@ -112,7 +112,7 @@ func editgame(ctx *iris.Context) {
  Description: Adds a new game based on the request parameters. Required fields: name, pubid, short
  Abilities: game-add
  */
-func addgame(ctx *iris.Context) {
+func add_game(ctx *iris.Context) {
     name := cast.ToString(utils.GetJSON(ctx, "name"))
     pubid := cast.ToUint(utils.GetJSON(ctx, "pubid"))
     short := cast.ToString(utils.GetJSON(ctx, "short"))
@@ -167,7 +167,7 @@ func addgame(ctx *iris.Context) {
  Description: Removes a game from existence. Required fields: short
  Abilities: game-remove
  */
-func removegame(ctx *iris.Context) {
+func remove_game(ctx *iris.Context) {
     short := cast.ToString(utils.GetJSON(ctx, "short"))
 
     // Check if the game exists

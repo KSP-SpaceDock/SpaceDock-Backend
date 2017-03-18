@@ -28,7 +28,7 @@ func AccountsRegister() {
     Register(POST, "/api/login", login)
     Register(POST, "/api/logout", logout)
     Register(POST, "/api/reset", reset)
-    Register(POST, "/api/reset/:username/:confirmation", resetConfirm)
+    Register(POST, "/api/reset/:username/:confirmation", reset_confirm)
 }
 
 /*
@@ -148,7 +148,7 @@ func reset(ctx *iris.Context) {
  Path: /api/reset/:username/:confirmation
  Method: POST
  */
-func resetConfirm(ctx *iris.Context) {
+func reset_confirm(ctx *iris.Context) {
     username := ctx.GetString("username")
     confirmation := ctx.GetString("confirmation")
     var user objects.User

@@ -23,35 +23,35 @@ import (
 func AccessRegister() {
     Register(GET, "/api/access/roles/",
         middleware.NeedsPermission("access-view", true),
-        listroles,
+        list_roles,
     )
     Register(POST, "/api/access/roles/",
         middleware.NeedsPermission("access-edit", true),
-        assignrole,
+        assign_role,
     )
     Register(DELETE, "/api/access/roles/",
         middleware.NeedsPermission("access-edit", true),
-        removerole,
+        remove_role,
     )
     Register(GET, "/api/access/abilities/",
         middleware.NeedsPermission("access-view", true),
-        listabilities,
+        list_abilities,
     )
     Register(POST, "/api/access/abilities/",
         middleware.NeedsPermission("access-edit", true),
-        assignability,
+        assign_ability,
     )
     Register(DELETE, "/api/access/abilities/",
         middleware.NeedsPermission("access-edit", true),
-        removeability,
+        remove_ability,
     )
     Register(POST, "/api/access/roles/:rolename/params/",
         middleware.NeedsPermission("access-edit", true),
-        addparam,
+        add_param,
     )
     Register(DELETE, "/api/access/roles/:rolename/params/",
         middleware.NeedsPermission("access-edit", true),
-        removeparam,
+        remove_param,
     )
 }
 
@@ -61,7 +61,7 @@ func AccessRegister() {
  Description: Displays  list of all roles with the matching abilities
  Abilities: access-view
  */
-func listroles(ctx *iris.Context) {
+func list_roles(ctx *iris.Context) {
     var roles []objects.Role
     SpaceDock.Database.Find(&roles)
     output := make([]map[string]interface{}, len(roles))
@@ -91,7 +91,7 @@ func listroles(ctx *iris.Context) {
  Description: Promotes a user for the given role. Required parameters: userid, rolename
  Abilities: access-edit
  */
-func assignrole(ctx *iris.Context) {
+func assign_role(ctx *iris.Context) {
     // Grab parameters from the JSON
     userid := cast.ToUint(utils.GetJSON(ctx,"userid"))
     rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
@@ -117,7 +117,7 @@ func assignrole(ctx *iris.Context) {
  Description: Promotes a user for the given role. Required parameters: userid, rolename
  Abilities: access-edit
  */
-func removerole(ctx *iris.Context) {
+func remove_role(ctx *iris.Context) {
     // Grab parameters from the JSON
     userid := cast.ToUint(utils.GetJSON(ctx,"userid"))
     rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
@@ -146,7 +146,7 @@ func removerole(ctx *iris.Context) {
  Description: Displays a list of all abilities.
  Abilities: access-view
  */
-func listabilities(ctx *iris.Context) {
+func list_abilities(ctx *iris.Context) {
     var abilities []objects.Ability
     SpaceDock.Database.Find(&abilities)
     output := make([]map[string]interface{}, len(abilities))
@@ -166,7 +166,7 @@ func listabilities(ctx *iris.Context) {
  Description: Adds a permission to a group. Required parameters: rolename, abname
  Abilities: access-edit
  */
-func assignability(ctx *iris.Context) {
+func assign_ability(ctx *iris.Context) {
     // Grab parameters from the JSON
     rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
     abname := cast.ToString(utils.GetJSON(ctx,"abname"))
@@ -191,7 +191,7 @@ func assignability(ctx *iris.Context) {
  Description: Removes a permission from a group. Required parameters: rolename, abname
  Abilities: access-edit
  */
-func removeability(ctx *iris.Context) {
+func remove_ability(ctx *iris.Context) {
     // Grab parameters from the JSON
     rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
     abname := cast.ToString(utils.GetJSON(ctx,"abname"))
@@ -234,7 +234,7 @@ func removeability(ctx *iris.Context) {
  Description: Adds a parameter for an ability. Required parameters: abname, param, value
  Abilities: access-edit
  */
-func addparam(ctx *iris.Context) {
+func add_param(ctx *iris.Context) {
     // Grab parameters from the JSON
     rolename := ctx.GetString("rolename")
     abname := cast.ToString(utils.GetJSON(ctx,"abname"))
@@ -273,7 +273,7 @@ func addparam(ctx *iris.Context) {
  Description: Removes a parameter from an ability. Required parameters: abname, param, value
  Abilities: access-edit
  */
-func removeparam(ctx *iris.Context) {
+func remove_param(ctx *iris.Context) {
     // Grab parameters from the JSON
     rolename := ctx.GetString("rolename")
     abname := cast.ToString(utils.GetJSON(ctx,"abname"))

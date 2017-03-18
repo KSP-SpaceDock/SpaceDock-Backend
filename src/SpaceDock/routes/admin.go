@@ -28,7 +28,7 @@ func AdminRegister() {
     )
     Register(POST, "/api/admin/manual-confirmation/:userid",
         middleware.NeedsPermission("admin-confirm", true),
-        manualConfirmation,
+        manual_confirmation,
     )
 }
 
@@ -61,7 +61,7 @@ func impersonate(ctx *iris.Context) {
  Method: POST
  Abilities: admin-confirm
  */
-func manualConfirmation(ctx *iris.Context) {
+func manual_confirmation(ctx *iris.Context) {
     id, err := ctx.GetInt("userid")
     userid := cast.ToUint(id)
     if err != nil {

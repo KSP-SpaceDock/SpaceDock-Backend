@@ -27,12 +27,16 @@ import (
  Registers the routes for the user management
  */
 func UserRegister() {
-    Register(GET, "/api/users/", listusers)
+    Register(GET, "/api/users/", list_users)
     Register(POST, "/api/users/", register)
-    Register(GET, "/api/users/:userid", showuser)
+    Register(GET, "/api/users/:userid", show_user)
     Register(PUT, "/api/users/:userid",
         middleware.NeedsPermission("user-edit", false, "userid"),
-        edituser,
+        edit_user,
+    )
+    Register(POST, "/api/users/:userid/update-media",
+        middleware.NeedsPermission("user-edit", false, "userid"),
+        update_user_media,
     )
 }
 
@@ -41,7 +45,7 @@ func UserRegister() {
  Method: GET
  Description: Returns a list of users.
  */
-func listusers(ctx *iris.Context) {
+func list_users(ctx *iris.Context) {
     var users []objects.User
     SpaceDock.Database.Find(&users)
     output := make([]map[string]interface{}, len(users))
@@ -208,7 +212,7 @@ func checkEmailForRegistration(email string) string {
  Method: GET
  Description: Returns more data for one user
  */
-func showuser(ctx *iris.Context) {
+func show_user(ctx *iris.Context) {
     userid_ := ctx.GetString("userid")
     userid := uint(0)
     var user objects.User
@@ -243,8 +247,9 @@ func showuser(ctx *iris.Context) {
  Path: /api/users/:userid
  Method: PUT
  Description: Edits a user, based on the request parameters. Required fields: data
+ Abilities: user-edit
  */
-func edituser(ctx *iris.Context) {
+func edit_user(ctx *iris.Context) {
     userid := cast.ToUint(ctx.GetString("userid"))
     var user objects.User
     SpaceDock.Database.Where("id = ?", userid).First(&user)
@@ -274,8 +279,9 @@ func edituser(ctx *iris.Context) {
  Path: /api/users/:userid/update-media
  Method: POST
  Description: Updates a users background. Required fields: image, type
+ Abilities: user-edit
  */
-func updateusermedia(ctx *iris.Context) {
+func update_user_media(ctx *iris.Context) {
     mediatype := cast.ToString(utils.GetJSON(ctx, "type"))
     userid := cast.ToUint(ctx.GetString("userid"))
     data, info, err := ctx.FormFile("media")
