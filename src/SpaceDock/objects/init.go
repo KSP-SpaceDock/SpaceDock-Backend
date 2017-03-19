@@ -15,6 +15,9 @@ import "SpaceDock"
  */
 func init() {
     SpaceDock.CreateTable(&Ability{})
+    SpaceDock.CreateTable(&DownloadEvent{})
+    SpaceDock.CreateTable(&FollowEvent{})
+    SpaceDock.CreateTable(&ReferralEvent{})
     SpaceDock.CreateTable(&Featured{})
     SpaceDock.CreateTable(&Game{})
     SpaceDock.CreateTable(&GameVersion{})
