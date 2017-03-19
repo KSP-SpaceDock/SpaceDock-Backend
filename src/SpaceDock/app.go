@@ -31,7 +31,6 @@ var App *iris.Framework
 func init() {
     log.SetOutput(os.Stdout)
     log.Print("SpaceDock-Backend -- Version: {$VERSION}")
-    log.Print("* Loading configuration")
     LoadSettings()
 
     // Connect to the database

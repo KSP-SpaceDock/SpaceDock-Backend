@@ -1,0 +1,56 @@
+# debug: false for deployed instances
+debug: true
+
+# The displayed name of this site
+site-name: ""
+# The email where users who need help write to
+support-mail: ""
+
+# Change this to the actual location of your site
+protocol: "http"
+domain: "localhost:5000"
+
+# Enable offloading of downloads to the reverse proxy server. Make sure the reverse proxy is set up!
+# valid values are:
+# false - disable offloading
+# nginx - enable X-Accel headers
+# apache - enable X-Sendfile headers
+use-x-accel: "false"
+
+# Set this to False to disable registration
+registration: true
+
+# This lets you choose what to bind to
+host: "0.0.0.0"
+port: 5000
+
+# To send emails, fill out these details
+smtp-host: ""
+smtp-port: 0
+smtp-user: ""
+smtp-password: ""
+smtp-tls: false
+
+# SQL settings
+dialect: "mysql"
+connection-data: ""
+
+# Absolute path to the directory you want to store mods in
+storage: ""
+
+# Domain for a storage CDN
+cdn-domain: ""
+
+# Thumbnail size in WxH format, leave blank to disable screenshots
+thumbnail-size: ""
+
+# Access limiting
+# <number of requests>-<span>
+# Valid values for span are:
+#     S - second
+#     M - minute
+#     H - hour
+request-limit: "10-S"
+
+# Disables the same origin policy on the client
+disable-same-origin: false
