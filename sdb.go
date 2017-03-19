@@ -13,6 +13,7 @@ import (
      "SpaceDock/objects"
     _ "SpaceDock/routes"
     "strconv"
+    "regexp"
 )
 
 /*
@@ -43,6 +44,16 @@ func CreateDefaultData() {
     NewDummyVersion(*fac, "0.12", false)
 }
 
+func AddAbilityRe(role *objects.Role, expression string) {
+    var abilities []objects.Ability
+    SpaceDock.Database.Find(&abilities)
+    for _,element := range abilities {
+        if ok,_ := regexp.MatchString(expression, element.Name); ok {
+            role.AddAbility(element.Name)
+        }
+    }
+}
+
 func NewDummyUser(name string, password string, email string, admin bool) *objects.User {
     user := objects.NewUser(name, email, password)
     SpaceDock.Database.Save(user)
@@ -51,50 +62,33 @@ func NewDummyUser(name string, password string, email string, admin bool) *objec
     role := user.AddRole(user.Username)
     role.AddAbility("user-edit")
     role.AddAbility("mods-add")
-    role.AddAbility("packs-add")
+    role.AddAbility("lists-add")
     role.AddAbility("logged-in")
     role.AddParam("user-edit", "userid", strconv.Itoa(int(user.ID)))
     role.AddParam("mods-add", "gameshort", ".*")
-    role.AddParam("packs-add", "gameshort", ".*")
+    role.AddParam("lists-add", "gameshort", ".*")
     SpaceDock.Database.Save(&role)
 
     // Admin roles
     if admin {
         admin_role := user.AddRole("admin")
-
-        // access.go
-        admin_role.AddAbility("access-view")
-        admin_role.AddAbility("access-edit")
-
-        // admin.go
-        admin_role.AddAbility("admin-impersonate")
-        admin_role.AddAbility("admin-confirm")
-
-        // game.go
-        admin_role.AddAbility("game-add")
-        admin_role.AddAbility("game-edit")
-        admin_role.AddAbility("game-remove")
-
-        // tokens.go
-        admin_role.AddAbility("token-generate")
-        admin_role.AddAbility("token-edit")
-        admin_role.AddAbility("token-revoke")
-
-        // user.go
-        admin_role.AddAbility("user-edit")
+        AddAbilityRe(admin_role, ".*")
+        admin_role.AddAbility("mods-invite")
+        admin_role.AddAbility("view-users-full")
 
         // Params
         admin_role.AddParam("admin-impersonate", "userid", ".*")
         admin_role.AddParam("game-edit", "gameshort", ".*")
         admin_role.AddParam("game-add", "pubid", ".*")
         admin_role.AddParam("game-remove", "short", ".*")
-        //admin_role.AddParam("mods-feature", "gameshort", ".*")
+        admin_role.AddParam("mods-feature", "gameshort", ".*")
         //admin_role.AddParam("mods-edit", "gameshort", ".*")
         //admin_role.AddParam("mods-add", "gameshort", ".*")
         //admin_role.AddParam("mods-remove", "gameshort", ".*")
-        //admin_role.AddParam("packs-add", "gameshort", ".*")
-        //admin_role.AddParam("packs-remove", "gameshort", ".*")
-        //admin_role.AddParam("publisher-edit", "publid", ".*")
+        admin_role.AddParam("lists-add", "gameshort", ".*")
+        admin_role.AddParam("lists-edit", "gameshort", ".*")
+        admin_role.AddParam("lists-remove", "gameshort", ".*")
+        admin_role.AddParam("publisher-edit", "publid", ".*")
         admin_role.AddParam("token-edit", "tokenid", ".*")
         admin_role.AddParam("token-remove", "tokenid", ".*")
         admin_role.AddParam("user-edit", "userid", ".*")

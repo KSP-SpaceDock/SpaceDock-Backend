@@ -54,7 +54,7 @@ func confirm(ctx *iris.Context) {
     role := user.AddRole(user.Username)
     role.AddAbility("user-edit")
     role.AddAbility("mods-add")
-    role.AddAbility("packs-add")
+    role.AddAbility("lists-add")
     role.AddAbility("logged-in")
     role.AddParam("user-edit", "userid", strconv.Itoa(int(user.ID)))
     role.AddParam("mods-add", "gameshort", ".*")
