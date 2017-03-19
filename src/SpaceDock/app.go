@@ -44,7 +44,6 @@ func init() {
     App.Adapt(iris.DevLogger())
     mySessions := sessions.New(sessions.Config{
         Cookie: "spacedocksid",
-        DecodeCookie: false,
         Expires: 0,
         CookieLength: 32,
         DisableSubdomainPersistence: false,
