@@ -5,6 +5,7 @@
 $script:THIS_PATH = $myinvocation.mycommand.path
 $script:BASE_DIR = split-path (resolve-path "$THIS_PATH/..") -Parent
 $script:DIR_NAME = split-path $BASE_DIR -Leaf
+$script:PLUGIN_FILE = $BASE_DIR + "/build/plugins.txt"
 
 function global:deactivate ( [switch] $NonDestructive ){
 
@@ -31,7 +32,34 @@ function global:deactivate ( [switch] $NonDestructive ){
     if ( !$NonDestructive ) {
         # Self destruct!
         remove-item function:deactivate
+        remove-item function:build
     }
+}
+
+function global:build($projectname) {
+    # Vars
+    $filename = $projectname + ".go"
+    $binname = $projectname + ".exe"
+    
+    # Update deps
+    go get -u ./...
+
+    # Implement plugin stuff
+    Get-Content ($BASE_DIR + "/" + $filename) | Foreach-Object {
+        if ($_ -eq ")")  {
+            # Add Lines before the selected pattern 
+            if (Test-Path $PLUGIN_FILE) {
+                Get-Content $PLUGIN_FILE | Foreach-Object {
+                    '    _ "' + $_ + '"'
+                    go get -u $_
+                }
+            }
+        }        
+        $_ # send the current line to output
+    } | Set-Content ($BASE_DIR + "/build_" + $filename)
+    
+    # Build the binary
+    go build -v -o $BASE_DIR/build/$binname $BASE_DIR/build_$filename
 }
 
 # unset irrelevant variables

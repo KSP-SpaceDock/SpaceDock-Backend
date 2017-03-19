@@ -36,3 +36,5 @@ bin/
 
 # SpaceDock specific
 config/config.yml
+build/plugins.txt
+build_sdb.go

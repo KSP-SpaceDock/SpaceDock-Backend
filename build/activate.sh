@@ -33,7 +33,37 @@ deactivate () {
     if [ ! "${1-}" = "nondestructive" ] ; then
     # Self destruct!
         unset -f deactivate
+        unset -f build
     fi
+}
+
+build () {
+    # Vars
+    $filename = $1 + ".go"
+    $binname = $1
+    
+    # Update deps
+    go get -u ./...
+
+    # Implement plugin stuff
+    rm $VIRTUAL_ENV/build_$filename
+    filelines=`cat $VIRTUAL_ENV/$filename`
+    for line in $filelines ; do
+        if ["$line" = ")"]
+        then
+            if [-e "$VIRTUAL_ENV/build/plugins.txt"]
+            then
+                filelines2=`cat $VIRTUAL_ENV/build/plugins.txt`
+                for line2 in $filelines ; do        
+                    echo $line >> $VIRTUAL_ENV/build_$filename                    
+                done
+            fi
+        fi        
+        echo $line >> $VIRTUAL_ENV/build_$filename
+    done
+    
+    # Build the binary
+    go build -v -o $VIRTUAL_ENV/build/$binname $VIRTUAL_ENV/build_$filename
 }
 
 # unset irrelevant variables
