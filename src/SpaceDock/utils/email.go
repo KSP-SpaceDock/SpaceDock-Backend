@@ -39,7 +39,7 @@ func SendMail(sender string, recipients []string, subject string, message string
     sc,err := srv.Dial()
     defer sc.Close()
     if err != nil {
-        log.Fatalf("Error while sending mail: %s", err)
+        log.Printf("Error while sending mail: %s", err)
         return
     }
     sc.Send(sender, recipients, m)
@@ -49,7 +49,7 @@ func SendMail(sender string, recipients []string, subject string, message string
 func SendConfirmation(userConfirmation string, userUsername string, userEmail string, followMod string) {
     buffer,err := ioutil.ReadFile("emails/confirm-account")
     if err != nil {
-        log.Fatalf("Error while reading Email Template confirm-account: %s", err)
+        log.Printf("Error while reading Email Template confirm-account: %s", err)
         return
     }
     confirmation := userConfirmation
@@ -66,7 +66,7 @@ func SendConfirmation(userConfirmation string, userUsername string, userEmail st
     t := template.Must(template.New("email").Parse(text))
     buf := &bytes.Buffer{}
     if err := t.Execute(buf, data); err != nil {
-        log.Fatalf("Error while parsing Email Template confirm-account: %s", err)
+        log.Printf("Error while parsing Email Template confirm-account: %s", err)
         return
     }
     s := buf.String()
@@ -76,7 +76,7 @@ func SendConfirmation(userConfirmation string, userUsername string, userEmail st
 func SendReset(userUsername string, userPasswordReset string, userEmail string) {
     buffer,err := ioutil.ReadFile("emails/password-reset")
     if err != nil {
-        log.Fatalf("Error while reading Email Template password-reset: %s", err)
+        log.Printf("Error while reading Email Template password-reset: %s", err)
         return
     }
     data := map[string]interface{}{
@@ -89,7 +89,7 @@ func SendReset(userUsername string, userPasswordReset string, userEmail string) 
     t := template.Must(template.New("email").Parse(text))
     buf := &bytes.Buffer{}
     if err := t.Execute(buf, data); err != nil {
-        log.Fatalf("Error while parsing Email Template password-reset: %s", err)
+        log.Printf("Error while parsing Email Template password-reset: %s", err)
         return
     }
     s := buf.String()

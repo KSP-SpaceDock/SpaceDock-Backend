@@ -43,7 +43,7 @@ func ArrayContainsRe(itr []string, value string) bool {
         r,err := regexp.Compile(element)
 
         if err != nil {
-            log.Fatalf("Invalid regular expression detected: %s", value)
+            log.Printf("Invalid regular expression detected: %s", value)
             return false
         }
 
