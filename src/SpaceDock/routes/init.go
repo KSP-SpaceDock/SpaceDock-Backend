@@ -29,6 +29,7 @@ func init() {
     AccessRegister()
     AccountsRegister()
     AdminRegister()
+    FeaturedRegister()
     GameRegister()
     GeneralRegister()
     PublisherRegister()
