@@ -19,12 +19,12 @@ type ModVersion struct {
 
     Mod             Mod `json:"-" spacedock:"lock"`
     ModID           uint `json:"mod" spacedock:"lock"`
-    FriendlyVersion string `gorm:"size:64;" json:"friendly_version" spacedock:"lock"`
-    Beta            bool
+    FriendlyVersion string `json:"friendly_version" gorm:"size:64;" spacedock:"lock"`
+    Beta            bool `json:"beta"`
     GameVersion     GameVersion `json:"-" spacedock:"lock"`
     GameVersionID   uint `json:"gameversion" spacedock:"lock"`
-    DownloadPath    string `gorm:"size:512" json:"download_path" spacedock:"lock"`
-    Changelog       string `gorm:"size:10000"`
+    DownloadPath    string `json:"download_path" gorm:"size:512" spacedock:"lock"`
+    Changelog       string `json:"changelog" gorm:"size:10000"`
     SortIndex       int `json:"sort_index" spacedock:"lock"`
     FileSize        int64 `json:"file_size" spacedock:"lock"`
 }

@@ -18,7 +18,7 @@ type GameVersion struct {
     Game            Game `json:"-" spacedock:"lock"`
     GameID          uint `json:"game" spacedock:"lock"`
     FriendlyVersion string `gorm:"size:128;" json:"friendly_version" spacedock:"lock"`
-    Beta            bool
+    Beta            bool `json:"beta"`
 }
 
 func (s *GameVersion) AfterFind() {
