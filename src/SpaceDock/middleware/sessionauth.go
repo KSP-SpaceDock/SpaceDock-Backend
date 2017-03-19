@@ -18,7 +18,7 @@ func LoginRequired(ctx *iris.Context) {
     userID, err := ctx.Session().GetInt("SessionID")
     if err == nil {
         var user objects.User
-        err = user.GetById(userID)
+        err = user.GetById(cast.ToUint(userID))
         if !(err == nil && user.IsAuthenticated()) {
             ctx.SetStatusCode(iris.StatusUnauthorized)
             return
@@ -43,10 +43,10 @@ func LogoutUser(ctx *iris.Context) {
 func CurrentUser(ctx *iris.Context) *objects.User {
     userID, err := ctx.Session().GetInt("SessionID")
     if err == nil {
-        var user objects.User
+        user := &objects.User{}
         err = user.GetById(cast.ToUint(userID))
-        if err != nil {
-            return &user
+        if err == nil {
+            return user
         } else {
             return nil
         }

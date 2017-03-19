@@ -70,7 +70,7 @@ func (user *User) SetPassword(password string) {
 
 /* Login Interface */
 
-func (user User) IsAuthenticated() bool {
+func (user *User) IsAuthenticated() bool {
     return user.authed
 }
 
@@ -82,13 +82,9 @@ func (user *User) Logout() {
     user.authed = false
 }
 
-func (user User) UniqueId() interface{} {
-    return user.ID
-}
-
-func (user *User) GetById(id interface{}) error {
-    SpaceDock.Database.First(&user, id)
-    if user.Username != "" {
+func (user *User) GetById(id uint) error {
+    SpaceDock.Database.Where("id = ?", id).First(user)
+    if user.ID != id {
         return errors.New("Invalid user ID")
     }
     return nil
@@ -96,43 +92,43 @@ func (user *User) GetById(id interface{}) error {
 
 /* Login Interface End */
 
-func (user User) AddRole(name string) Role {
-    role := Role {}
-    SpaceDock.Database.Where("name = ?", name).First(&role)
+func (user *User) AddRole(name string) *Role {
+    role := &Role {}
+    SpaceDock.Database.Where("name = ?", name).First(role)
     if role.Name == "" {
         role.Name = name
         role.Params = "{}"
         role.Meta = "{}"
-        SpaceDock.Database.Save(&role)
+        SpaceDock.Database.Save(role)
     }
-    user.Roles = append(user.Roles, role)
-    SpaceDock.Database.Save(&user)
+    user.Roles = append(user.Roles, *role)
+    SpaceDock.Database.Save(user)
     return role
 }
 
-func (user User) RemoveRole(name string) {
-    role := Role{}
-    SpaceDock.Database.Where("name = ?", name).First(&role)
+func (user *User) RemoveRole(name string) {
+    role := &Role{}
+    SpaceDock.Database.Where("name = ?", name).First(role)
     if role.Name == "" {
         return
     }
-    if e,i := utils.ArrayContains(&role, user.Roles); e {
+    if e,i := utils.ArrayContains(role, user.Roles); e {
         user.Roles = append(user.Roles[:i], user.Roles[i + 1:]...)
-        SpaceDock.Database.Save(&user)
+        SpaceDock.Database.Save(user)
     }
 }
 
-func (user User) HasRole(name string) bool {
-    role := Role {}
-    SpaceDock.Database.Where("name = ?", name).First(&role)
+func (user *User) HasRole(name string) bool {
+    role := &Role {}
+    SpaceDock.Database.Where("name = ?", name).First(role)
     if role.Name == "" {
         return false
     }
-    e,_ := utils.ArrayContains(&role, &user.Roles)
+    e,_ := utils.ArrayContains(role, &(user.Roles))
     return e
 }
 
-func (user User) GetAbilities() []string {
+func (user *User) GetAbilities() []string {
     count := 0
     for _,element := range user.Roles {
         count = count + len(element.Abilities)
@@ -148,7 +144,7 @@ func (user User) GetAbilities() []string {
     return value
 }
 
-func (user User) Format(admin bool) map[string]interface{} {
+func (user *User) Format(admin bool) map[string]interface{} {
     if (admin) {
         roles := user.Roles
         names := make([]string, len(roles))

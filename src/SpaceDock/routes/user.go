@@ -215,24 +215,24 @@ func checkEmailForRegistration(email string) string {
 func show_user(ctx *iris.Context) {
     userid_ := ctx.GetString("userid")
     userid := uint(0)
-    var user objects.User
+    user := &objects.User{}
     if userid_ == "current" {
         if middleware.CurrentUser(ctx) == nil {
             utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("You need to be logged in to access this page").Code(1035))
             return
         }
-        user = *middleware.CurrentUser(ctx)
+        user = middleware.CurrentUser(ctx)
         userid = user.ID
     } else {
         userid = cast.ToUint(userid_)
-        SpaceDock.Database.Where("id = ?", userid).First(&user)
+        SpaceDock.Database.Where("id = ?", userid).First(user)
     }
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The userid is invalid.").Code(2145))
         return
     }
     output := map[string]interface{} {}
-    if middleware.IsCurrentUser(ctx, &user) || middleware.UserHasPermission(ctx, "view-users-full", false, []string{}) == 0 {
+    if middleware.IsCurrentUser(ctx, user) || middleware.UserHasPermission(ctx, "view-users-full", false, []string{}) == 0 {
         output = user.Format(true)
     } else if user.Public {
         output = user.Format(false)
@@ -251,15 +251,15 @@ func show_user(ctx *iris.Context) {
  */
 func edit_user(ctx *iris.Context) {
     userid := cast.ToUint(ctx.GetString("userid"))
-    var user objects.User
-    SpaceDock.Database.Where("id = ?", userid).First(&user)
+    user := &objects.User{}
+    SpaceDock.Database.Where("id = ?", userid).First(user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The userid is invalid.").Code(2145))
         return
     }
 
     // Everything is ok, edit the user
-    code := utils.EditObject(&user, utils.GetFullJSON(ctx))
+    code := utils.EditObject(user, utils.GetFullJSON(ctx))
     if code == 3 {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The value you submitted is invalid").Code(2180))
         return
@@ -289,8 +289,8 @@ func update_user_media(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusInternalServerError, utils.Error(err.Error()).Code(2153))
         return
     }
-    var user objects.User
-    SpaceDock.Database.Where("id = ?", userid).First(&user)
+    user := &objects.User{}
+    SpaceDock.Database.Where("id = ?", userid).First(user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The userid is invalid.").Code(2145))
         return
@@ -323,7 +323,7 @@ func update_user_media(ctx *iris.Context) {
     data.Close()
 
     // Edit the user object
-    code := utils.EditObject(&user, iris.Map{"meta": iris.Map{mediatype:filepath.Join(base_path, filename)}})
+    code := utils.EditObject(user, iris.Map{"meta": iris.Map{mediatype:filepath.Join(base_path, filename)}})
     if code == 3 {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The value you submitted is invalid").Code(2180))
         return

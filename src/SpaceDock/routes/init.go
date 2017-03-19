@@ -16,6 +16,7 @@ import (
     "gopkg.in/kataras/iris.v6"
     "gopkg.in/kataras/iris.v6/middleware/logger"
     "log"
+    "runtime"
 )
 
 /*
@@ -75,4 +76,10 @@ func MiddlewareRegister() {
             AllowCredentials: true,
         }))
     }
+
+    // Force garbage collection
+    SpaceDock.App.Use(iris.HandlerFunc(func (ctx *iris.Context) {
+        runtime.GC()
+        ctx.Next()
+    }))
 }

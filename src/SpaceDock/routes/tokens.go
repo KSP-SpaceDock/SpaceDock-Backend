@@ -59,8 +59,8 @@ func edit_token(ctx *iris.Context) {
     ips := cast.ToStringSlice(utils.GetJSON(ctx, "ips"))
 
     // Get the token
-    var token objects.Token
-    SpaceDock.Database.Where("id = ?", tokenid).First(&token)
+    token := &objects.Token{}
+    SpaceDock.Database.Where("id = ?", tokenid).First(token)
     if token.ID != tokenid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The token ID is invalid").Code(2131))
         return
@@ -72,7 +72,7 @@ func edit_token(ctx *iris.Context) {
 
     // Edit the token
     token.SetValue("ips", ips)
-    SpaceDock.Database.Save(&token)
+    SpaceDock.Database.Save(token)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(token)})
 }
 
@@ -86,14 +86,14 @@ func revoke_token(ctx *iris.Context) {
     tokenid := cast.ToUint(utils.GetJSON(ctx, "tokenid"))
 
     // Get the token
-    var token objects.Token
-    SpaceDock.Database.Where("id = ?", tokenid).First(&token)
+    token := &objects.Token{}
+    SpaceDock.Database.Where("id = ?", tokenid).First(token)
     if token.ID != tokenid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The token ID is invalid").Code(2131))
         return
     }
 
     // Delete the token
-    SpaceDock.Database.Delete(&token)
+    SpaceDock.Database.Delete(token)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }

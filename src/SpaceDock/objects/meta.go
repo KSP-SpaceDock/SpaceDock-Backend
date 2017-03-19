@@ -22,7 +22,7 @@ type Model struct {
     Meta      string `gorm:"size:4096" json:"meta"`
 }
 
-func (meta Model) GetValue(key string) (error,interface{}) {
+func (meta *Model) GetValue(key string) (error,interface{}) {
     var temp map[string]interface{}
     err := json.Unmarshal([]byte(meta.Meta), &temp)
     if err != nil {

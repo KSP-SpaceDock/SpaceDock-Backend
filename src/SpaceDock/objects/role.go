@@ -12,7 +12,6 @@ import (
     "SpaceDock"
     "SpaceDock/utils"
     "encoding/json"
-    "errors"
 )
 
 type Role struct {
@@ -36,50 +35,42 @@ func (s *Role) AfterFind() {
     }
 }
 
-func (role *Role) GetById(id interface{}) error {
-    SpaceDock.Database.First(&role, id)
-    if role.Name != "" {
-        return errors.New("Invalid role ID")
-    }
-    return nil
-}
-
-func (role Role) AddAbility(name string) Ability {
-    ability := Ability {}
-    SpaceDock.Database.Where("name = ?", name).First(&ability)
+func (role *Role) AddAbility(name string) *Ability {
+    ability := &Ability {}
+    SpaceDock.Database.Where("name = ?", name).First(ability)
     if ability.Name == "" {
         ability.Name = name
         ability.Meta = "{}"
-        SpaceDock.Database.Save(&ability)
+        SpaceDock.Database.Save(ability)
     }
-    role.Abilities = append(role.Abilities, ability)
+    role.Abilities = append(role.Abilities, *ability)
     SpaceDock.Database.Save(role)
     return ability
 }
 
-func (role Role) RemoveAbility(name string) {
-    ability := Ability {}
-    SpaceDock.Database.Where("name = ?", name).First(&ability)
+func (role *Role) RemoveAbility(name string) {
+    ability := &Ability {}
+    SpaceDock.Database.Where("name = ?", name).First(ability)
     if ability.Name == "" {
         return
     }
-    if e,i := utils.ArrayContains(&ability, role.Abilities); e {
+    if e,i := utils.ArrayContains(ability, role.Abilities); e {
         role.Abilities = append(role.Abilities[:i], role.Abilities[i + 1:]...)
-        SpaceDock.Database.Save(&role)
+        SpaceDock.Database.Save(role)
     }
 }
 
-func (role Role) HasAbility(name string) bool {
-    ability := Ability {}
-    SpaceDock.Database.Where("name = ?", name).First(&ability)
+func (role *Role) HasAbility(name string) bool {
+    ability := &Ability {}
+    SpaceDock.Database.Where("name = ?", name).First(ability)
     if ability.Name == "" {
         return false
     }
-    e,_ := utils.ArrayContains(&ability, &role.Abilities)
+    e,_ := utils.ArrayContains(ability, &(role.Abilities))
     return e
 }
 
-func (role Role) GetParams(ability string, param string) []string {
+func (role *Role) GetParams(ability string, param string) []string {
     var temp map[string]map[string][]string
     err := json.Unmarshal([]byte(role.Params), &temp)
     if err != nil {

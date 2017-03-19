@@ -62,7 +62,7 @@ func AccessRegister() {
  Abilities: access-view
  */
 func list_roles(ctx *iris.Context) {
-    var roles []objects.Role
+    roles := []objects.Role{}
     SpaceDock.Database.Find(&roles)
     output := make([]map[string]interface{}, len(roles))
     for i,element := range roles {
@@ -97,15 +97,15 @@ func assign_role(ctx *iris.Context) {
     rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
 
     // Try to get the user
-    var user objects.User
-    SpaceDock.Database.Where("id = ?", userid).First(&user)
+    user := &objects.User{}
+    SpaceDock.Database.Where("id = ?", userid).First(user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid.").Code(2145))
     }
 
     // User is valid, assign the new role
     role := user.AddRole(rolename)
-    SpaceDock.Database.Save(&role).Save(&user)
+    SpaceDock.Database.Save(role).Save(user)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -123,8 +123,8 @@ func remove_role(ctx *iris.Context) {
     rolename := cast.ToString(utils.GetJSON(ctx,"rolename"))
 
     // Try to get the user
-    var user objects.User
-    SpaceDock.Database.Where("id = ?", userid).First(&user)
+    user := &objects.User{}
+    SpaceDock.Database.Where("id = ?", userid).First(user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid.").Code(2145))
         return
@@ -136,7 +136,7 @@ func remove_role(ctx *iris.Context) {
 
     // Everything is valid, remove the role
     user.RemoveRole(rolename)
-    SpaceDock.Database.Save(&user)
+    SpaceDock.Database.Save(user)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -172,8 +172,8 @@ func assign_ability(ctx *iris.Context) {
     abname := cast.ToString(utils.GetJSON(ctx,"abname"))
 
     // Try to get the role
-    var role objects.Role
-    SpaceDock.Database.Where("name = ?", rolename).First(&role)
+    role := &objects.Role{}
+    SpaceDock.Database.Where("name = ?", rolename).First(role)
     if role.Name != rolename {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The role does not exist. Please add it to a user to create it internally.").Code(3030))
         return
@@ -181,7 +181,7 @@ func assign_ability(ctx *iris.Context) {
 
     // Role is valid, assign the new ability
     ability := role.AddAbility(abname)
-    SpaceDock.Database.Save(&role).Save(&ability)
+    SpaceDock.Database.Save(role).Save(ability)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -197,10 +197,10 @@ func remove_ability(ctx *iris.Context) {
     abname := cast.ToString(utils.GetJSON(ctx,"abname"))
 
     // Try to get the role
-    var role objects.Role
-    SpaceDock.Database.Where("name = ?", rolename).First(&role)
-    var ability objects.Ability
-    SpaceDock.Database.Where("name = ?", abname).First(&ability)
+    role := &objects.Role{}
+    SpaceDock.Database.Where("name = ?", rolename).First(role)
+    ability := &objects.Ability{}
+    SpaceDock.Database.Where("name = ?", abname).First(ability)
     errors := []string{}
     codes := []int{}
     if role.Name != rolename {
@@ -224,7 +224,7 @@ func remove_ability(ctx *iris.Context) {
 
     // Remove the ability
     role.RemoveAbility(abname)
-    SpaceDock.Database.Save(&role)
+    SpaceDock.Database.Save(role)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -242,10 +242,10 @@ func add_param(ctx *iris.Context) {
     value := cast.ToString(utils.GetJSON(ctx,"value"))
 
     // Try to get the role
-    var role objects.Role
-    SpaceDock.Database.Where("name = ?", rolename).First(&role)
-    var ability objects.Ability
-    SpaceDock.Database.Where("name = ?", abname).First(&ability)
+    role := &objects.Role{}
+    SpaceDock.Database.Where("name = ?", rolename).First(role)
+    ability := &objects.Ability{}
+    SpaceDock.Database.Where("name = ?", abname).First(ability)
     errors := []string{}
     codes := []int{}
     if role.Name != rolename {
@@ -263,7 +263,7 @@ func add_param(ctx *iris.Context) {
 
     // Both objects are valid, check if they are linked
     role.AddParam(abname, param, value)
-    SpaceDock.Database.Save(&role)
+    SpaceDock.Database.Save(role)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -281,10 +281,10 @@ func remove_param(ctx *iris.Context) {
     value := cast.ToString(utils.GetJSON(ctx,"value"))
 
     // Try to get the role
-    var role objects.Role
-    SpaceDock.Database.Where("name = ?", rolename).First(&role)
-    var ability objects.Ability
-    SpaceDock.Database.Where("name = ?", abname).First(&ability)
+    role := &objects.Role{}
+    SpaceDock.Database.Where("name = ?", rolename).First(role)
+    ability := &objects.Ability{}
+    SpaceDock.Database.Where("name = ?", abname).First(ability)
     errors := []string{}
     codes := []int{}
     if role.Name != rolename {
@@ -302,6 +302,6 @@ func remove_param(ctx *iris.Context) {
 
     // Both objects are valid, check if the param exists
     role.RemoveParam(abname, param, value)
-    SpaceDock.Database.Save(&role)
+    SpaceDock.Database.Save(role)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }

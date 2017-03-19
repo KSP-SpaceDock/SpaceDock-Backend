@@ -59,7 +59,7 @@ func GameRegister() {
  Description: Displays a list of all games in the database.
  */
 func list_games(ctx *iris.Context) {
-    var games []objects.Game
+    games := []objects.Game{}
     includeInactive := ctx.URLParam("includeInactive")
     val, err  := strconv.ParseBool(includeInactive)
     if (err != nil) && val {
@@ -81,8 +81,8 @@ func list_games(ctx *iris.Context) {
  */
 func show_game(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
-    var game objects.Game
-    SpaceDock.Database.Where("short = ?", gameshort).First(&game)
+    game := &objects.Game{}
+    SpaceDock.Database.Where("short = ?", gameshort).First(game)
     if game.Short != gameshort {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
@@ -98,15 +98,15 @@ func show_game(ctx *iris.Context) {
  */
 func edit_game(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
-    var game objects.Game
-    SpaceDock.Database.Where("short = ?", gameshort).First(&game)
+    game := &objects.Game{}
+    SpaceDock.Database.Where("short = ?", gameshort).First(game)
     if game.Short != gameshort {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
     }
 
     // Edit the game
-    code := utils.EditObject(&game, utils.GetFullJSON(ctx))
+    code := utils.EditObject(game, utils.GetFullJSON(ctx))
     if code == 3 {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The value you submitted is invalid").Code(2180))
         return
@@ -117,7 +117,7 @@ func edit_game(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You tried to edit a value that is marked as read-only.").Code(3095))
         return
     }
-    SpaceDock.Database.Save(&game)
+    SpaceDock.Database.Save(game)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(game)})
 }
 
@@ -136,8 +136,8 @@ func add_game(ctx *iris.Context) {
     codes := []int{}
 
     // Check if the publisher ID is valid
-    var publisher objects.Publisher
-    SpaceDock.Database.Where("id = ?", pubid).First(&publisher)
+    publisher := objects.Publisher{}
+    SpaceDock.Database.Where("id = ?", pubid).First(publisher)
     if publisher.ID != pubid {
         errors = append(errors, "The pubid is invalid.")
         codes = append(codes, 2110)
@@ -152,13 +152,13 @@ func add_game(ctx *iris.Context) {
     }
 
     // Check if the game already exists
-    var game *objects.Game
+    game := &objects.Game{}
     SpaceDock.Database.Where("short = ?", short).First(game)
     if game.Short == short {
         errors = append(errors, "The gameshort already exists.")
         codes = append(codes, 2015)
     }
-    SpaceDock.Database.Where("name = ?", name).First(&game)
+    SpaceDock.Database.Where("name = ?", name).First(game)
     if game.Name == name {
         errors = append(errors, "The game name already exists.")
         codes = append(codes, 2020)
@@ -173,7 +173,7 @@ func add_game(ctx *iris.Context) {
     // Make a new game
     game = objects.NewGame(name, publisher, short)
     SpaceDock.Database.Save(game)
-    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(*game)})
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(game)})
 }
 
 /*
@@ -186,7 +186,7 @@ func remove_game(ctx *iris.Context) {
     short := cast.ToString(utils.GetJSON(ctx, "short"))
 
     // Check if the game exists
-    var game *objects.Game
+    game := &objects.Game{}
     SpaceDock.Database.Where("short = ?", short).First(game)
     if game.Short != short {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
@@ -205,8 +205,8 @@ func remove_game(ctx *iris.Context) {
  */
 func game_versions(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
-    var game objects.Game
-    SpaceDock.Database.Where("short = ?", gameshort).First(&game)
+    game := &objects.Game{}
+    SpaceDock.Database.Where("short = ?", gameshort).First(game)
     if game.Short != gameshort {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
@@ -228,8 +228,8 @@ func game_versions(ctx *iris.Context) {
  */
 func game_version_add(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
-    var game objects.Game
-    SpaceDock.Database.Where("short = ?", gameshort).First(&game)
+    game := &objects.Game{}
+    SpaceDock.Database.Where("short = ?", gameshort).First(game)
     if game.Short != gameshort {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
@@ -240,7 +240,7 @@ func game_version_add(ctx *iris.Context) {
     is_beta := cast.ToBool(utils.GetJSON(ctx, "is_beta"))
 
     // Create a new version
-    version := objects.NewGameVersion(friendly_version, game, is_beta)
+    version := objects.NewGameVersion(friendly_version, *game, is_beta)
     SpaceDock.Database.Save(version)
 
     // Format the output
@@ -255,8 +255,8 @@ func game_version_add(ctx *iris.Context) {
  */
 func game_version_remove(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
-    var game objects.Game
-    SpaceDock.Database.Where("short = ?", gameshort).First(&game)
+    game := &objects.Game{}
+    SpaceDock.Database.Where("short = ?", gameshort).First(game)
     if game.Short != gameshort {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
@@ -264,7 +264,7 @@ func game_version_remove(ctx *iris.Context) {
 
     // Get game version
     friendly_version := cast.ToString(utils.GetJSON(ctx, "friendly_version"))
-    var version *objects.GameVersion
+    version := &objects.GameVersion{}
     SpaceDock.Database.Where("friendly_version = ?", friendly_version).Where("game_id = ?", game.ID).First(version)
     if version.FriendlyVersion != friendly_version {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("This version name does not exist.").Code(2185))
@@ -285,8 +285,8 @@ func game_version_remove(ctx *iris.Context) {
  */
 func game_version_show(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
-    var game objects.Game
-    SpaceDock.Database.Where("short = ?", gameshort).First(&game)
+    game := &objects.Game{}
+    SpaceDock.Database.Where("short = ?", gameshort).First(game)
     if game.Short != gameshort {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
@@ -294,8 +294,8 @@ func game_version_show(ctx *iris.Context) {
 
     // Get game version
     friendly_version := ctx.GetString("friendly_version")
-    var version objects.GameVersion
-    SpaceDock.Database.Where("friendly_version = ?", friendly_version).Where("game_id = ?", game.ID).First(&version)
+    version := &objects.GameVersion{}
+    SpaceDock.Database.Where("friendly_version = ?", friendly_version).Where("game_id = ?", game.ID).First(version)
     if version.FriendlyVersion != friendly_version {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("This version name does not exist.").Code(2185))
         return
@@ -313,8 +313,8 @@ func game_version_show(ctx *iris.Context) {
  */
 func game_version_edit(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
-    var game objects.Game
-    SpaceDock.Database.Where("short = ?", gameshort).First(&game)
+    game := &objects.Game{}
+    SpaceDock.Database.Where("short = ?", gameshort).First(game)
     if game.Short != gameshort {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
@@ -322,15 +322,15 @@ func game_version_edit(ctx *iris.Context) {
 
     // Get game version
     friendly_version := ctx.GetString("friendly_version")
-    var version objects.GameVersion
-    SpaceDock.Database.Where("friendly_version = ?", friendly_version).Where("game_id = ?", game.ID).First(&version)
+    version := &objects.GameVersion{}
+    SpaceDock.Database.Where("friendly_version = ?", friendly_version).Where("game_id = ?", game.ID).First(version)
     if version.FriendlyVersion != friendly_version {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("This version name does not exist.").Code(2185))
         return
     }
 
     // Edit the game version
-    code := utils.EditObject(&version, utils.GetFullJSON(ctx))
+    code := utils.EditObject(version, utils.GetFullJSON(ctx))
     if code == 3 {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The value you submitted is invalid").Code(2180))
         return
@@ -341,6 +341,6 @@ func game_version_edit(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You tried to edit a value that is marked as read-only.").Code(3095))
         return
     }
-    SpaceDock.Database.Save(&version)
+    SpaceDock.Database.Save(version)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(version)})
 }

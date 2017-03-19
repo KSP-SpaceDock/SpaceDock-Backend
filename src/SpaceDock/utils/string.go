@@ -43,10 +43,10 @@ func DumpJSON(data interface{}) string {
 
 func ToMap(data interface{}) map[string]interface{} {
     m := LoadJSON(DumpJSON(data))
-    m["meta"] = LoadJSON((m["meta"].(string)))
+    m["meta"] = LoadJSON(m["meta"].(string))
     for _,element := range structs.Fields(data) {
         if element.Tag("spacedock") == "json" {
-            m[element.Tag("json")] = LoadJSON((m[element.Tag("json")].(string)))
+            m[element.Tag("json")] = LoadJSON(m[element.Tag("json")].(string))
         }
     }
     return m

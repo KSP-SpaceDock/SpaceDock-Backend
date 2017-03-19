@@ -45,14 +45,14 @@ func impersonate(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid").Code(2145))
         return
     }
-    var user objects.User
-    SpaceDock.Database.Where("id = ?", userid).First(&user)
+    user := &objects.User{}
+    SpaceDock.Database.Where("id = ?", userid).First(user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid").Code(2145))
         return
     }
     middleware.LogoutUser(ctx)
-    middleware.LoginUser(ctx, &user)
+    middleware.LoginUser(ctx, user)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -68,8 +68,8 @@ func manual_confirmation(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid").Code(2145))
         return
     }
-    var user objects.User
-    SpaceDock.Database.Where("id = ?", userid).First(&user)
+    user := &objects.User{}
+    SpaceDock.Database.Where("id = ?", userid).First(user)
     if user.ID != userid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The userid is invalid").Code(2145))
         return
@@ -85,7 +85,7 @@ func manual_confirmation(ctx *iris.Context) {
     role.AddParam("user-edit", "userid", strconv.Itoa(int(user.ID)))
     role.AddParam("mods-add", "gameshort", ".*")
     role.AddParam("packs-add", "gameshort", ".*")
-    SpaceDock.Database.Save(&role)
-    SpaceDock.Database.Save(&user)
+    SpaceDock.Database.Save(role)
+    SpaceDock.Database.Save(user)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }

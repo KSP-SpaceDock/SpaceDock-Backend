@@ -41,7 +41,7 @@ func confirm(ctx *iris.Context) {
     confirmation := ctx.GetString("confirmation")
 
     // Try to get a valid user account
-    var user *objects.User
+    user := &objects.User{}
     SpaceDock.Database.Where("confirmation = ?", confirmation).First(user)
     if user.Confirmation != confirmation {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("User does not exist or it is already confirmed. Did you mistype the confirmation?").Code(2165))
@@ -59,8 +59,8 @@ func confirm(ctx *iris.Context) {
     role.AddParam("user-edit", "userid", strconv.Itoa(int(user.ID)))
     role.AddParam("mods-add", "gameshort", ".*")
     role.AddParam("packs-add", "gameshort", ".*")
-    SpaceDock.Database.Save(&role)
-    SpaceDock.Database.Save(&user)
+    SpaceDock.Database.Save(role)
+    SpaceDock.Database.Save(user)
 
     // Follow Mod
 
@@ -85,8 +85,8 @@ func login(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You are already logged in").Code(3060))
         return
     }
-    var user objects.User
-    SpaceDock.Database.Where("username = ?", username).First(&user)
+    user := &objects.User{}
+    SpaceDock.Database.Where("username = ?", username).First(user)
     if user.Username != username {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Username or password is incorrect").Code(2175))
         return
@@ -99,7 +99,7 @@ func login(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("User is not confirmed").Code(3055))
         return
     }
-    middleware.LoginUser(ctx, &user)
+    middleware.LoginUser(ctx, user)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user.Format(true)})
 }
 
@@ -131,15 +131,15 @@ func reset(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("No email address").Code(2520))
         return
     }
-    var user objects.User
-    SpaceDock.Database.Where("email = ?", email).First(&user)
+    user := &objects.User{}
+    SpaceDock.Database.Where("email = ?", email).First(user)
     if user.Email != email {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("No user for provided email address").Code(2115))
         return
     }
     user.PasswordReset,_ = utils.RandomHex(20)
     user.PasswordResetExpiry = time.Now().Add(time.Hour * 24)
-    SpaceDock.Database.Save(&user)
+    SpaceDock.Database.Save(user)
     utils.SendReset(user.Username, user.PasswordReset, user.Email)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
@@ -151,8 +151,8 @@ func reset(ctx *iris.Context) {
 func reset_confirm(ctx *iris.Context) {
     username := ctx.GetString("username")
     confirmation := ctx.GetString("confirmation")
-    var user objects.User
-    SpaceDock.Database.Where("username = ?", username).First(&user)
+    user := &objects.User{}
+    SpaceDock.Database.Where("username = ?", username).First(user)
     if user.Username != username {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Username is incorrect").Code(2170))
         return
@@ -174,7 +174,7 @@ func reset_confirm(ctx *iris.Context) {
     user.SetPassword(password)
     user.PasswordReset = ""
     user.PasswordResetExpiry = time.Now()
-    SpaceDock.Database.Save(&user)
+    SpaceDock.Database.Save(user)
     if middleware.CurrentUser(ctx) != nil {
         middleware.LogoutUser(ctx)
     }

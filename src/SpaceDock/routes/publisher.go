@@ -61,8 +61,8 @@ func publishers_info(ctx *iris.Context) {
     pubid := cast.ToUint(ctx.GetString("pubid"))
 
     // Get the publisher
-    var pub objects.Publisher
-    SpaceDock.Database.Where("id = ?", pubid).First(&pub)
+    pub := &objects.Publisher{}
+    SpaceDock.Database.Where("id = ?", pubid).First(pub)
     if pub.ID != pubid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The publisher ID is invalid").Code(2110))
         return
@@ -82,15 +82,15 @@ func edit_publisher(ctx *iris.Context) {
     pubid := cast.ToUint(ctx.GetString("pubid"))
 
     // Get the publisher
-    var pub objects.Publisher
-    SpaceDock.Database.Where("id = ?", pubid).First(&pub)
+    pub := &objects.Publisher{}
+    SpaceDock.Database.Where("id = ?", pubid).First(pub)
     if pub.ID != pubid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The publisher ID is invalid").Code(2110))
         return
     }
 
     // Edit the publisher
-    code := utils.EditObject(&pub, utils.GetFullJSON(ctx))
+    code := utils.EditObject(pub, utils.GetFullJSON(ctx))
     if code == 3 {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The value you submitted is invalid").Code(2180))
         return
@@ -101,7 +101,7 @@ func edit_publisher(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You tried to edit a value that is marked as read-only.").Code(3095))
         return
     }
-    SpaceDock.Database.Save(&pub)
+    SpaceDock.Database.Save(pub)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(pub)})
 }
 
@@ -115,16 +115,16 @@ func add_publisher(ctx *iris.Context) {
     name := cast.ToString(utils.GetJSON(ctx, "name"))
 
     // Get the publisher
-    var pub_ objects.Publisher
-    SpaceDock.Database.Where("name = ?", name).First(&pub_)
-    if pub_.Name == name {
+    pub := &objects.Publisher{}
+    SpaceDock.Database.Where("name = ?", name).First(pub)
+    if pub.Name == name {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("A publisher with this name already exists.").Code(2000))
         return
     }
 
     // Add the publisher
-    pub := objects.NewPublisher(name)
-    SpaceDock.Database.Save(&pub)
+    pub = objects.NewPublisher(name)
+    SpaceDock.Database.Save(pub)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(pub)})
 }
 
@@ -138,14 +138,14 @@ func remove_publisher(ctx *iris.Context) {
     pubid := cast.ToUint(ctx.GetString("pubid"))
 
     // Get the publisher
-    var pub objects.Publisher
-    SpaceDock.Database.Where("id = ?", pubid).First(&pub)
+    pub := &objects.Publisher{}
+    SpaceDock.Database.Where("id = ?", pubid).First(pub)
     if pub.ID != pubid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The publisher ID is invalid").Code(2110))
         return
     }
 
     // Delete the publisher
-    SpaceDock.Database.Delete(&pub)
+    SpaceDock.Database.Delete(pub)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }

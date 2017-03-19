@@ -13,9 +13,9 @@ import (
     "SpaceDock/objects"
     "SpaceDock/utils"
     "encoding/json"
+    "github.com/spf13/cast"
     "gopkg.in/kataras/iris.v6"
     "log"
-    "github.com/spf13/cast"
 )
 
 /*

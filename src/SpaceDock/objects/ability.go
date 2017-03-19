@@ -10,8 +10,6 @@ package objects
 
 import (
     "SpaceDock"
-    "SpaceDock/utils"
-    "errors"
 )
 
 type Ability struct {
@@ -30,23 +28,5 @@ func (s *Ability) AfterFind() {
     SpaceDock.Database.Model(s).Related(&(s.Roles), "Roles")
     if isRoot {
         SpaceDock.DBRecursion = 0
-    }
-}
-
-func (ability *Ability) GetById(id interface{}) error {
-    SpaceDock.Database.First(&ability, id)
-    if ability.Name != "" {
-        return errors.New("Invalid ability ID")
-    }
-    return nil
-}
-
-func (ability Ability) Format() map[string]interface{} {
-    return map[string]interface{} {
-        "id": ability.ID,
-        "name": ability.Name,
-        "created": ability.CreatedAt,
-        "updated": ability.UpdatedAt,
-        "meta": utils.LoadJSON(ability.Meta),
     }
 }
