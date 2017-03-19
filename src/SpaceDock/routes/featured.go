@@ -9,32 +9,32 @@
 package routes
 
 import (
-    "gopkg.in/kataras/iris.v6"
-    "SpaceDock/objects"
     "SpaceDock"
+    "SpaceDock/middleware"
+    "SpaceDock/objects"
     "SpaceDock/utils"
     "github.com/spf13/cast"
-    "SpaceDock/middleware"
+    "gopkg.in/kataras/iris.v6"
 )
 
 /*
  Registers the routes for the featured section
  */
 func FeaturedRegister() {
-    Register(GET, "/api/mods/featured", list_featured)
-    Register(GET, "/api/mods/featured/:gameshort", list_featured_game)
-    Register(POST, "/api/mods/featured/:gameshort",
+    Register(GET, "/api/featured", list_featured)
+    Register(GET, "/api/featured/:gameshort", list_featured_game)
+    Register(POST, "/api/featured/:gameshort",
         middleware.NeedsPermission("mods-feature", true, "gameshort"),
         add_featured,
     )
-    Register(DELETE, "/api/mods/featured/:gameshort",
+    Register(DELETE, "/api/featured/:gameshort",
         middleware.NeedsPermission("mods-feature", true, "gameshort"),
         remove_featured,
     )
 }
 
 /*
- Path: /api/mods/featured
+ Path: /api/featured
  Method: GET
  Description: Returns a list of featured mods.
  */
@@ -49,7 +49,7 @@ func list_featured(ctx *iris.Context) {
 }
 
 /*
- Path: /api/mods/featured/:gameshort
+ Path: /api/featured/:gameshort
  Method: GET
  Description: Returns a list of featured mods for a specific game.
  */
@@ -76,7 +76,7 @@ func list_featured_game(ctx *iris.Context) {
 }
 
 /*
- Path: /api/mods/featured/:gameshort
+ Path: /api/featured/:gameshort
  Method: POST
  Description: Features a mod for this game. Required fields: modid
  Abilities: mods-feature
@@ -115,7 +115,7 @@ func add_featured(ctx *iris.Context) {
 }
 
 /*
- Path: /api/mods/featured/:gameshort
+ Path: /api/featured/:gameshort
  Method: DELETE
  Description: Unfeatures a mod for this game. Required fields: modid
  Abilities: mods-feature
