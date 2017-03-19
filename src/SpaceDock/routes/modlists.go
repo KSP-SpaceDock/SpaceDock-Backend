@@ -32,7 +32,7 @@ func ModlistsRegister() {
         middleware.NeedsPermission("lists-edit", true, "gameshort", "listid"),
         list_edit,
     )
-    Register(DELETE, "/api/lists/:gameshort/:listid",
+    Register(DELETE, "/api/lists/:gameshort",
         middleware.NeedsPermission("lists-remove", true, "gameshort", "listid"),
         list_remove,
     )
@@ -181,14 +181,14 @@ func list_edit(ctx *iris.Context) {
 }
 
 /*
- Path: /api/lists/:gameshort/:listid
+ Path: /api/lists/:gameshort
  Method: DELETE
- Description: Removes a modlist
+ Description: Removes a modlist. Required parameters: listid
  */
 func list_remove(ctx *iris.Context) {
     // Get params
     gameshort := ctx.GetString("gameshort")
-    listid := cast.ToUint(ctx.GetString("listid"))
+    listid := cast.ToUint(utils.GetJSON(ctx,"listid"))
 
     // Get the modlist
     modlist := &objects.ModList{}

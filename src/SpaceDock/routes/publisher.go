@@ -31,7 +31,7 @@ func PublisherRegister() {
         middleware.NeedsPermission("publisher-add", true),
         add_publisher,
     )
-    Register(DELETE, "/api/publishers/:pubid",
+    Register(DELETE, "/api/publishers",
         middleware.NeedsPermission("publisher-remove", true),
         remove_publisher,
     )
@@ -129,13 +129,13 @@ func add_publisher(ctx *iris.Context) {
 }
 
 /*
- Path: /api/publishers/:pubid
+ Path: /api/publishers
  Method: DELETE
- Description: Removes a game from existence. Required fields: pubid
+ Description: Removes a publisher from existence. Required fields: pubid
  Abilities: publisher-remove
  */
 func remove_publisher(ctx *iris.Context) {
-    pubid := cast.ToUint(ctx.GetString("pubid"))
+    pubid := cast.ToUint(utils.GetJSON(ctx, "pubid"))
 
     // Get the publisher
     pub := &objects.Publisher{}

@@ -27,10 +27,13 @@ type Mod struct {
     DefaultVersion   *ModVersion `json:"-" spacedock:"lock"`
     DefaultVersionID uint `json:"default_version"`
     Versions         []ModVersion `json:"-" spacedock:"lock"`
-    // Todo: Tracking API
-    Followers  []User `json"-" gorm:"many2many:mod_followers" spacedock:"lock"`
-    Ratings    []Rating `json:"-" spacedock:"lock"`
-    TotalScore float64 `json:"total_score" gorm:"not null" json:"total_score" spacedock:"lock"`
+    DownloadEvents   []DownloadEvent `json:"-" spacedock:"lock"`
+    FollowEvents     []FollowEvent `json:"-" spacedock:"lock"`
+    ReferralEvents   []ReferralEvent `json:"-" spacedock:"lock"`
+    Followers        []User `json"-" gorm:"many2many:mod_followers" spacedock:"lock"`
+    Ratings          []Rating `json:"-" spacedock:"lock"`
+    TotalScore       float64 `json:"total_score" gorm:"not null" spacedock:"lock"`
+    DownloadCount    int64 `json:"download_count" spacedock:"lock"`
 }
 
 func (s *Mod) AfterFind() {

@@ -27,7 +27,7 @@ func FeaturedRegister() {
         middleware.NeedsPermission("mods-feature", true, "gameshort"),
         add_featured,
     )
-    Register(DELETE, "/api/featured/:gameshort",
+    Register(DELETE, "/api/featured",
         middleware.NeedsPermission("mods-feature", true, "gameshort"),
         remove_featured,
     )
@@ -115,14 +115,14 @@ func add_featured(ctx *iris.Context) {
 }
 
 /*
- Path: /api/featured/:gameshort
+ Path: /api/featured
  Method: DELETE
- Description: Unfeatures a mod for this game. Required fields: modid
+ Description: Unfeatures a mod for this game. Required fields: gameshort, modid
  Abilities: mods-feature
  */
 func remove_featured(ctx *iris.Context) {
     // Get the mod
-    gameshort := ctx.GetString("gameshort")
+    gameshort := utils.GetJSON(ctx,"gameshort")
     modid := cast.ToUint(utils.GetJSON(ctx, "modid"))
 
     // Get the mod
