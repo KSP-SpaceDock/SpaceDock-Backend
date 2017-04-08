@@ -54,3 +54,6 @@ request-limit: "10-S"
 
 # Disables the same origin policy on the client
 disable-same-origin: false
+
+# The default structure of the mod route in the frontend
+mod-url: "/mod/{id}/{name}"

@@ -72,6 +72,9 @@ type SettingsData struct {
 
     // Support for X-Accel
     UseXAccel string `yaml:"use-x-accel" json:"use-x-accel"`
+
+    // The default mod url format
+    ModUrl string `yaml:"mod-url" json:"mod-url"`
 }
 
 /*

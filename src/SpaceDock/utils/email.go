@@ -15,6 +15,9 @@ import (
     "io/ioutil"
     "log"
     "text/template"
+    "strings"
+    "strconv"
+    "github.com/kennygrant/sanitize"
 )
 
 func SendMail(sender string, recipients []string, subject string, message string, important bool) {
@@ -57,10 +60,10 @@ func SendConfirmation(userConfirmation string, userUsername string, userEmail st
         confirmation += "?f=" + followMod
     }
     data := map[string]interface{}{
-        "SiteName": SpaceDock.Settings.SiteName,
-        "Username": userUsername,
-        "Domain": SpaceDock.Settings.Domain,
-        "Confirmation": confirmation,
+        "site_name": SpaceDock.Settings.SiteName,
+        "username": userUsername,
+        "domain": SpaceDock.Settings.Domain,
+        "confirmation": confirmation,
     }
     text := string(buffer)
     t := template.Must(template.New("email").Parse(text))
@@ -80,10 +83,10 @@ func SendReset(userUsername string, userPasswordReset string, userEmail string) 
         return
     }
     data := map[string]interface{}{
-        "SiteName":     SpaceDock.Settings.SiteName,
-        "Username": userUsername,
-        "Domain": SpaceDock.Settings.Domain,
-        "Confirmation": userPasswordReset,
+        "site_name": SpaceDock.Settings.SiteName,
+        "username": userUsername,
+        "domain": SpaceDock.Settings.Domain,
+        "confirmation": userPasswordReset,
     }
     text := string(buffer)
     t := template.Must(template.New("email").Parse(text))
@@ -94,4 +97,98 @@ func SendReset(userUsername string, userPasswordReset string, userEmail string) 
     }
     s := buf.String()
     go SendMail(SpaceDock.Settings.SupportMail, []string{userEmail}, "Reset your password on " + SpaceDock.Settings.SiteName, s, true)
+}
+
+func SendGrantNotice(userUsername string, modUsername string, modName string, modID uint, userEmail string, modURL string) {
+    buffer,err := ioutil.ReadFile("emails/grant-notice")
+    if err != nil {
+        log.Printf("Error while reading Email Template grant-notice: %s", err)
+        return
+    }
+    data := map[string]interface{}{
+        "username": userUsername,
+        "mod_username": modUsername,
+        "mod_name": modName,
+        "site_name": SpaceDock.Settings.SiteName,
+        "domain": SpaceDock.Settings.Domain,
+        "url": create_mod_url(modID, sanitize.BaseName(modName)[:64], modURL),
+    }
+    text := string(buffer)
+    t := template.Must(template.New("email").Parse(text))
+    buf := &bytes.Buffer{}
+    if err := t.Execute(buf, data); err != nil {
+        log.Printf("Error while parsing Email Template grant-notice: %s", err)
+        return
+    }
+    s := buf.String()
+    go SendMail(SpaceDock.Settings.SupportMail, []string{userEmail}, "You've been asked to co-author a mod on " + SpaceDock.Settings.SiteName, s, true)
+}
+
+func SendUpdateNotification(followers []string, changelog string, username string, friendly_version string, modname string, modID uint, modURL string, gamename string, gameversion string) {
+    buffer,err := ioutil.ReadFile("emails/mod-updated")
+    if err != nil {
+        log.Printf("Error while reading Email Template mod-updated: %s", err)
+        return
+    }
+    changelog = strings.Replace(changelog, "\n", "\n    ", -1)
+    if len(followers) == 0 {
+        return
+    }
+    data := map[string]interface{}{
+        "username": username,
+        "friendly_version": friendly_version,
+        "mod_name": modname,
+        "site_name": SpaceDock.Settings.SiteName,
+        "changelog": changelog,
+        "domain": SpaceDock.Settings.Domain,
+        "url": create_mod_url(modID, sanitize.BaseName(modname)[:64], modURL),
+        "game_name": gamename,
+        "gameversion": gameversion,
+    }
+    text := string(buffer)
+    t := template.Must(template.New("email").Parse(text))
+    buf := &bytes.Buffer{}
+    if err := t.Execute(buf, data); err != nil {
+        log.Printf("Error while parsing Email Template mod-updated: %s", err)
+        return
+    }
+    s := buf.String()
+    go SendMail(SpaceDock.Settings.SupportMail, followers, username + " has just updated " + modname + "!", s, true)
+}
+
+func SendAutoUpdateNotification(followers []string, changelog string, username string, friendly_version string, modname string, modID uint, modURL string, gamename string, gameversion string) {
+    buffer,err := ioutil.ReadFile("emails/mod-autoupdated")
+    if err != nil {
+        log.Printf("Error while reading Email Template mod-autoupdated: %s", err)
+        return
+    }
+    changelog = strings.Replace(changelog, "\n", "\n    ", -1)
+    if len(followers) == 0 {
+        return
+    }
+    data := map[string]interface{}{
+        "username": username,
+        "friendly_version": friendly_version,
+        "mod_name": modname,
+        "game_name": gamename,
+        "gameversion": gameversion,
+        "domain": SpaceDock.Settings.Domain,
+        "url": create_mod_url(modID, sanitize.BaseName(modname)[:64], modURL),
+    }
+    text := string(buffer)
+    t := template.Must(template.New("email").Parse(text))
+    buf := &bytes.Buffer{}
+    if err := t.Execute(buf, data); err != nil {
+        log.Printf("Error while parsing Email Template mod-autoupdated: %s", err)
+        return
+    }
+    s := buf.String()
+    go SendMail(SpaceDock.Settings.SupportMail, followers, modname + " is compatible with " + gamename + " " + gameversion + "!", s, true)
+}
+
+func create_mod_url(id uint, name string, modURL string) string {
+    if modURL == "" {
+        modURL = SpaceDock.Settings.ModUrl
+    }
+    return strings.Replace(strings.Replace(modURL, "{id}", strconv.Itoa(int(id)), -1), "{name}", name, -1)
 }
