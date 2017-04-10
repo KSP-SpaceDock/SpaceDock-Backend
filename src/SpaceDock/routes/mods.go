@@ -45,7 +45,7 @@ func ModsRegister() {
         middleware.NeedsPermission("mods-remove", true, "gameshort", "modid"),
         mod_remove,
     )
-    Register(POST, "/api/mods/publish",
+    Register(POST, "/api/mods/:gameshort/:modid/publish",
         middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
         mod_publish,
     )
@@ -350,15 +350,15 @@ func mod_remove(ctx *iris.Context) {
 }
 
 /*
- Path: /api/mods/publish
+ Path: /api/mods/:gameshort/:modid/publish
  Method: POST
- Description: Makes a mod public. Required fields: modid, gameshort
+ Description: Makes a mod public.
  Abilities: mods-edit
  */
 func mod_publish(ctx *iris.Context) {
     // Get params
-    gameshort := utils.GetJSON(ctx, "gameshort")
-    modid := cast.ToUint(utils.GetJSON(ctx,"modid"))
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
 
     // Get the mod
     mod := &objects.Mod{}

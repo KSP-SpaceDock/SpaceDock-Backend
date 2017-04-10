@@ -53,16 +53,3 @@ func ArrayContainsRe(itr []string, value string) bool {
     }
     return false
 }
-
-func Max(array []int) int {
-    smallest, biggest := array[0], array[0]
-    for _, v := range x {
-        if v > biggest {
-            biggest = v
-        }
-        if v < smallest {
-            smallest = v
-        }
-    }
-
-}

@@ -13,14 +13,9 @@ import (
     "SpaceDock/middleware"
     "SpaceDock/objects"
     "SpaceDock/utils"
-    "github.com/kennygrant/sanitize"
     "github.com/spf13/cast"
     "gopkg.in/kataras/iris.v6"
-    "io"
-    "os"
-    "path/filepath"
     "regexp"
-    "time"
 )
 
 /*
