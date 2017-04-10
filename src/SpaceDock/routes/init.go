@@ -32,6 +32,8 @@ func init() {
     FeaturedRegister()
     GameRegister()
     GeneralRegister()
+    ModlistsRegister()
+    ModsRegister()
     PublisherRegister()
     TokensRegister()
     UserRegister()

@@ -31,6 +31,7 @@ type User struct {
     Roles               []Role `gorm:"many2many:role_users" json:"-" spacedock:"lock"`
     authed              bool
     SharedAuthors       []SharedAuthor `json:"-" spacedock:"lock"`
+    Following           []Mod `json"-" gorm:"many2many:mod_followers" spacedock:"lock"`
 }
 
 func (s *User) AfterFind() {
@@ -39,7 +40,7 @@ func (s *User) AfterFind() {
     }
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
-    SpaceDock.Database.Model(s).Related(&(s.Roles), "Roles").Related(&(s.SharedAuthors), "SharedAuthors")
+    SpaceDock.Database.Model(s).Related(&(s.Roles), "Roles").Related(&(s.SharedAuthors), "SharedAuthors").Related(&(s.Following), "Following")
     if isRoot {
         SpaceDock.DBRecursion = 0
     }

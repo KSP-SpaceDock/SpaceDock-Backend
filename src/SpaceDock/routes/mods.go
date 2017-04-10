@@ -18,13 +18,62 @@ import (
     "os"
     "path/filepath"
     "time"
+    "github.com/kennygrant/sanitize"
+    "strconv"
+    "io"
+    "archive/zip"
+    "strings"
 )
 
 /*
  Registers the routes for the mod section
  */
 func ModsRegister() {
-
+    Register(GET, "/api/mods", mod_list)
+    Register(GET, "/api/mods/:gameshort", mod_game_list)
+    Register(GET, "/api/mods/:gameshort/:modid", mod_info)
+    Register(GET, "/api/mods/:gameshort/:modid/download/:versionname", mod_download)
+    Register(PUT, "/api/mods/:gameshort/:modid",
+        middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
+        mod_edit,
+    )
+    Register(POST, "/api/mods",
+        middleware.NeedsPermission("mods-add", true),
+        mod_add,
+    )
+    Register(DELETE, "/api/mods",
+        middleware.NeedsPermission("mods-remove", true, "gameshort", "modid"),
+        mod_remove,
+    )
+    Register(POST, "/api/mods/publish",
+        middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
+        mod_publish,
+    )
+    Register(GET, "/api/mods/:gameshort/:modid/versions", mod_versions)
+    Register(POST, "/api/mods/:gameshort/:modid/versions",
+        middleware.NeedsPermission("mod-edit", true, "gameshort", "modid"),
+        mod_update,
+    )
+    Register(DELETE, "/api/mods/:gameshort/:modid/versions",
+        middleware.NeedsPermission("mod-edit", true, "gameshort", "modid"),
+        mod_version_delete,
+    )
+    Register(GET, "/api/mods/:gameshort/:modid/follow",
+        middleware.NeedsPermission("logged-in", false),
+        mod_follow,
+    )
+    Register(GET, "/api/mods/:gameshort/:modid/unfollow",
+        middleware.NeedsPermission("logged-in", false),
+        mod_unfollow,
+    )
+    Register(POST, "/api/mods/:gameshort/:modid/ratings",
+        middleware.NeedsPermission("logged-in", false),
+        mod_rate,
+    )
+    Register(DELETE, "/api/mods/:gameshort/:modid/ratings",
+        middleware.NeedsPermission("logged-in", false),
+        mod_unrate,
+    )
 }
 
 /*
@@ -65,7 +114,7 @@ func mod_game_list(ctx *iris.Context) {
  Method: GET
  Description: Returns information for one mod
  */
-func mods_info(ctx *iris.Context) {
+func mod_info(ctx *iris.Context) {
     // Get params
     gameshort := ctx.GetString("gameshort")
     modid := cast.ToUint(ctx.GetString("modid"))
@@ -94,7 +143,7 @@ func mods_info(ctx *iris.Context) {
  Method: GET
  Description: Downloads the latest non-beta version of the mod
  */
-func mods_download(ctx *iris.Context) {
+func mod_download(ctx *iris.Context) {
     // Get params
     gameshort := ctx.GetString("gameshort")
     modid := cast.ToUint(ctx.GetString("modid"))
@@ -160,7 +209,7 @@ func mods_download(ctx *iris.Context) {
  Description: Edits a mod, based on the request parameters. Required fields: data
  Abilities: mods-edit
  */
-func mods_edit(ctx *iris.Context) {
+func mod_edit(ctx *iris.Context) {
     // Get params
     gameshort := ctx.GetString("gameshort")
     modid := cast.ToUint(ctx.GetString("modid"))
@@ -252,10 +301,10 @@ func mod_add(ctx *iris.Context) {
 /*
  Path: /api/mods
  Method: DELETE
- Description: Removes a mod, based on the request parameters. Required fields: name, gameshort
+ Description: Removes a mod, based on the request parameters. Required fields: modid, gameshort
  Abilities: mods-remove
  */
-func mods_remove(ctx *iris.Context) {
+func mod_remove(ctx *iris.Context) {
     // Get params
     gameshort := utils.GetJSON(ctx, "gameshort")
     modid := cast.ToUint(utils.GetJSON(ctx,"modid"))
@@ -281,5 +330,434 @@ func mods_remove(ctx *iris.Context) {
     SpaceDock.Database.Delete(mod).Delete(role)
 
     // Display info
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/mods/publish
+ Method: POST
+ Description: Makes a mod public. Required fields: modid, gameshort
+ Abilities: mods-edit
+ */
+func mod_publish(ctx *iris.Context) {
+    // Get params
+    gameshort := utils.GetJSON(ctx, "gameshort")
+    modid := cast.ToUint(utils.GetJSON(ctx,"modid"))
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+
+    // Publish
+    mod.Published = true
+    SpaceDock.Database.Save(mod)
+
+    // Display info
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/versions
+ Method: GET
+ Description: Returns a list of mod versions including their data.
+ */
+func mod_versions(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+
+    // Get the mod versions
+    output := []map[string]interface{}{}
+    for _,element := range mod.Versions {
+        output = append(output, utils.ToMap(element))
+    }
+
+    // Display info
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": len(output), "data": output})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/versions
+ Method: POST
+ Description: Releases a new version of your mod. Required fields: version, game-version, notify-followers, is-beta, zipball. Optional fields: changelog
+ */
+func mod_update(ctx *iris.Context) {
+    // Get params
+    version := cast.ToString(utils.GetJSON(ctx, "version"))
+    changelog := cast.ToString(utils.GetJSON(ctx, "changelog"))
+    friendly_version := cast.ToString(utils.GetJSON(ctx, "game-version"))
+    notify := cast.ToBool(utils.GetJSON(ctx, "notify-followers"))
+    beta := cast.ToBool(utils.GetJSON(ctx, "is-beta"))
+    zipball, _, err := ctx.FormFile("zipball")
+
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+
+    // Process fields
+    if version == "" || friendly_version == "" || err != nil {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("All fields are required.").Code(2505))
+        return
+    }
+    game_version := &objects.GameVersion{}
+    SpaceDock.Database.Where("friendly_version = ?", friendly_version).First(game_version)
+    if game_version.FriendlyVersion != friendly_version {
+        utils.WriteJSON(ctx, iris.StatusNotFound,  utils.Error("Game version does not exist").Code(2105))
+        return
+    }
+
+    // Save the file
+    user := middleware.CurrentUser(ctx)
+    filename := sanitize.BaseName(mod.Name) + "-" + sanitize.BaseName(version) + ".zip"
+    base_path := filepath.Join(sanitize.BaseName(user.Username) + "_" + strconv.Itoa(int(user.ID)), sanitize.BaseName(mod.Name))
+    full_path := filepath.Join(SpaceDock.Settings.Storage, base_path)
+    os.MkdirAll(full_path, os.ModePerm)
+    path := filepath.Join(full_path, filename)
+    for _,v := range mod.Versions {
+        if v.FriendlyVersion == sanitize.BaseName(version) {
+            utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("We already have this version. Did you mistype the version number?").Code(3040))
+            return
+        }
+    }
+
+    // Remove the old file. If it fails, dont care
+    _ = os.Remove(filepath.Join(SpaceDock.Settings.Storage, path))
+    out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
+    if err != nil {
+        utils.WriteJSON(ctx, iris.StatusInternalServerError, utils.Error(err.Error()).Code(2153))
+        return
+    }
+    io.Copy(out, zipball)
+    out.Close()
+    zipball.Close()
+
+    // Check if the file is a zipfile
+    temp,err := zip.OpenReader(path)
+    if err != nil {
+        _ = os.Remove(filepath.Join(SpaceDock.Settings.Storage, path))
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("This is not a valid zip file.").Code(2160))
+        return
+    } else {
+        temp.Close()
+    }
+    modversion := objects.NewModVersion(*mod, sanitize.BaseName(version), *game_version, strings.Replace(filepath.Join(base_path, filename), "\\", "/", -1), beta)
+    modversion.Changelog = changelog
+
+    // sort index
+    if len(mod.Versions) == 0 {
+        modversion.SortIndex = 0
+    } else {
+        for _, v := range mod.Versions {
+            if v.SortIndex > modversion.SortIndex {
+                modversion.SortIndex = v.SortIndex
+            }
+        }
+        modversion.SortIndex += 1
+    }
+    if notify && !beta {
+        followers := []string{}
+        for _,e := range mod.Followers {
+            followers = append(followers, e.Email)
+        }
+        err, modURL := mod.Game.GetValue("modURL")
+        if err != nil {
+            modURL = ""
+        }
+        utils.SendUpdateNotification(followers, changelog, user.Username, friendly_version, mod.Name, mod.ID, cast.ToString(modURL), mod.Game.Name, game_version.FriendlyVersion)
+    }
+    SpaceDock.Database.Save(modversion)
+    if !beta {
+        mod.DefaultVersionID = modversion.ID
+        mod.DefaultVersion = modversion
+    }
+    SpaceDock.Database.Save(mod)
+
+    // Display info
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(modversion)})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/versions
+ Method: DELETE
+ Description: Deletes a released version of the mod. Required fields: version-id
+ */
+func mod_version_delete(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    versionID := cast.ToUint(utils.GetJSON(ctx, "version-id"))
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+
+    // Get the version
+    version := &objects.ModVersion{}
+    SpaceDock.Database.Where("id = ?", versionID).Where("mod_id = ?", mod.ID).First(version)
+    if version.ID != versionID {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The version is invalid.").Code(2155))
+        return
+    }
+
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The mod is not published.").Code(3020))
+        return
+    }
+
+    // Checks
+    if len(mod.Versions) == 1 {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("There is only one version left. You cant delete this one.").Code(3025))
+        return
+    }
+    if version.ID == mod.DefaultVersionID {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You cannot delete the default version of a mod.").Code(3080))
+        return
+    }
+    SpaceDock.Database.Delete(version)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/follow
+ Method: GET
+ Description: Registers a user for automated email sending when a new mod version is released
+ */
+func mod_follow(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    user := middleware.CurrentUser(ctx)
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+    if e, _ := utils.ArrayContains(mod, user.Following); e {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You are already following this mod.").Code(3050))
+        return
+    }
+
+    // Grab events
+    follow := &objects.FollowEvent{}
+    SpaceDock.Database.
+        Where("mod_id = ?", mod.ID).
+        Order("follow_event.created_at desc").
+        First(follow)
+
+    if follow.ID == 0 || (time.Now().Sub(follow.CreatedAt).Seconds()/60/60) >= 1 {
+        follow = objects.NewFollowEvent(*mod)
+        follow.Delta += 1
+        follow.Events = 1
+        SpaceDock.Database.Save(follow)
+    } else {
+        follow.Delta += 1
+        follow.Events += 1
+    }
+    mod.Followers = append(mod.Followers, *user)
+    user.Following = append(user.Following, *mod)
+    SpaceDock.Database.Save(mod).Save(user)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/unfollow
+ Method: GET
+ Description: Unregisters a user for automated email sending when a new mod version is released
+ */
+func mod_unfollow(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    user := middleware.CurrentUser(ctx)
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+    if e,_ := utils.ArrayContains(mod, user.Following); !e {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You are not following this mod.").Code(3050))
+        return
+    }
+
+    // Grab events
+    follow := &objects.FollowEvent{}
+    SpaceDock.Database.
+        Where("mod_id = ?", mod.ID).
+        Order("follow_event.created_at desc").
+        First(follow)
+
+    if follow.ID == 0 || (time.Now().Sub(follow.CreatedAt).Seconds()/60/60) >= 1 {
+        follow = objects.NewFollowEvent(*mod)
+        follow.Delta -= 1
+        follow.Events = 1
+        SpaceDock.Database.Save(follow)
+    } else {
+        follow.Delta -= 1
+        follow.Events += 1
+    }
+    _,i := utils.ArrayContains(user, mod.Followers)
+    _,j := utils.ArrayContains(mod, user.Following)
+    mod.Followers = append(mod.Followers[:i], mod.Followers[i+1:]...)
+    user.Following = append(user.Following[:j], user.Following[j+1:]...)
+    SpaceDock.Database.Save(mod).Save(user)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/ratings
+ Method: POST
+ Description: Rates a mod. Required fields: rating
+ */
+func mod_rate(ctx *iris.Context) {
+    // Get variables
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    score := cast.ToFloat64(utils.GetJSON(ctx, "rating"))
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+    rating := &objects.Rating{}
+    user := middleware.CurrentUser(ctx)
+    SpaceDock.Database.Where("mod_id = ?", modid).Where("user_id = ?", user.ID).First(rating)
+    if rating.UserID == user.ID && rating.ModID == modid {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You already have a rating for this mod.").Code(2040))
+        return
+    }
+
+    // Create a rating
+    rating = objects.NewRating(*user, *mod, score)
+    SpaceDock.Database.Save(rating)
+
+    // Add rating to user and mod
+    mod.Ratings = append(mod.Ratings, *rating)
+    mod.CalculateScore()
+    SpaceDock.Database.Save(mod)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/ratings
+ Method: DELETE
+ Description: Removes a rating for a mod.
+ */
+func mod_unrate(ctx *iris.Context) {
+    // Get variables
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+    rating := &objects.Rating{}
+    user := middleware.CurrentUser(ctx)
+    SpaceDock.Database.Where("mod_id = ?", modid).Where("user_id = ?", user.ID).First(rating)
+    if rating.UserID != user.ID {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You can't remove a rating you don't have, right?").Code(3013))
+        return
+    }
+
+    // Remove the rating
+    _,i := utils.ArrayContains(*rating, mod.Ratings)
+    mod.Ratings = append(mod.Ratings[:i], mod.Ratings[i+1:]...)
+    mod.CalculateScore()
+    SpaceDock.Database.Save(mod)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }

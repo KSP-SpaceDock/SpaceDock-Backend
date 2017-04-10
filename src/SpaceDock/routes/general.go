@@ -19,7 +19,7 @@ import (
  Registers the routes for the general routes
  */
 func GeneralRegister() {
-    Register(GET, "/content/*path", download)
+    Register(GET, "/content/*path", download_file)
 }
 
 /*
@@ -27,7 +27,7 @@ func GeneralRegister() {
  Method: GET
  Description: Downloads a file from the storage.
  */
-func download(ctx *iris.Context) {
+func download_file(ctx *iris.Context) {
     // Get the path
     path := ctx.GetString("path")
 

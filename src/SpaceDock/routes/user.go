@@ -34,10 +34,10 @@ func UserRegister() {
         middleware.NeedsPermission("user-edit", false, "userid"),
         edit_user,
     )
-    Register(POST, "/api/users/:userid/update-media",
+    /*Register(POST, "/api/users/:userid/update-media",
         middleware.NeedsPermission("user-edit", false, "userid"),
         update_user_media,
-    )
+    )*/
 }
 
 /*
@@ -281,7 +281,7 @@ func edit_user(ctx *iris.Context) {
  Description: Updates a users background. Required fields: image, type
  Abilities: user-edit
  */
-func update_user_media(ctx *iris.Context) {
+/*func update_user_media(ctx *iris.Context) {
     mediatype := cast.ToString(utils.GetJSON(ctx, "type"))
     userid := cast.ToUint(ctx.GetString("userid"))
     data, info, err := ctx.FormFile("media")
@@ -337,4 +337,4 @@ func update_user_media(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user.Format(true)})
         return
     }
-}
+}*/
