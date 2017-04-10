@@ -206,3 +206,108 @@ func list_remove(ctx *iris.Context) {
     SpaceDock.Database.Delete(modlist)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
+
+/*
+ Path: /api/lists/:gameshort/:listid/mods
+ Method: POST
+ Description: Adds a new mod to the modlist. Required fields: modid
+ */
+func list_add_mod(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    listid := cast.ToUint(ctx.GetString("listid"))
+    modid := cast.ToUint(utils.GetJSON(ctx, "modid"))
+
+    // Get the modlist
+    modlist := &objects.ModList{}
+    SpaceDock.Database.Where("id = ?", listid).First(modlist)
+    if modlist.ID != listid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The pack ID is invalid").Code(2135))
+        return
+    }
+    if modlist.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+
+    // Check if the mod is already in the list
+    entry := &objects.ModListItem{}
+    SpaceDock.Database.Where("mod_list_id = ?", modlist.ID).Where("mod_id = ?", mod.ID).First(entry)
+    if entry.ModListID == modlist.ID && entry.ModID == mod.ID {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The mod is already added to the modlist.").Code(2070))
+        return
+    }
+
+    // Create an entry
+    entry = objects.NewModListItem(*mod, *modlist)
+    SpaceDock.Database.Save(entry)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/lists/:gameshort/:listid/mods
+ Method: DELETE
+ Description: Removes a mod from the modlist. Required fields: modid
+ */
+func list_remove_mod(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    listid := cast.ToUint(ctx.GetString("listid"))
+    modid := cast.ToUint(utils.GetJSON(ctx, "modid"))
+
+    // Get the modlist
+    modlist := &objects.ModList{}
+    SpaceDock.Database.Where("id = ?", listid).First(modlist)
+    if modlist.ID != listid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The pack ID is invalid").Code(2135))
+        return
+    }
+    if modlist.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+
+    // Check if the mod is already in the list
+    entry := &objects.ModListItem{}
+    SpaceDock.Database.Where("mod_list_id = ?", modlist.ID).Where("mod_id = ?", mod.ID).First(entry)
+    if entry.ModListID != modlist.ID && entry.ModID != mod.ID {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The mod is not added to the modlist.").Code(2075))
+        return
+    }
+
+    // Create an entry
+    SpaceDock.Database.Delete(entry)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
