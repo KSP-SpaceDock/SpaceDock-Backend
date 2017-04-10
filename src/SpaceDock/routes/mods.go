@@ -74,6 +74,22 @@ func ModsRegister() {
         middleware.NeedsPermission("logged-in", false),
         mod_unrate,
     )
+    Register(POST, "/api/mods/:gameshort/:modid/grant",
+        middleware.NeedsPermission("logged-in", true),
+        mod_grant,
+    )
+    Register(POST, "/api/mods/:gameshort/:modid/grant/accept",
+        middleware.NeedsPermission("logged-in", true),
+        mod_accept_grant,
+    )
+    Register(POST, "/api/mods/:gameshort/:modid/grant/reject",
+        middleware.NeedsPermission("logged-in", true),
+        mod_reject_grant,
+    )
+    Register(DELETE, "/api/mods/:gameshort/:modid/grant",
+        middleware.NeedsPermission("logged-in", true),
+        mod_revoke_grant,
+    )
 }
 
 /*
@@ -759,5 +775,194 @@ func mod_unrate(ctx *iris.Context) {
     mod.Ratings = append(mod.Ratings[:i], mod.Ratings[i+1:]...)
     mod.CalculateScore()
     SpaceDock.Database.Save(mod)
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/grant
+ Method: POST
+ Description: Adds a new author to a mod. Required fields: username
+ */
+func mod_grant(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    username := cast.ToString(utils.GetJSON(ctx, "username"))
+
+    // Check the params
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("ou have to pubish your mod in order to add contributors.").Code(3043))
+        return
+    }
+    user := &objects.User{}
+    SpaceDock.Database.Where("username = ?", username).First(user)
+    if user.Username != username {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The username is invalid").Code(2150))
+        return
+    }
+    shared := &objects.SharedAuthor{}
+    SpaceDock.Database.Where("mod_id = ?", mod.ID).Where("user_id = ?", user.ID).First(shared)
+    if mod.User.ID == user.ID && shared.UserID == user.ID {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("This user has already been added.").Code(2010))
+        return
+    }
+    if !user.Public {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("This user has not made their profile public.").Code(3040))
+        return
+    }
+    current := middleware.CurrentUser(ctx)
+    if mod.User.ID != current.ID && middleware.UserHasPermission(ctx, "mods-invite", true, []string{}) != 0 {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You dont have the permission to add new authors.").Code(1025))
+        return
+    }
+
+    // Add SharedAuthor
+    shared = objects.NewSharedAuthor(*user, *mod)
+    mod.SharedAuthors = append(mod.SharedAuthors, *shared)
+    SpaceDock.Database.Save(shared)
+    err, modURL := mod.Game.GetValue("modURL")
+    if err != nil {
+        modURL = ""
+    }
+    utils.SendGrantNotice(user.Username, mod.User.Username, mod.Name, mod.ID, user.Email, cast.ToString(modURL))
+
+    // Display info
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(mod)})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/grant/accept
+ Method: POST
+ Description: Accepts a pending authorship grant for a mod.
+ */
+func mod_accept_grant(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+
+    for _,element := range mod.SharedAuthors {
+        if middleware.IsCurrentUser(ctx, &element.User) && !element.Accepted {
+            element.Accepted = true
+            element.User.AddRole(mod.Name)
+            SpaceDock.Database.Save(&(element.User)).Save(&element)
+            utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(mod)})
+            return
+        }
+    }
+    utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You do not have a pending authorship invite.").Code(3085))
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/grant/reject
+ Method: POST
+ Description: Rejects a pending authorship grant for a mod.
+ */
+func mod_reject_grant(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    // Get the mod
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+
+    for _,element := range mod.SharedAuthors {
+        if middleware.IsCurrentUser(ctx, &element.User) && !element.Accepted {
+            SpaceDock.Database.Delete(&element)
+            utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+            return
+        }
+    }
+    utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You do not have a pending authorship invite.").Code(3085))
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/grant
+ Method: DELETE
+ Description: Removes an author from a mod. Required fields: username
+ */
+func mod_revoke_grant(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    username := cast.ToString(utils.GetJSON(ctx, "username"))
+
+    // Check the params
+    mod := &objects.Mod{}
+    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    user := &objects.User{}
+    SpaceDock.Database.Where("username = ?", username).First(user)
+    if user.Username != username {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The username is invalid").Code(2150))
+        return
+    }
+    shared := &objects.SharedAuthor{}
+    SpaceDock.Database.Where("mod_id = ?", mod.ID).Where("user_id = ?", user.ID).First(shared)
+    if shared.ModID != mod.ID && shared.UserID != user.ID {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("This user is not an author.").Code(3073))
+        return
+    }
+    if mod.User.ID == user.ID {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You can't remove this user.").Code(3075))
+        return
+    }
+    current := middleware.CurrentUser(ctx)
+    if mod.User.ID != current.ID && middleware.UserHasPermission(ctx, "mods-invite", true, []string{}) != 0 {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You dont have the permission to remove authors.").Code(1030))
+        return
+    }
+
+    // Remove SharedAuthor
+    shared.User.RemoveRole(mod.Name)
+    SpaceDock.Database.Save(&(shared.User))
+    _, i := utils.ArrayContains(shared, mod.SharedAuthors)
+    mod.SharedAuthors = append(mod.SharedAuthors[:i], mod.SharedAuthors[i+1:]...)
+    SpaceDock.Database.Delete(shared)
+
+    // Display info
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
