@@ -21,9 +21,9 @@ import (
  Registers the routes for the modlist section
  */
 func ModlistsRegister() {
-    Register(GET, "/api/lists", list_modlists)
-    Register(GET, "/api/lists/:gameshort", list_modlists_game)
-    Register(GET, "/api/lists/:gameshort/:listid", list_info)
+    Register(GET, "/api/lists", middleware.Cache, list_modlists)
+    Register(GET, "/api/lists/:gameshort", middleware.Cache, list_modlists_game)
+    Register(GET, "/api/lists/:gameshort/:listid", middleware.Cache, list_info)
     Register(POST, "/api/lists",
         middleware.NeedsPermission("lists-add", true, "gameshort"),
         lists_add,
@@ -139,6 +139,7 @@ func lists_add(ctx *iris.Context) {
     role.AddParam("lists-edit", "listsid", cast.ToString(modlist.ID))
     role.AddParam("lists-remove", "name", name)
     SpaceDock.Database.Save(user).Save(role)
+    utils.ClearModListCache(gameshort, 0)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(modlist)})
 }
 
@@ -177,6 +178,7 @@ func list_edit(ctx *iris.Context) {
         return
     }
     SpaceDock.Database.Save(modlist)
+    utils.ClearModListCache(gameshort, listid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(modlist)})
 }
 
@@ -204,6 +206,7 @@ func list_remove(ctx *iris.Context) {
 
     // Remove the modlist
     SpaceDock.Database.Delete(modlist)
+    utils.ClearModListCache(gameshort, 0)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -257,6 +260,7 @@ func list_add_mod(ctx *iris.Context) {
     // Create an entry
     entry = objects.NewModListItem(*mod, *modlist)
     SpaceDock.Database.Save(entry)
+    utils.ClearModListCache(gameshort, listid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -309,5 +313,6 @@ func list_remove_mod(ctx *iris.Context) {
 
     // Create an entry
     SpaceDock.Database.Delete(entry)
+    utils.ClearModListCache(gameshort, listid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }

@@ -22,9 +22,9 @@ import (
  Registers the routes for the user management
  */
 func UserRegister() {
-    Register(GET, "/api/users", list_users)
+    Register(GET, "/api/users", middleware.Cache, list_users)
     Register(POST, "/api/users", register)
-    Register(GET, "/api/users/:userid", show_user)
+    Register(GET, "/api/users/:userid", middleware.Cache, show_user)
     Register(PUT, "/api/users/:userid",
         middleware.NeedsPermission("user-edit", false, "userid"),
         edit_user,
@@ -165,6 +165,7 @@ func register(ctx *iris.Context) {
 
     SpaceDock.Database.Save(user)
     utils.SendConfirmation(user.Confirmation, user.Username, user.Email, followMod)
+    utils.ClearUserCache(0)
 
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user.Format(true)})
 }
@@ -266,6 +267,7 @@ func edit_user(ctx *iris.Context) {
         return
     } else {
         utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": user.Format(true)})
+        utils.ClearUserCache(userid)
         return
     }
 }

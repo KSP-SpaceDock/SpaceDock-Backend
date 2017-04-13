@@ -86,4 +86,7 @@ func MiddlewareRegister() {
         runtime.GC()
         ctx.Next()
     }))
+
+    // Cache
+    middleware.CreateCache()
 }

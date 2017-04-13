@@ -57,3 +57,13 @@ disable-same-origin: false
 
 # The default structure of the mod route in the frontend
 mod-url: "/mod/{id}/{name}"
+
+# Whether to use a memory based store, or redis
+# The default value is redis
+store-type: "redis"
+
+# The connection settings for a redis server
+redis-connection: "redis://localhost:6379/0"
+
+# How long should a response get cached
+cache-timeout: 1

@@ -21,8 +21,8 @@ import (
  Registers the routes for the publisher section
  */
 func PublisherRegister() {
-    Register(GET, "/api/publishers", publishers_list)
-    Register(GET, "/api/publishers/:pubid", publishers_info)
+    Register(GET, "/api/publishers", middleware.Cache, publishers_list)
+    Register(GET, "/api/publishers/:pubid", middleware.Cache, publishers_info)
     Register(PUT, "/api/publishers/:pubid",
         middleware.NeedsPermission("publisher-edit", true, "pubid"),
         edit_publisher,
@@ -102,6 +102,7 @@ func edit_publisher(ctx *iris.Context) {
         return
     }
     SpaceDock.Database.Save(pub)
+    utils.ClearPublisherCache(pubid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(pub)})
 }
 
@@ -125,6 +126,7 @@ func add_publisher(ctx *iris.Context) {
     // Add the publisher
     pub = objects.NewPublisher(name)
     SpaceDock.Database.Save(pub)
+    utils.ClearPublisherCache(0)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(pub)})
 }
 
@@ -147,5 +149,6 @@ func remove_publisher(ctx *iris.Context) {
 
     // Delete the publisher
     SpaceDock.Database.Delete(pub)
+    utils.ClearPublisherCache(0)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }

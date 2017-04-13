@@ -13,25 +13,25 @@ import (
     "SpaceDock/middleware"
     "SpaceDock/objects"
     "SpaceDock/utils"
+    "archive/zip"
+    "github.com/kennygrant/sanitize"
     "github.com/spf13/cast"
     "gopkg.in/kataras/iris.v6"
+    "io"
     "os"
     "path/filepath"
-    "time"
-    "github.com/kennygrant/sanitize"
     "strconv"
-    "io"
-    "archive/zip"
     "strings"
+    "time"
 )
 
 /*
  Registers the routes for the mod section
  */
 func ModsRegister() {
-    Register(GET, "/api/mods", mod_list)
-    Register(GET, "/api/mods/:gameshort", mod_game_list)
-    Register(GET, "/api/mods/:gameshort/:modid", mod_info)
+    Register(GET, "/api/mods", middleware.Cache, mod_list)
+    Register(GET, "/api/mods/:gameshort", middleware.Cache, mod_game_list)
+    Register(GET, "/api/mods/:gameshort/:modid", middleware.Cache, mod_info)
     Register(GET, "/api/mods/:gameshort/:modid/download/:versionname", mod_download)
     Register(PUT, "/api/mods/:gameshort/:modid",
         middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
@@ -49,7 +49,7 @@ func ModsRegister() {
         middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
         mod_publish,
     )
-    Register(GET, "/api/mods/:gameshort/:modid/versions", mod_versions)
+    Register(GET, "/api/mods/:gameshort/:modid/versions", middleware.Cache, mod_versions)
     Register(POST, "/api/mods/:gameshort/:modid/versions",
         middleware.NeedsPermission("mod-edit", true, "gameshort", "modid"),
         mod_update,
@@ -255,6 +255,7 @@ func mod_edit(ctx *iris.Context) {
         return
     }
     SpaceDock.Database.Save(mod)
+    utils.ClearModCache(gameshort, modid)
 
     // Display info
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(mod)})
@@ -309,6 +310,7 @@ func mod_add(ctx *iris.Context) {
     role.AddParam("mods-edit", "modid", cast.ToString(mod.ID))
     role.AddParam("mods-remove", "name", name)
     SpaceDock.Database.Save(role)
+    utils.ClearModCache(gameshort, 0)
 
     // Display info
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(mod)})
@@ -343,6 +345,7 @@ func mod_remove(ctx *iris.Context) {
     role.RemoveAbility("mods-edit")
     role.RemoveAbility("mods-remove")
     mod.User.RemoveRole(mod.Name)
+    utils.ClearModCache(mod.Game.Short, 0)
     SpaceDock.Database.Delete(mod).Delete(role)
 
     // Display info
@@ -375,6 +378,7 @@ func mod_publish(ctx *iris.Context) {
     // Publish
     mod.Published = true
     SpaceDock.Database.Save(mod)
+    utils.ClearModCache(gameshort, modid)
 
     // Display info
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
@@ -526,6 +530,7 @@ func mod_update(ctx *iris.Context) {
         mod.DefaultVersion = modversion
     }
     SpaceDock.Database.Save(mod)
+    utils.ClearModCache(gameshort, modid)
 
     // Display info
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(modversion)})
@@ -581,6 +586,7 @@ func mod_version_delete(ctx *iris.Context) {
         return
     }
     SpaceDock.Database.Delete(version)
+    utils.ClearModCache(gameshort, modid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -634,6 +640,7 @@ func mod_follow(ctx *iris.Context) {
     mod.Followers = append(mod.Followers, *user)
     user.Following = append(user.Following, *mod)
     SpaceDock.Database.Save(mod).Save(user)
+    utils.ClearModCache(gameshort, modid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -689,6 +696,7 @@ func mod_unfollow(ctx *iris.Context) {
     mod.Followers = append(mod.Followers[:i], mod.Followers[i+1:]...)
     user.Following = append(user.Following[:j], user.Following[j+1:]...)
     SpaceDock.Database.Save(mod).Save(user)
+    utils.ClearModCache(gameshort, modid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -734,6 +742,7 @@ func mod_rate(ctx *iris.Context) {
     mod.Ratings = append(mod.Ratings, *rating)
     mod.CalculateScore()
     SpaceDock.Database.Save(mod)
+    utils.ClearModCache(gameshort, modid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -775,6 +784,7 @@ func mod_unrate(ctx *iris.Context) {
     mod.Ratings = append(mod.Ratings[:i], mod.Ratings[i+1:]...)
     mod.CalculateScore()
     SpaceDock.Database.Save(mod)
+    utils.ClearModCache(gameshort, modid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -837,6 +847,7 @@ func mod_grant(ctx *iris.Context) {
     utils.SendGrantNotice(user.Username, mod.User.Username, mod.Name, mod.ID, user.Email, cast.ToString(modURL))
 
     // Display info
+    utils.ClearModCache(gameshort, modid)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(mod)})
 }
 
@@ -874,6 +885,7 @@ func mod_accept_grant(ctx *iris.Context) {
             return
         }
     }
+    utils.ClearModCache(gameshort, modid)
     utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You do not have a pending authorship invite.").Code(3085))
 }
 
@@ -909,6 +921,7 @@ func mod_reject_grant(ctx *iris.Context) {
             return
         }
     }
+    utils.ClearModCache(gameshort, modid)
     utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You do not have a pending authorship invite.").Code(3085))
 }
 
@@ -962,6 +975,7 @@ func mod_revoke_grant(ctx *iris.Context) {
     _, i := utils.ArrayContains(shared, mod.SharedAuthors)
     mod.SharedAuthors = append(mod.SharedAuthors[:i], mod.SharedAuthors[i+1:]...)
     SpaceDock.Database.Delete(shared)
+    utils.ClearModCache(gameshort, modid)
 
     // Display info
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})

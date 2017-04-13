@@ -22,8 +22,8 @@ import (
  Registers the routes for the game management
  */
 func GameRegister() {
-    Register(GET, "/api/games", list_games)
-    Register(GET, "/api/games/:gameshort", show_game)
+    Register(GET, "/api/games", middleware.Cache, list_games)
+    Register(GET, "/api/games/:gameshort", middleware.Cache, show_game)
     Register(PUT, "/api/games/:gameshort",
         middleware.NeedsPermission("game-edit", true, "gameshort"),
         edit_game,
@@ -36,7 +36,7 @@ func GameRegister() {
         middleware.NeedsPermission("game-remove", true, "pubid"),
         remove_game,
     )
-    Register(GET, "/api/games/:gameshort/versions", game_versions)
+    Register(GET, "/api/games/:gameshort/versions", middleware.Cache, game_versions)
     Register(POST, "/api/games/:gameshort/versions",
         middleware.NeedsPermission("game-edit", true, "gameshort"),
         game_version_add,
@@ -45,7 +45,7 @@ func GameRegister() {
         middleware.NeedsPermission("game-edit", true, "gameshort"),
         game_version_remove,
     )
-    Register(GET, "/api/games/:gameshort/versions/:friendly_version", game_version_show)
+    Register(GET, "/api/games/:gameshort/versions/:friendly_version", middleware.Cache, game_version_show)
     Register(PUT, "/api/games/:gameshort/versions/:friendly_version",
         middleware.NeedsPermission("game-edit", true, "gameshort"),
         game_version_edit,
@@ -118,6 +118,7 @@ func edit_game(ctx *iris.Context) {
         return
     }
     SpaceDock.Database.Save(game)
+    utils.ClearGameCache(gameshort, "")
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(game)})
 }
 
@@ -173,6 +174,7 @@ func add_game(ctx *iris.Context) {
     // Make a new game
     game = objects.NewGame(name, publisher, short)
     SpaceDock.Database.Save(game)
+    utils.ClearGameCache("", "")
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(game)})
 }
 
@@ -195,6 +197,7 @@ func remove_game(ctx *iris.Context) {
 
     // Remove it
     SpaceDock.Database.Delete(game)
+    utils.ClearGameCache("", "")
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -244,6 +247,7 @@ func game_version_add(ctx *iris.Context) {
     SpaceDock.Database.Save(version)
 
     // Format the output
+    utils.ClearGameCache(gameshort, "")
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(version)})
 }
 
@@ -275,6 +279,7 @@ func game_version_remove(ctx *iris.Context) {
     SpaceDock.Database.Delete(version)
 
     // Format the output
+    utils.ClearGameCache(gameshort, "")
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -342,5 +347,6 @@ func game_version_edit(ctx *iris.Context) {
         return
     }
     SpaceDock.Database.Save(version)
+    utils.ClearGameCache(gameshort, friendly_version)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(version)})
 }

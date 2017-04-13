@@ -75,6 +75,15 @@ type SettingsData struct {
 
     // The default mod url format
     ModUrl string `yaml:"mod-url" json:"mod-url"`
+
+    // Whether to use a memory based store, or redis
+    StoreType string `yaml:"store-type" json:"mod-url"`
+
+    // The connection settings for a redis server
+    RedisConnection string `yaml:"redis-connection" json:"redis-connection"`
+
+    // How long should a response get cached
+    CacheTimeout int `yaml:"cache-timeout" json:"cache-timeout"`
 }
 
 /*

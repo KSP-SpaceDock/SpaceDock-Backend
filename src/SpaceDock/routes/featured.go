@@ -21,8 +21,8 @@ import (
  Registers the routes for the featured section
  */
 func FeaturedRegister() {
-    Register(GET, "/api/featured", list_featured)
-    Register(GET, "/api/featured/:gameshort", list_featured_game)
+    Register(GET, "/api/featured", middleware.Cache, list_featured)
+    Register(GET, "/api/featured/:gameshort", middleware.Cache, list_featured_game)
     Register(POST, "/api/featured/:gameshort",
         middleware.NeedsPermission("mods-feature", true, "gameshort"),
         add_featured,
@@ -111,6 +111,7 @@ func add_featured(ctx *iris.Context) {
     // Everything is fine, lets feature the mod
     feature = objects.NewFeatured(*mod)
     SpaceDock.Database.Save(feature)
+    utils.ClearFeaturedCache(gameshort)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(feature)})
 }
 
@@ -122,7 +123,7 @@ func add_featured(ctx *iris.Context) {
  */
 func remove_featured(ctx *iris.Context) {
     // Get the mod
-    gameshort := utils.GetJSON(ctx,"gameshort")
+    gameshort := cast.ToString(utils.GetJSON(ctx,"gameshort"))
     modid := cast.ToUint(utils.GetJSON(ctx, "modid"))
 
     // Get the mod
@@ -149,5 +150,6 @@ func remove_featured(ctx *iris.Context) {
 
     // Everything is fine, lets remove the feature
     SpaceDock.Database.Delete(feature)
+    utils.ClearFeaturedCache(gameshort)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
