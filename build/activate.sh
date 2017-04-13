@@ -39,28 +39,27 @@ deactivate () {
 
 build () {
     # Vars
-    $filename = $1 + ".go"
-    $binname = $1
+    filename="$1.go"
+    binname="$1"
     
     # Update deps
     go get -u ./...
 
     # Implement plugin stuff
     rm $VIRTUAL_ENV/build_$filename
-    filelines=`cat $VIRTUAL_ENV/$filename`
-    for line in $filelines ; do
+    touch $VIRTUAL_ENV/build_$filename
+    while IFS= read -r line; do
         if ["$line" = ")"]
         then
             if [-e "$VIRTUAL_ENV/build/plugins.txt"]
             then
-                filelines2=`cat $VIRTUAL_ENV/build/plugins.txt`
-                for line2 in $filelines ; do        
-                    echo $line >> $VIRTUAL_ENV/build_$filename                    
-                done
+                while IFS= read -r line; do 
+                    printf "$line2\n" >> $VIRTUAL_ENV/build_$filename
+                done < $VIRTUAL_ENV/build/plugins.txt
             fi
         fi        
-        echo $line >> $VIRTUAL_ENV/build_$filename
-    done
+        printf "$line\n" >> $VIRTUAL_ENV/build_$filename
+    done < $VIRTUAL_ENV/$filename 
     
     # Build the binary
     go build -v -o $VIRTUAL_ENV/build/$binname $VIRTUAL_ENV/build_$filename
@@ -69,7 +68,7 @@ build () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="$(dirname "$PWD")"
+VIRTUAL_ENV="$PWD"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
