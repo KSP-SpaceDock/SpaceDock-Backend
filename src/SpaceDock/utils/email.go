@@ -10,14 +10,12 @@ package utils
 
 import (
     "SpaceDock"
-    "bytes"
     "github.com/go-gomail/gomail"
+    "github.com/kennygrant/sanitize"
     "io/ioutil"
     "log"
-    "text/template"
-    "strings"
     "strconv"
-    "github.com/kennygrant/sanitize"
+    "strings"
 )
 
 func SendMail(sender string, recipients []string, subject string, message string, important bool) {
@@ -66,13 +64,7 @@ func SendConfirmation(userConfirmation string, userUsername string, userEmail st
         "confirmation": confirmation,
     }
     text := string(buffer)
-    t := template.Must(template.New("email").Parse(text))
-    buf := &bytes.Buffer{}
-    if err := t.Execute(buf, data); err != nil {
-        log.Printf("Error while parsing Email Template confirm-account: %s", err)
-        return
-    }
-    s := buf.String()
+    s := Format(text, data)
     go SendMail(SpaceDock.Settings.SupportMail, []string{userEmail}, "Welcome to " + SpaceDock.Settings.SiteName + "!", s, true)
 }
 
@@ -89,13 +81,7 @@ func SendReset(userUsername string, userPasswordReset string, userEmail string) 
         "confirmation": userPasswordReset,
     }
     text := string(buffer)
-    t := template.Must(template.New("email").Parse(text))
-    buf := &bytes.Buffer{}
-    if err := t.Execute(buf, data); err != nil {
-        log.Printf("Error while parsing Email Template password-reset: %s", err)
-        return
-    }
-    s := buf.String()
+    s := Format(text, data)
     go SendMail(SpaceDock.Settings.SupportMail, []string{userEmail}, "Reset your password on " + SpaceDock.Settings.SiteName, s, true)
 }
 
@@ -114,13 +100,7 @@ func SendGrantNotice(userUsername string, modUsername string, modName string, mo
         "url": create_mod_url(modID, sanitize.BaseName(modName)[:64], modURL),
     }
     text := string(buffer)
-    t := template.Must(template.New("email").Parse(text))
-    buf := &bytes.Buffer{}
-    if err := t.Execute(buf, data); err != nil {
-        log.Printf("Error while parsing Email Template grant-notice: %s", err)
-        return
-    }
-    s := buf.String()
+    s := Format(text, data)
     go SendMail(SpaceDock.Settings.SupportMail, []string{userEmail}, "You've been asked to co-author a mod on " + SpaceDock.Settings.SiteName, s, true)
 }
 
@@ -146,13 +126,7 @@ func SendUpdateNotification(followers []string, changelog string, username strin
         "gameversion": gameversion,
     }
     text := string(buffer)
-    t := template.Must(template.New("email").Parse(text))
-    buf := &bytes.Buffer{}
-    if err := t.Execute(buf, data); err != nil {
-        log.Printf("Error while parsing Email Template mod-updated: %s", err)
-        return
-    }
-    s := buf.String()
+    s := Format(text, data)
     go SendMail(SpaceDock.Settings.SupportMail, followers, username + " has just updated " + modname + "!", s, true)
 }
 
@@ -176,13 +150,7 @@ func SendAutoUpdateNotification(followers []string, changelog string, username s
         "url": create_mod_url(modID, sanitize.BaseName(modname)[:64], modURL),
     }
     text := string(buffer)
-    t := template.Must(template.New("email").Parse(text))
-    buf := &bytes.Buffer{}
-    if err := t.Execute(buf, data); err != nil {
-        log.Printf("Error while parsing Email Template mod-autoupdated: %s", err)
-        return
-    }
-    s := buf.String()
+    s := Format(text, data)
     go SendMail(SpaceDock.Settings.SupportMail, followers, modname + " is compatible with " + gamename + " " + gameversion + "!", s, true)
 }
 

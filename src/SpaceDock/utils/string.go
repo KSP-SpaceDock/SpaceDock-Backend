@@ -14,6 +14,8 @@ import (
     "encoding/hex"
     "encoding/json"
     "github.com/fatih/structs"
+    "fmt"
+    "strings"
 )
 
 func RandomHex(n int) (string, error) {
@@ -62,4 +64,14 @@ func FromMap(data interface{}, values map[string]interface{}) error {
     buff := []byte(DumpJSON(values))
     err := json.Unmarshal(buff, data)
     return err
+}
+
+func Format(format string, p map[string]interface{}) string {
+    args, i := make([]string, len(p)*2), 0
+    for k, v := range p {
+        args[i] = "{" + k + "}"
+        args[i+1] = fmt.Sprint(v)
+        i += 2
+    }
+    return strings.NewReplacer(args...).Replace(format)
 }
