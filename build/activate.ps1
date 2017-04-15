@@ -59,7 +59,7 @@ function global:build($projectname) {
     } | Set-Content ($BASE_DIR + "/build_" + $filename)
     
     # Build the binary
-    go build -v -o $BASE_DIR/build/$binname $BASE_DIR/build_$filename
+    go build -v -o $BASE_DIR/$binname $BASE_DIR/build_$filename
 }
 
 # unset irrelevant variables

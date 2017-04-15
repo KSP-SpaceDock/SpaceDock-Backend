@@ -62,7 +62,7 @@ build () {
     done < $VIRTUAL_ENV/$filename 
     
     # Build the binary
-    go build -v -o $VIRTUAL_ENV/build/$binname $VIRTUAL_ENV/build_$filename
+    go build -v -o $VIRTUAL_ENV/$binname $VIRTUAL_ENV/build_$filename
 }
 
 # unset irrelevant variables
