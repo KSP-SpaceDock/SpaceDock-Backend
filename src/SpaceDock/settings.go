@@ -64,9 +64,6 @@ type SettingsData struct {
     // Whether CORS should be enabled
     DisableSameOrigin bool `yaml:"disable-same-origin" json:"disable-same-origin"`
 
-    // Whether the code should generate a dummy database
-    CreateDefaultDatabase bool `yaml:"create-default-database" json:"create-default-database"`
-
     // How many requests can be made in a defined time span
     RequestLimit string `yaml:"request-limit" json:"request-limit"`
 
