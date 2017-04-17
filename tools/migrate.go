@@ -300,7 +300,7 @@ func main() {
     tx, _ = newDB.Begin()
     for _,element := range data {
         fmt.Printf("   Migrating Entry %d\n", element["id"])
-        _, err := tx.Exec("INSERT INTO download_event (created_at, updated_at, mod_id, version_id, downloads, meta) VALUES ($1,$2,$3,$4,$5,$6)",
+        _, err := tx.Exec("INSERT INTO download_events (created_at, updated_at, mod_id, version_id, downloads, meta) VALUES ($1,$2,$3,$4,$5,$6)",
             element["created"], element["created"], element["mod_id"], element["version_id"], element["downloads"], "{}")
         if err != nil {
             panic(err)
@@ -320,7 +320,7 @@ func main() {
     tx, _ = newDB.Begin()
     for _,element := range data {
         fmt.Printf("   Migrating Entry %d\n", element["id"])
-        _, err := tx.Exec("INSERT INTO follow_event (created_at, updated_at, mod_id, events, delta, meta) VALUES ($1,$2,$3,$4,$5,$6)",
+        _, err := tx.Exec("INSERT INTO follow_events (created_at, updated_at, mod_id, events, delta, meta) VALUES ($1,$2,$3,$4,$5,$6)",
             element["created"], element["created"], element["mod_id"], element["events"], element["delta"], "{}")
         if err != nil {
             panic(err)
@@ -340,7 +340,7 @@ func main() {
     tx, _ = newDB.Begin()
     for _,element := range data {
         fmt.Printf("   Migrating Entry %d\n", element["id"])
-        _, err := tx.Exec("INSERT INTO referral_event (created_at, updated_at, mod_id, events, host, meta) VALUES ($1,$2,$3,$4,$5,$6)",
+        _, err := tx.Exec("INSERT INTO referral_events (created_at, updated_at, mod_id, events, host, meta) VALUES ($1,$2,$3,$4,$5,$6)",
             element["created"], element["created"], element["mod_id"], element["events"], element["host"], "{}")
         if err != nil {
             panic(err)
