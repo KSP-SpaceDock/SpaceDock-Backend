@@ -62,7 +62,7 @@ func list_games(ctx *iris.Context) {
     games := []objects.Game{}
     includeInactive := ctx.URLParam("includeInactive")
     val, err  := strconv.ParseBool(includeInactive)
-    if (err != nil) && val {
+    if (err == nil) && val {
         SpaceDock.Database.Find(&games)
     } else {
         SpaceDock.Database.Where("active = ?", true).Find(&games)
