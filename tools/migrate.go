@@ -214,6 +214,7 @@ func main() {
         panic(err)
     }
     data = SQLToMap(rows)
+    newDB.Exec("CREATE TABLE mod_followers (mod_id integer, user_id integer);")
     tx, _ = newDB.Begin()
     for _,element := range data {
         fmt.Printf("   Migrating Entry %d - %d\n", element["user_id"], element["mod_id"])
