@@ -12,6 +12,7 @@ import (
     "SpaceDock"
     "SpaceDock/objects"
     "archive/zip"
+    "flag"
     "github.com/kennygrant/sanitize"
     "github.com/spf13/cast"
     "os"
@@ -23,34 +24,38 @@ import (
 
 func main() {
 
-    // Setup users
+    // Setup an Administrator
     NewDummyUser("Administrator", "admin", "admin@example.com", true)
-    space_dock_user := NewDummyUser("SpaceDockUser", "user", "user@example.com", false)
 
-    // Game 1
-    ksp := NewDummyGame("Kerbal Space Program", "kerbal-space-program", "Squad MX")
-    ksp_1 := NewDummyVersion(ksp, "1.2.1", false)
-    ksp_2 := NewDummyVersion(ksp, "1.2.2", false)
-    ksp_3 := NewDummyVersion(ksp, "1.2.9", true)
+    // Check if we should add dummy data
+    if *flag.Bool("dummy", true, "Adds dummy data") {
+        space_dock_user := NewDummyUser("SpaceDockUser", "user", "user@example.com", false)
 
-    // Game 2
-    fac := NewDummyGame("Factorio", "factorio", "Wube Software")
-    NewDummyVersion(fac, "0.12", false)
+        // Game 1
+        ksp := NewDummyGame("Kerbal Space Program", "kerbal-space-program", "Squad MX")
+        ksp_1 := NewDummyVersion(ksp, "1.2.1", false)
+        ksp_2 := NewDummyVersion(ksp, "1.2.2", false)
+        ksp_3 := NewDummyVersion(ksp, "1.2.9", true)
 
-    // Game Admins
-    ksp_game_admin := NewDummyGameAdmin("GameAdminKSP", "gameadminksp", "gameadminksp@example.com", ksp)
-    NewDummyGameAdmin("GameAdminFAC", "gameadminfac", "gameadminfac@example.com", fac)
+        // Game 2
+        fac := NewDummyGame("Factorio", "factorio", "Wube Software")
+        NewDummyVersion(fac, "0.12", false)
 
-    // Mods
-    mod_ksp_1 := NewDummyMod("DarkMultiPlayer", space_dock_user, ksp, "MIT")
-    mod_ksp_2 := NewDummyMod("CookieEngine", ksp_game_admin, ksp, "GPL")
+        // Game Admins
+        ksp_game_admin := NewDummyGameAdmin("GameAdminKSP", "gameadminksp", "gameadminksp@example.com", ksp)
+        NewDummyGameAdmin("GameAdminFAC", "gameadminfac", "gameadminfac@example.com", fac)
 
-    // Versions
-    NewDummyModVersion(mod_ksp_1, "0.1", ksp, ksp_1, false)
-    NewDummyModVersion(mod_ksp_1, "0.2", ksp, ksp_2, false)
-    NewDummyModVersion(mod_ksp_1, "0.3", ksp, ksp_3, true)
-    NewDummyModVersion(mod_ksp_2, "1.2", ksp, ksp_2, false)
-    NewDummyModVersion(mod_ksp_2, "1.3", ksp, ksp_3, true)
+        // Mods
+        mod_ksp_1 := NewDummyMod("DarkMultiPlayer", space_dock_user, ksp, "MIT")
+        mod_ksp_2 := NewDummyMod("CookieEngine", ksp_game_admin, ksp, "GPL")
+
+        // Versions
+        NewDummyModVersion(mod_ksp_1, "0.1", ksp, ksp_1, false)
+        NewDummyModVersion(mod_ksp_1, "0.2", ksp, ksp_2, false)
+        NewDummyModVersion(mod_ksp_1, "0.3", ksp, ksp_3, true)
+        NewDummyModVersion(mod_ksp_2, "1.2", ksp, ksp_2, false)
+        NewDummyModVersion(mod_ksp_2, "1.3", ksp, ksp_3, true)
+    }
 
 }
 
