@@ -15,6 +15,8 @@ import (
     _ "github.com/jinzhu/gorm/dialects/postgres"
     _ "github.com/jinzhu/gorm/dialects/sqlite"
     "encoding/json"
+    "time"
+    "fmt"
 )
 
 /* Insert appropreate values here */
@@ -73,9 +75,12 @@ func main() {
         panic(err)
     }
 
-    // Transfer entries
+    // Clear database
+    newDB.Exec("DELETE * FROM users")
+    newDB.Exec("DELETE * FROM role_users")
 
     // Featured
+    fmt.Print("Migrating featured mods")
     rows, err := oldDB.Query("SELECT * FROM featured")
     if err != nil {
         panic(err)
@@ -83,12 +88,16 @@ func main() {
     data := SQLToMap(rows)
     tx, _ := newDB.Begin()
     for _,element := range data {
-        newDB.Exec("INSERT INTO featured (created_at, updated_at, mod_id, meta) VALUES (?, ?, ?, ?)", element["created"], element["created"], element["mod_id"], "{}")
+        fmt.Printf("   Migrating Entry %d", element["id"])
+        newDB.Exec("INSERT INTO featured (id, created_at, updated_at, mod_id, meta) VALUES (?, ?, ?, ?)",
+            element["id"], element["created"], element["created"], element["mod_id"], "{}")
     }
     tx.Commit()
     rows.Close()
+    fmt.Print("")
 
     // Users
+    fmt.Print("Migrating users")
     rows, err = oldDB.Query("SELECT * FROM users")
     if err != nil {
         panic(err)
@@ -96,8 +105,10 @@ func main() {
     data = SQLToMap(rows)
     tx, _ = newDB.Begin()
     for _,element := range data {
-        newDB.Exec("INSERT INTO users (created_at, updated_at, username, email, show_email, public, password, description, confirmation, password_reset, password_reset_expiry, meta) VALUES (?,?,?,?,?,?,?,?,?,?)",
-            element["created"], element["created"], element["username"], element["email"], element["showEmail"] /* TODO: Check */, element["public"], element["password"], element["description"], element["confirmation"],
+        fmt.Printf("   Migrating Entry %d (%s)", element["id"], element["name"])
+        newDB.Exec("INSERT INTO users (id, created_at, updated_at, username, email, show_email, public, password, description, confirmation, password_reset, password_reset_expiry, meta) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            element["id"], element["created"], element["created"], element["username"], element["email"], false,
+            element["public"], element["password"], element["description"], element["confirmation"],
             element["passwordReset"], element["passwordResetExpiry"], DumpJSON(map[string]interface{} {
                 "forumUsername": element["forumUsername"],
                 "ircNick": element["ircNick"],
@@ -106,9 +117,129 @@ func main() {
                 "background": element["backgroundMedia"],
             }))
         if element["admin"].(bool) {
-            newDB.Exec("INSERT INTO role_user (role_id, user_id) VALUES (?,?)", admin_role_id, element["id"])
+            newDB.Exec("INSERT INTO role_users (role_id, user_id) VALUES (?,?)", admin_role_id, element["id"])
         }
     }
     tx.Commit()
     rows.Close()
+    fmt.Print("")
+
+    // Publisher
+    fmt.Print("Migrating publishers")
+    rows, err = oldDB.Query("SELECT * FROM publisher")
+    if err != nil {
+        panic(err)
+    }
+    data = SQLToMap(rows)
+    tx, _ = newDB.Begin()
+    for _,element := range data {
+        fmt.Printf("   Migrating Entry %d (%s)", element["id"], element["name"])
+        newDB.Exec("INSERT INTO publishers (id, created_at, updated_at, name, description, short_description, meta) VALUES (?,?,?,?,?,?)",
+            element["id"], element["created"], element["updated"], element["name"], element["description"],
+            element["short_description"], DumpJSON(map[string]interface{} {
+                "link": element["link"],
+                "background": element["background"],
+            }))
+    }
+    tx.Commit()
+    rows.Close()
+    fmt.Print("")
+
+    // Game
+    fmt.Print("Migrating games")
+    rows, err = oldDB.Query("SELECT * FROM game")
+    if err != nil {
+        panic(err)
+    }
+    data = SQLToMap(rows)
+    tx, _ = newDB.Begin()
+    for _,element := range data {
+        fmt.Printf("   Migrating Entry %d (%s)", element["id"], element["short"])
+        newDB.Exec("INSERT INTO games (id, created_at, updated_at, name, active, altname, rating, releasedate, short, publisher_id, description, short_description, meta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            element["id"], element["created"], element["updated"], element["name"], element["active"], element["altname"],
+            element["rating"], element["releasedate"], element["short"], element["publisher_id"], element["description"],
+            element["short_description"], DumpJSON(map[string]interface{} {
+                "link": element["link"],
+                "background": element["background"],
+            }))
+    }
+    tx.Commit()
+    rows.Close()
+    fmt.Print("")
+
+    // Mod
+    fmt.Print("Migrating mods")
+    rows, err = oldDB.Query("SELECT * FROM mod")
+    if err != nil {
+        panic(err)
+    }
+    data = SQLToMap(rows)
+    tx, _ = newDB.Begin()
+    for _,element := range data {
+        fmt.Printf("   Migrating Entry %d (%s)", element["id"], element["name"])
+        newDB.Exec("INSERT INTO mods (id, created_at, updated_at, user_id, game_id, name, description, short_description, approved, published, license, default_version_id, total_score, download_count, meta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            element["id"], element["created"], element["updated"], element["user_id"], element["game_id"], element["name"],
+            element["description"], element["short_description"], true, element["published"], element["license"],
+            element["default_version_id"], 0, element["download_count"], DumpJSON(map[string]interface{} {
+                "ckan": element["ckan"],
+                "source_link": element["source_link"],
+                "background": element["background"],
+            }))
+    }
+    tx.Commit()
+    rows.Close()
+    fmt.Print("")
+
+    // Mod Followers
+    fmt.Print("Migrating followers")
+    rows, err = oldDB.Query("SELECT * FROM mod_followers")
+    if err != nil {
+        panic(err)
+    }
+    data = SQLToMap(rows)
+    tx, _ = newDB.Begin()
+    for _,element := range data {
+        fmt.Printf("   Migrating Entry %d - %d", element["user_id"], element["mod_id"])
+        newDB.Exec("INSERT INTO mod_followers (user_id, mod_id) VALUES (?,?)", element["user_id"], element["mod_id"])
+    }
+    tx.Commit()
+    rows.Close()
+    fmt.Print("")
+
+    // Modlist
+    fmt.Print("Migrating mod lists")
+    rows, err = oldDB.Query("SELECT * FROM modlist")
+    if err != nil {
+        panic(err)
+    }
+    data = SQLToMap(rows)
+    tx, _ = newDB.Begin()
+    for _,element := range data {
+        fmt.Printf("   Migrating Entry %d (%s)", element["id"], element["name"])
+        newDB.Exec("INSERT INTO mod_lists (id, created_at, updated_at, user_id, game_id, name, description, short_description, meta) VALUES (?,?,?,?,?,?,?,?)",
+            element["id"], element["created"], element["created"], element["user_id"], element["game_id"], element["name"],
+            element["description"], element["short_description"], DumpJSON(map[string]interface{} {
+                "background": element["background"],
+            }))
+    }
+    tx.Commit()
+    rows.Close()
+    fmt.Print("")
+
+    // Modlist Item
+    fmt.Print("Migrating modlist items")
+    rows, err = oldDB.Query("SELECT * FROM modlistitem")
+    if err != nil {
+        panic(err)
+    }
+    data = SQLToMap(rows)
+    tx, _ = newDB.Begin()
+    for _,element := range data {
+        fmt.Printf("   Migrating Entry %d", element["id"])
+        newDB.Exec("INSERT INTO mod_list_items (id, created_at, updated_at, mod_id, mod_list_id, sort_index, meta) VALUES (?,?,?,?,?,?)",
+            element["id"], time.Now(), time.Now(), element["mod_id"], element["mod_list_id"], element["sort_index"], "{}")
+    }
+    tx.Commit()
+    rows.Close()
+    fmt.Print("")
 }
