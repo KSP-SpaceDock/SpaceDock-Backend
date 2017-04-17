@@ -21,8 +21,8 @@ import (
  Registers the routes for the featured section
  */
 func FeaturedRegister() {
-    Register(GET, "/api/featured", middleware.Cache, list_featured)
-    Register(GET, "/api/featured/:gameshort", middleware.Cache, list_featured_game)
+    Register(GET, "/api/featured", middleware.Recursion(0), middleware.Cache, list_featured)
+    Register(GET, "/api/featured/:gameshort", middleware.Recursion(0), middleware.Cache, list_featured_game)
     Register(POST, "/api/featured/:gameshort",
         middleware.NeedsPermission("mods-feature", true, "gameshort"),
         add_featured,

@@ -25,6 +25,7 @@ var Database *gorm.DB
  Counter for recursive reference fetching
  */
 var DBRecursion int
+var DBRecursionMax int = 2
 
 /*
  Establishes the connection to the database

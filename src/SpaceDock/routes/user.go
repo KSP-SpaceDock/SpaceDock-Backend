@@ -22,7 +22,7 @@ import (
  Registers the routes for the user management
  */
 func UserRegister() {
-    Register(GET, "/api/users", middleware.Cache, list_users)
+    Register(GET, "/api/users", middleware.Recursion(0), middleware.Cache, list_users)
     Register(POST, "/api/users", register)
     Register(GET, "/api/users/:userid", middleware.Cache, show_user)
     Register(PUT, "/api/users/:userid",

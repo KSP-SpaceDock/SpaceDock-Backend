@@ -29,8 +29,8 @@ import (
  Registers the routes for the mod section
  */
 func ModsRegister() {
-    Register(GET, "/api/mods", middleware.Cache, mod_list)
-    Register(GET, "/api/mods/:gameshort", middleware.Cache, mod_game_list)
+    Register(GET, "/api/mods", middleware.Recursion(0), middleware.Cache, mod_list)
+    Register(GET, "/api/mods/:gameshort", middleware.Recursion(0), middleware.Cache, mod_game_list)
     Register(GET, "/api/mods/:gameshort/:modid", middleware.Cache, mod_info)
     Register(GET, "/api/mods/:gameshort/:modid/download/:versionname", mod_download)
     Register(PUT, "/api/mods/:gameshort/:modid",
@@ -49,7 +49,7 @@ func ModsRegister() {
         middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
         mod_publish,
     )
-    Register(GET, "/api/mods/:gameshort/:modid/versions", middleware.Cache, mod_versions)
+    Register(GET, "/api/mods/:gameshort/:modid/versions", middleware.Recursion(0), middleware.Cache, mod_versions)
     Register(POST, "/api/mods/:gameshort/:modid/versions",
         middleware.NeedsPermission("mod-edit", true, "gameshort", "modid"),
         mod_update,

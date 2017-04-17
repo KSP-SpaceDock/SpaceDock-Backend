@@ -21,8 +21,8 @@ import (
  Registers the routes for the modlist section
  */
 func ModlistsRegister() {
-    Register(GET, "/api/lists", middleware.Cache, list_modlists)
-    Register(GET, "/api/lists/:gameshort", middleware.Cache, list_modlists_game)
+    Register(GET, "/api/lists", middleware.Recursion(0), middleware.Cache, list_modlists)
+    Register(GET, "/api/lists/:gameshort", middleware.Recursion(0), middleware.Cache, list_modlists_game)
     Register(GET, "/api/lists/:gameshort/:listid", middleware.Cache, list_info)
     Register(POST, "/api/lists",
         middleware.NeedsPermission("lists-add", true, "gameshort"),

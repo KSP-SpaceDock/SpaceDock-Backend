@@ -24,7 +24,7 @@ type Role struct {
 }
 
 func (s *Role) AfterFind() {
-    if SpaceDock.DBRecursion == 2 {
+    if SpaceDock.DBRecursion == SpaceDock.DBRecursionMax {
         return
     }
     isRoot := SpaceDock.DBRecursion == 0

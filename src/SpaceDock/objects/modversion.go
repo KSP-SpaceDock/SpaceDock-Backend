@@ -30,7 +30,7 @@ type ModVersion struct {
 }
 
 func (s *ModVersion) AfterFind() {
-    if SpaceDock.DBRecursion == 2 {
+    if SpaceDock.DBRecursion == SpaceDock.DBRecursionMax {
         return
     }
     isRoot := SpaceDock.DBRecursion == 0

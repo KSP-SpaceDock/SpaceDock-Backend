@@ -22,7 +22,7 @@ import (
  Registers the routes for the game management
  */
 func GameRegister() {
-    Register(GET, "/api/games", middleware.Cache, list_games)
+    Register(GET, "/api/games", middleware.Recursion(0), middleware.Cache, list_games)
     Register(GET, "/api/games/:gameshort", middleware.Cache, show_game)
     Register(PUT, "/api/games/:gameshort",
         middleware.NeedsPermission("game-edit", true, "gameshort"),
@@ -36,7 +36,7 @@ func GameRegister() {
         middleware.NeedsPermission("game-remove", true, "pubid"),
         remove_game,
     )
-    Register(GET, "/api/games/:gameshort/versions", middleware.Cache, game_versions)
+    Register(GET, "/api/games/:gameshort/versions", middleware.Recursion(0), middleware.Cache, game_versions)
     Register(POST, "/api/games/:gameshort/versions",
         middleware.NeedsPermission("game-edit", true, "gameshort"),
         game_version_add,

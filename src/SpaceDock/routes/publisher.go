@@ -21,7 +21,7 @@ import (
  Registers the routes for the publisher section
  */
 func PublisherRegister() {
-    Register(GET, "/api/publishers", middleware.Cache, publishers_list)
+    Register(GET, "/api/publishers", middleware.Recursion(0), middleware.Cache, publishers_list)
     Register(GET, "/api/publishers/:pubid", middleware.Cache, publishers_info)
     Register(PUT, "/api/publishers/:pubid",
         middleware.NeedsPermission("publisher-edit", true, "pubid"),
