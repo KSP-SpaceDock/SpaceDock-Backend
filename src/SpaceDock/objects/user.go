@@ -20,7 +20,7 @@ type User struct {
     Model
 
     Username            string `gorm:"size:128;unique_index;not null" json:"username"`
-    Email               string `gorm:"size:256;not null" json:"email"`
+    Email               string `gorm:"size:256;unique_index;not null" json:"email"`
     ShowEmail           bool `json:"showEmail"`
     Public              bool `json:"public"`
     Password            string `gorm:"size:128" json:"-" spacedock:"lock"`
