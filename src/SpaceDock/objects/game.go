@@ -18,7 +18,6 @@ type Game struct {
 
     Name             string `gorm:"size:1024;unique_index;not null" json:"name"`
     Active           bool `json:"active"`
-    Fileformats      string `gorm:"size:1024" json:"fileformats" spacedock:"json"`
     Altname          string `gorm:"size:1024" json:"altname"`
     Rating           float32 `json:"rating" spacedock:"lock"`
     Releasedate      time.Time `json:"releasedate" spacedock:"lock"`
