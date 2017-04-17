@@ -86,6 +86,7 @@ func main() {
         newDB.Exec("INSERT INTO featured (created_at, updated_at, mod_id, meta) VALUES (?, ?, ?, ?)", element["created"], element["created"], element["mod_id"], "{}")
     }
     tx.Commit()
+    rows.Close()
 
     // Users
     rows, err = oldDB.Query("SELECT * FROM users")
@@ -102,10 +103,6 @@ func main() {
                 "ircNick": element["ircNick"],
                 "twitterUsername": element["twitterUsername"],
                 "redditUsername": element["redditUsername"],
-                "youtubeUsername": element["youtubeUsername"],
-                "twitchUsername": element["twitchUsername"],
-                "location": element["location"],
-                "facebookUsername": element["facebookUsername"],
                 "background": element["backgroundMedia"],
             }))
         if element["admin"].(bool) {
@@ -113,16 +110,5 @@ func main() {
         }
     }
     tx.Commit()
-
-    // Ratings
-    rows, err = oldDB.Query("SELECT * FROM rating")
-    if err != nil {
-        panic(err)
-    }
-    data = SQLToMap(rows)
-    tx, _ = newDB.Begin()
-    for _,element := range data {
-        newDB.Exec("INSERT INTO ratings (created_at, updated_at, user_id, mod_id, score) VALUES (?,?,?,?,?)", element["created"], element["updated"], element["user_id"], element["mod_id"], element["score"])
-    }
-    tx.Commit()
+    rows.Close()
 }
