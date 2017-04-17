@@ -22,6 +22,8 @@ func init() {
     SpaceDock.CreateTable(&Game{})
     SpaceDock.CreateTable(&GameVersion{})
     SpaceDock.CreateTable(&Mod{})
+    SpaceDock.CreateTable(&ModList{})
+    SpaceDock.CreateTable(&ModListItem{})
     SpaceDock.CreateTable(&ModVersion{})
     SpaceDock.CreateTable(&Publisher{})
     SpaceDock.CreateTable(&Rating{})
