@@ -6,7 +6,7 @@
  Copyright (c) 2017 Dorian Stoll (StollD), RockyTV
 */
 
-package tools
+package main
 
 import (
     "SpaceDock"
@@ -28,7 +28,9 @@ func main() {
     NewDummyUser("Administrator", "admin", "admin@example.com", true)
 
     // Check if we should add dummy data
-    if *flag.Bool("dummy", true, "Adds dummy data") {
+    p := flag.Bool("dummy", true, "Adds dummy data")
+    flag.Parse()
+    if *p {
         space_dock_user := NewDummyUser("SpaceDockUser", "user", "user@example.com", false)
 
         // Game 1
