@@ -114,11 +114,13 @@ func mod_list(ctx *iris.Context) {
  */
 func mod_game_list(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
+    game := &objects.Game{}
+    SpaceDock.Database.Where("short = ?", gameshort).Find(game)
     var mods []objects.Mod
     SpaceDock.Database.Find(&mods)
     output := []map[string]interface{}{}
     for _,element := range mods {
-        if element.Game.Short == gameshort {
+        if element.GameID == game.ID {
             output = append(output, utils.ToMap(element))
         }
     }
