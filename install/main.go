@@ -19,3 +19,7 @@ import (
     _ "gopkg.in/kataras/iris.v6/adaptors/sessions"
     _ "gopkg.in/kataras/iris.v6/middleware/logger"
 )
+
+func main() {
+    
+}
