@@ -198,7 +198,7 @@ func NewDummyModVersion(mod *objects.Mod, friendly_version string, game *objects
     // Commit
     SpaceDock.Database.Save(modversion)
     if !beta {
-        mod.DefaultVersion = modversion
+        mod.DefaultVersion = *modversion
         mod.DefaultVersionID = modversion.ID
         SpaceDock.Database.Save(mod)
     }

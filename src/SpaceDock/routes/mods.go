@@ -529,7 +529,7 @@ func mod_update(ctx *iris.Context) {
     SpaceDock.Database.Save(modversion)
     if !beta {
         mod.DefaultVersionID = modversion.ID
-        mod.DefaultVersion = modversion
+        mod.DefaultVersion = *modversion
     }
     SpaceDock.Database.Save(mod)
     utils.ClearModCache(gameshort, modid)

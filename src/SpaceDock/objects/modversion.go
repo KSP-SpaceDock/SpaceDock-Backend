@@ -17,7 +17,6 @@ import (
 type ModVersion struct {
     Model
 
-    Mod             Mod `json:"-" spacedock:"lock"`
     ModID           uint `json:"mod" spacedock:"lock"`
     FriendlyVersion string `json:"friendly_version" gorm:"size:64;" spacedock:"lock"`
     Beta            bool `json:"beta"`
@@ -35,7 +34,6 @@ func (s *ModVersion) AfterFind() {
     }
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
-    SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
     SpaceDock.Database.Model(s).Related(&(s.GameVersion), "GameVersion")
     if isRoot {
         SpaceDock.DBRecursion = 0
@@ -44,7 +42,6 @@ func (s *ModVersion) AfterFind() {
 
 func NewModVersion(mod Mod, friendly_version string, gameversion GameVersion, download_path string, beta bool) *ModVersion {
     mv := &ModVersion{
-        Mod: mod,
         ModID: mod.ID,
         FriendlyVersion: friendly_version,
         Beta: beta,

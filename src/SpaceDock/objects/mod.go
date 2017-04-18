@@ -24,7 +24,7 @@ type Mod struct {
     Approved         bool `json:"approved" spacedock:"lock"`
     Published        bool `json:"published" spacedock:"lock"`
     License          string `json:"license" gorm:"size:512"`
-    DefaultVersion   *ModVersion `json:"-" spacedock:"lock"`
+    DefaultVersion   ModVersion `json:"-" spacedock:"lock"`
     DefaultVersionID uint `json:"default_version"`
     Versions         []ModVersion `json:"-" spacedock:"lock"`
     DownloadEvents   []DownloadEvent `json:"-" spacedock:"lock"`
@@ -44,7 +44,7 @@ func (s *Mod) AfterFind() {
     SpaceDock.DBRecursion += 1
     SpaceDock.Database.Model(s).Related(&(s.User), "User")
     SpaceDock.Database.Model(s).Related(&(s.Game), "Game")
-    SpaceDock.Database.Model(s).Related(s.DefaultVersion, "DefaultVersion")
+    SpaceDock.Database.Model(s).Related(&(s.DefaultVersion), "DefaultVersion")
     SpaceDock.Database.Model(s).Related(&(s.Versions), "Versions")
     SpaceDock.Database.Model(s).Related(&(s.Followers), "Followers")
     SpaceDock.Database.Model(s).Related(&(s.Ratings), "Ratings")
