@@ -60,7 +60,7 @@ func ToMap(data interface{}) map[string]interface{} {
         }
     }
     for _,element := range transformers {
-        element(data, *m)
+        element(data, &m)
     }
     return m
 }
