@@ -18,6 +18,14 @@ import (
     "strings"
 )
 
+type DataTransformerFunc func(interface{}, map[string]interface{}) map[string]interface{}
+
+var transformers []DataTransformerFunc = []DataTransformerFunc{}
+
+func RegisterDataTransformer(transformer DataTransformerFunc) {
+    transformers = append(transformers, transformer)
+}
+
 func RandomHex(n int) (string, error) {
     bytes := make([]byte, n)
     if _, err := rand.Read(bytes); err != nil {
@@ -50,6 +58,9 @@ func ToMap(data interface{}) map[string]interface{} {
         if element.Tag("spacedock") == "json" {
             m[element.Tag("json")] = LoadJSON(m[element.Tag("json")].(string))
         }
+    }
+    for _,element := range transformers {
+        m = element(data, m)
     }
     return m
 }
