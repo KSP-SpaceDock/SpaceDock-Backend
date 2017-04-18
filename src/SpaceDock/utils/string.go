@@ -18,7 +18,7 @@ import (
     "strings"
 )
 
-type DataTransformerFunc func(interface{}, map[string]interface{}) map[string]interface{}
+type DataTransformerFunc func(interface{}, *map[string]interface{})
 
 var transformers []DataTransformerFunc = []DataTransformerFunc{}
 
@@ -60,7 +60,7 @@ func ToMap(data interface{}) map[string]interface{} {
         }
     }
     for _,element := range transformers {
-        m = element(data, m)
+        element(data, *m)
     }
     return m
 }
