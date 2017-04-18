@@ -42,7 +42,7 @@ function global:build($projectname) {
     $binname = $projectname + ".exe"
     
     # Update deps
-    go get -u ./...
+    go get -v -u github.com/KSP-SpaceDock/SpaceDock-Backend/install
 
     # Implement plugin stuff
     Get-Content ($BASE_DIR + "/" + $filename) | Foreach-Object {
@@ -51,7 +51,7 @@ function global:build($projectname) {
             if (Test-Path $PLUGIN_FILE) {
                 Get-Content $PLUGIN_FILE | Foreach-Object {
                     '    _ "' + $_ + '"'
-                    go get -u $_
+                    go get -v -u $_
                 }
             }
         }        

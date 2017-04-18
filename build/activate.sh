@@ -43,7 +43,7 @@ build () {
     binname="$1"
     
     # Update deps
-    go get -u ./...
+    go get -v -u github.com/KSP-SpaceDock/SpaceDock-Backend/install
 
     # Implement plugin stuff
     rm $VIRTUAL_ENV/build_$filename
@@ -54,7 +54,8 @@ build () {
             if [-e "$VIRTUAL_ENV/build/plugins.txt"]
             then
                 while IFS= read -r line; do 
-                    printf "$line2\n" >> $VIRTUAL_ENV/build_$filename
+                    printf "    _ $line2\n" >> $VIRTUAL_ENV/build_$filename
+                    go get -v -u $line2
                 done < $VIRTUAL_ENV/build/plugins.txt
             fi
         fi        
