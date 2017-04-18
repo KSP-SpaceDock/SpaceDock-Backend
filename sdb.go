@@ -18,6 +18,6 @@ import (
  Instead of running significant code here, we pass this task to the spacedock package
 */
 func main() {
-    SpaceDock.Run() 
+    SpaceDock.Run()
 }
 

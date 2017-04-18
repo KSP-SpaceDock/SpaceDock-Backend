@@ -46,16 +46,18 @@ build () {
     go get -v -u github.com/KSP-SpaceDock/SpaceDock-Backend/install
 
     # Implement plugin stuff
-    rm $VIRTUAL_ENV/build_$filename
+    if [ -e "$VIRTUAL_ENV/build_$filename" ] ; then
+        rm $VIRTUAL_ENV/build_$filename
+    fi
     touch $VIRTUAL_ENV/build_$filename
     while IFS= read -r line; do
-        if ["$line" = ")"]
+        if [ "$line" = ")" ]
         then
-            if [-e "$VIRTUAL_ENV/build/plugins.txt"]
+            if [ -e "$VIRTUAL_ENV/build/plugins.txt" ]
             then
-                while IFS= read -r line; do 
-                    printf "    _ $line2\n" >> $VIRTUAL_ENV/build_$filename
-                    go get -v -u $line2
+                while IFS= read -r line2; do 
+                    printf "    _ \"$line2\"\n" >> $VIRTUAL_ENV/build_$filename
+                    go get -v -u $line2 || true
                 done < $VIRTUAL_ENV/build/plugins.txt
             fi
         fi        
