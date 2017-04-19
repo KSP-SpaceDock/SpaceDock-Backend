@@ -29,7 +29,9 @@ func (s *Role) AfterFind() {
     }
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
-    SpaceDock.Database.Model(s).Related(&(s.Abilities), "Abilities").Related(&(s.Users), "Users")
+    SpaceDock.Database.Model(s).Related(&(s.Abilities), "Abilities")
+    SpaceDock.Database.Model(s).Related(&(s.Users), "Users")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }
@@ -38,14 +40,14 @@ func (s *Role) AfterFind() {
 func (role *Role) AddAbility(name string) *Ability {
     ability := &Ability {}
     SpaceDock.Database.Where("name = ?", name).First(ability)
-    if ability.Name == "" {
+    if ability.Name != name {
         ability.Name = name
         ability.Meta = "{}"
         SpaceDock.Database.Save(ability)
     }
     role.Abilities = append(role.Abilities, *ability)
-    SpaceDock.Database.Save(role)
-    return ability
+    SpaceDock.Database.Save(role).Save(ability)
+    return &role.Abilities[len(role.Abilities) - 1]
 }
 
 func (role *Role) RemoveAbility(name string) {

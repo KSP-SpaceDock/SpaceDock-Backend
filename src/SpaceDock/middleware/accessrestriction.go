@@ -77,6 +77,7 @@ func UserHasPermission(ctx *iris.Context, permission string, public bool, params
 func NeedsPermission(permission string, public bool, params ...string) func(ctx *iris.Context) {
     var a objects.Ability
     SpaceDock.Database.FirstOrInit(&a, objects.Ability{Name: permission})
+    SpaceDock.Database.Save(&a)
     return func(ctx *iris.Context) {
         status := UserHasPermission(ctx, permission, public, params)
         if status == 0 {

@@ -40,7 +40,10 @@ func (s *User) AfterFind() {
     }
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
-    SpaceDock.Database.Model(s).Related(&(s.Roles), "Roles").Related(&(s.SharedAuthors), "SharedAuthors").Related(&(s.Following), "Following")
+    SpaceDock.Database.Model(s).Related(&(s.Roles), "Roles")
+    SpaceDock.Database.Model(s).Related(&(s.SharedAuthors), "SharedAuthors")
+    SpaceDock.Database.Model(s).Related(&(s.Following), "Following")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }
@@ -96,15 +99,16 @@ func (user *User) GetById(id uint) error {
 func (user *User) AddRole(name string) *Role {
     role := &Role {}
     SpaceDock.Database.Where("name = ?", name).First(role)
-    if role.Name == "" {
+    if role.Name != name {
         role.Name = name
         role.Params = "{}"
         role.Meta = "{}"
         SpaceDock.Database.Save(role)
     }
+    SpaceDock.Database.Model(user).Related(&(user.Roles), "Roles")
     user.Roles = append(user.Roles, *role)
-    SpaceDock.Database.Save(user)
-    return role
+    SpaceDock.Database.Save(user).Save(role)
+    return &user.Roles[len(user.Roles) - 1]
 }
 
 func (user *User) RemoveRole(name string) {
@@ -130,16 +134,11 @@ func (user *User) HasRole(name string) bool {
 }
 
 func (user *User) GetAbilities() []string {
-    count := 0
-    for _,element := range user.Roles {
-        count = count + len(element.Abilities)
-    }
-    value := make([]string, count)
-    c := 0
+    SpaceDock.Database.Model(user).Related(&(user.Roles), "Roles")
+    value := []string{}
     for _,element := range user.Roles {
         for _,element2 := range element.Abilities {
-            value[c] = element2.Name
-            c = c + 1
+            value = append(value, element2.Name)
         }
     }
     return value

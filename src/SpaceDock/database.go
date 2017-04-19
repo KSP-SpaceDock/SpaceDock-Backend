@@ -49,3 +49,9 @@ func CreateTable(models interface{}) {
         Database.CreateTable(models)
     }
 }
+
+func NoAssociations(callback func()) {
+    Database.InstantSet("gorm:save_associations", false)
+    callback()
+    Database.InstantSet("gorm:save_associations", true)
+}

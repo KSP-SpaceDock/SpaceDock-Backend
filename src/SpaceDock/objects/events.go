@@ -28,7 +28,9 @@ func (s *DownloadEvent) AfterFind() {
     }
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
-    SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod").Related(&(s.Version), "Version")
+    SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
+    SpaceDock.Database.Related(&(s.Version), "Version")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }
@@ -64,6 +66,7 @@ func (s *FollowEvent) AfterFind() {
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
     SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }
@@ -98,6 +101,7 @@ func (s *ReferralEvent) AfterFind() {
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
     SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }

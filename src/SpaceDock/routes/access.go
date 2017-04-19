@@ -104,8 +104,7 @@ func assign_role(ctx *iris.Context) {
     }
 
     // User is valid, assign the new role
-    role := user.AddRole(rolename)
-    SpaceDock.Database.Save(role).Save(user)
+    user.AddRole(rolename)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -136,7 +135,6 @@ func remove_role(ctx *iris.Context) {
 
     // Everything is valid, remove the role
     user.RemoveRole(rolename)
-    SpaceDock.Database.Save(user)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -180,8 +178,7 @@ func assign_ability(ctx *iris.Context) {
     }
 
     // Role is valid, assign the new ability
-    ability := role.AddAbility(abname)
-    SpaceDock.Database.Save(role).Save(ability)
+    role.AddAbility(abname)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 
@@ -224,7 +221,6 @@ func remove_ability(ctx *iris.Context) {
 
     // Remove the ability
     role.RemoveAbility(abname)
-    SpaceDock.Database.Save(role)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }
 

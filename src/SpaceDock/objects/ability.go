@@ -26,6 +26,7 @@ func (s *Ability) AfterFind() {
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
     SpaceDock.Database.Model(s).Related(&(s.Roles), "Roles")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }

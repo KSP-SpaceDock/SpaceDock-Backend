@@ -28,7 +28,9 @@ func (s *SharedAuthor) AfterFind() {
     }
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
-    SpaceDock.Database.Model(s).Related(&(s.User), "User").Related(&(s.Mod), "Mod")
+    SpaceDock.Database.Model(s).Related(&(s.User), "User")
+    SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }

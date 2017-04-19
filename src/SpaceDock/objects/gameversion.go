@@ -28,6 +28,7 @@ func (s *GameVersion) AfterFind() {
     isRoot := SpaceDock.DBRecursion == 0
     SpaceDock.DBRecursion += 1
     SpaceDock.Database.Model(s).Related(&(s.Game), "Game")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }

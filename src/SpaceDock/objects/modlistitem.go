@@ -30,6 +30,7 @@ func (s *ModListItem) AfterFind() {
     SpaceDock.DBRecursion += 1
     SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
     SpaceDock.Database.Model(s).Related(&(s.ModList), "ModList")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }

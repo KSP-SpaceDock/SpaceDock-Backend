@@ -49,6 +49,7 @@ func (s *Mod) AfterFind() {
     SpaceDock.Database.Model(s).Related(&(s.Followers), "Followers")
     SpaceDock.Database.Model(s).Related(&(s.Ratings), "Ratings")
     SpaceDock.Database.Model(s).Related(&(s.SharedAuthors), "SharedAuthors")
+    SpaceDock.DBRecursion -= 1
     if isRoot {
         SpaceDock.DBRecursion = 0
     }

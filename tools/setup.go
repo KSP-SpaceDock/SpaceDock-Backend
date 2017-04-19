@@ -11,6 +11,7 @@ package main
 import (
     "SpaceDock"
     "SpaceDock/objects"
+    _ "SpaceDock/routes"
     "archive/zip"
     "flag"
     "github.com/kennygrant/sanitize"
@@ -73,6 +74,10 @@ func AddAbilityRe(role *objects.Role, expression string) {
 
 func NewDummyUser(name string, password string, email string, admin bool) *objects.User {
     user := objects.NewUser(name, email, password)
+
+    // Confirmation
+    user.Confirmation = ""
+    user.Public = true
     SpaceDock.Database.Save(user)
 
     // Setup roles
@@ -109,14 +114,8 @@ func NewDummyUser(name string, password string, email string, admin bool) *objec
         admin_role.AddParam("token-edit", "tokenid", ".*")
         admin_role.AddParam("token-remove", "tokenid", ".*")
         admin_role.AddParam("user-edit", "userid", ".*")
-
         SpaceDock.Database.Save(admin_role)
     }
-
-    // Confirmation
-    user.Confirmation = ""
-    user.Public = true
-    SpaceDock.Database.Save(user)
     return user
 }
 
@@ -139,23 +138,24 @@ func NewDummyVersion(game *objects.Game, name string, beta bool) *objects.GameVe
 
 func NewDummyGameAdmin(name string, password string, email string, game *objects.Game) *objects.User {
     user := NewDummyUser(name, password, email, false)
+    SpaceDock.Database.Save(user)
 
     // Game specific stuff
-    role := user.AddRole(game.Name)
-    role.AddAbility("game-edit")
+    role := user.AddRole(game.Short)
     AddAbilityRe(role,"mods-.*")
-    role.AddAbility("mods-invite")
     AddAbilityRe(role,"lists-.*")
+    role.AddAbility("game-edit")
+    role.AddAbility("mods-invite")
 
     // Params
-    role.AddParam("mods-feature", "gameshort", game.Name)
-    role.AddParam("game-edit", "gameshort", game.Name)
-    role.AddParam("mods-edit", "gameshort", game.Name)
-    role.AddParam("mods-add", "gameshort", game.Name)
-    role.AddParam("mods-remove", "gameshort", game.Name)
-    role.AddParam("lists-add", "gameshort", game.Name)
-    role.AddParam("lists-remove", "gameshort", game.Name)
-    SpaceDock.Database.Save(role).Save(user)
+    role.AddParam("mods-feature", "gameshort", game.Short)
+    role.AddParam("game-edit", "gameshort", game.Short)
+    role.AddParam("mods-edit", "gameshort", game.Short)
+    role.AddParam("mods-add", "gameshort", game.Short)
+    role.AddParam("mods-remove", "gameshort", game.Short)
+    role.AddParam("lists-add", "gameshort", game.Short)
+    role.AddParam("lists-remove", "gameshort", game.Short)
+    SpaceDock.NoAssociations(func() {SpaceDock.Database.Debug().Save(role)})
     return user
 }
 
@@ -170,7 +170,7 @@ func NewDummyMod(name string, user *objects.User, game *objects.Game, license st
     role.AddAbility("mods-remove")
     role.AddParam("mods-edit", "modid", cast.ToString(mod.ID))
     role.AddParam("mods-remove", "name", mod.Name)
-    SpaceDock.Database.Save(role).Save(user)
+    SpaceDock.Database.Save(role)
     return mod
 }
 
