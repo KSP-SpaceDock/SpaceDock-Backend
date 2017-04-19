@@ -15,8 +15,8 @@ import (
 type Featured struct {
     Model
 
-    Mod    Mod `json:"-" spacedock:"lock"`
-    ModID  uint `json:"mod" spacedock:"lock"`
+    Mod    Mod `json:"mod" spacedock:"lock"`
+    ModID  uint `json:"mod_id" spacedock:"lock"`
 }
 
 func (s *Featured) AfterFind() {
