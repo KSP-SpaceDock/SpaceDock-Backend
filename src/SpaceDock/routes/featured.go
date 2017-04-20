@@ -21,8 +21,8 @@ import (
  Registers the routes for the featured section
  */
 func FeaturedRegister() {
-    Register(GET, "/api/featured", middleware.Recursion(0), middleware.Cache, list_featured)
-    Register(GET, "/api/featured/:gameshort", middleware.Recursion(0), middleware.Cache, list_featured_game)
+    Register(GET, "/api/featured", middleware.Recursion(1), middleware.Cache, list_featured)
+    Register(GET, "/api/featured/:gameshort", middleware.Recursion(1), middleware.Cache, list_featured_game)
     Register(POST, "/api/featured/:gameshort",
         middleware.NeedsPermission("mods-feature", true, "gameshort"),
         add_featured,
@@ -68,7 +68,7 @@ func list_featured_game(ctx *iris.Context) {
     SpaceDock.Database.Find(&featured)
     output := []map[string]interface{}{}
     for _,element := range featured {
-        if element.Mod.Game.Short == gameshort {
+        if element.Mod.GameID == game.ID {
             output = append(output, utils.ToMap(element))
         }
     }
