@@ -17,6 +17,7 @@ import (
     "gopkg.in/kataras/iris.v6/middleware/logger"
     "log"
     "runtime"
+    "SpaceDock/utils"
 )
 
 /*
@@ -46,7 +47,13 @@ const (
     DELETE = 4
 )
 
+var routes []string
+
 func Register(mode int, path string, handlers ...iris.HandlerFunc) iris.RouteInfo {
+    if ok, _ := utils.ArrayContains(path, routes); !ok {
+        SpaceDock.App.Options(path, func(ctx *iris.Context){})
+        routes = append(routes, path)
+    }
     if mode == 2 {
         return SpaceDock.App.Post(path, handlers...)
     } else if mode == 3 {
@@ -76,7 +83,7 @@ func MiddlewareRegister() {
         SpaceDock.App.Use(cors.New(cors.Options{
             AllowedOrigins:   []string{"*"},
             AllowedHeaders:   []string{"*"},
-            AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+            AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
             AllowCredentials: true,
         }))
     }
