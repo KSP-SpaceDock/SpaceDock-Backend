@@ -24,8 +24,8 @@ type Mod struct {
     Approved         bool `json:"approved" spacedock:"lock"`
     Published        bool `json:"published" spacedock:"lock"`
     License          string `json:"license" gorm:"size:512"`
-    DefaultVersion   ModVersion `json:"-" spacedock:"lock"`
-    DefaultVersionID uint `json:"default_version"`
+    DefaultVersion   ModVersion `json:"default_version" spacedock:"lock"`
+    DefaultVersionID uint `json:"default_version_id"`
     Versions         []ModVersion `json:"versions" spacedock:"lock"`
     DownloadEvents   []DownloadEvent `json:"-" spacedock:"lock"`
     FollowEvents     []FollowEvent `json:"-" spacedock:"lock"`
