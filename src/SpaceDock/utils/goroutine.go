@@ -11,7 +11,6 @@ package utils
 import (
     "bytes"
     "errors"
-    "fmt"
     "runtime"
     "strconv"
     "sync"
