@@ -24,7 +24,7 @@ var Database *gorm.DB
 /*
  Counter for recursive reference fetching
  */
-var DBRecursion int
+var DBRecursion map[uint64]int = map[uint64]int{}
 var DBRecursionMax int = 2
 
 /*
@@ -38,7 +38,6 @@ func LoadDatabase() {
     Database = db
     log.Print("* Database connection successfull")
     Database.LogMode(Settings.Debug)
-    DBRecursion = 0
 }
 
 /*

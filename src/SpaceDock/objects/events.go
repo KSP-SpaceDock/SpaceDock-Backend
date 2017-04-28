@@ -10,6 +10,7 @@ package objects
 
 import (
     "SpaceDock"
+    "SpaceDock/utils"
 )
 
 type DownloadEvent struct {
@@ -23,16 +24,19 @@ type DownloadEvent struct {
 }
 
 func (s *DownloadEvent) AfterFind() {
-    if SpaceDock.DBRecursion == SpaceDock.DBRecursionMax {
+    if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
+        SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
+    }
+    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == SpaceDock.DBRecursionMax {
         return
     }
-    isRoot := SpaceDock.DBRecursion == 0
-    SpaceDock.DBRecursion += 1
+    isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
     SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
     SpaceDock.Database.Related(&(s.Version), "Version")
-    SpaceDock.DBRecursion -= 1
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
-        SpaceDock.DBRecursion = 0
+        delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
     }
 }
 
@@ -60,15 +64,18 @@ type FollowEvent struct {
 }
 
 func (s *FollowEvent) AfterFind() {
-    if SpaceDock.DBRecursion == SpaceDock.DBRecursionMax {
+    if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
+        SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
+    }
+    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == SpaceDock.DBRecursionMax {
         return
     }
-    isRoot := SpaceDock.DBRecursion == 0
-    SpaceDock.DBRecursion += 1
+    isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
     SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
-    SpaceDock.DBRecursion -= 1
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
-        SpaceDock.DBRecursion = 0
+        delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
     }
 }
 
@@ -95,15 +102,18 @@ type ReferralEvent struct {
 }
 
 func (s *ReferralEvent) AfterFind() {
-    if SpaceDock.DBRecursion == SpaceDock.DBRecursionMax {
+    if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
+        SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
+    }
+    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == SpaceDock.DBRecursionMax {
         return
     }
-    isRoot := SpaceDock.DBRecursion == 0
-    SpaceDock.DBRecursion += 1
+    isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
     SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
-    SpaceDock.DBRecursion -= 1
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
-        SpaceDock.DBRecursion = 0
+        delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
     }
 }
 

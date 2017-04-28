@@ -8,7 +8,10 @@
 
 package objects
 
-import "SpaceDock"
+import (
+    "SpaceDock"
+    "SpaceDock/utils"
+)
 
 type Mod struct {
     Model
@@ -37,11 +40,14 @@ type Mod struct {
 }
 
 func (s *Mod) AfterFind() {
-    if SpaceDock.DBRecursion == SpaceDock.DBRecursionMax {
+    if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
+        SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
+    }
+    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == SpaceDock.DBRecursionMax {
         return
     }
-    isRoot := SpaceDock.DBRecursion == 0
-    SpaceDock.DBRecursion += 1
+    isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
     SpaceDock.Database.Model(s).Related(&(s.User), "User")
     SpaceDock.Database.Model(s).Related(&(s.Game), "Game")
     SpaceDock.Database.Model(s).Related(&(s.DefaultVersion), "DefaultVersion")
@@ -49,9 +55,9 @@ func (s *Mod) AfterFind() {
     SpaceDock.Database.Model(s).Related(&(s.Followers), "Followers")
     SpaceDock.Database.Model(s).Related(&(s.Ratings), "Ratings")
     SpaceDock.Database.Model(s).Related(&(s.SharedAuthors), "SharedAuthors")
-    SpaceDock.DBRecursion -= 1
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
-        SpaceDock.DBRecursion = 0
+        delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
     }
 }
 

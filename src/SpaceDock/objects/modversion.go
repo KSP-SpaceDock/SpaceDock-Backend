@@ -12,6 +12,7 @@ import (
     "SpaceDock"
     "os"
     "path/filepath"
+    "SpaceDock/utils"
 )
 
 type ModVersion struct {
@@ -29,15 +30,18 @@ type ModVersion struct {
 }
 
 func (s *ModVersion) AfterFind() {
-    if SpaceDock.DBRecursion == SpaceDock.DBRecursionMax {
+    if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
+        SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
+    }
+    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == SpaceDock.DBRecursionMax {
         return
     }
-    isRoot := SpaceDock.DBRecursion == 0
-    SpaceDock.DBRecursion += 1
+    isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
     SpaceDock.Database.Model(s).Related(&(s.GameVersion), "GameVersion")
-    SpaceDock.DBRecursion -= 1
+    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
-        SpaceDock.DBRecursion = 0
+        delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
     }
 }
 
