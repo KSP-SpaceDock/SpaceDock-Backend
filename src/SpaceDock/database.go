@@ -14,6 +14,7 @@ import (
     _ "github.com/jinzhu/gorm/dialects/mysql"
     _ "github.com/jinzhu/gorm/dialects/postgres"
     "log"
+    "sync"
 )
 
 /*
@@ -26,6 +27,7 @@ var Database *gorm.DB
  */
 var DBRecursion map[uint64]int = map[uint64]int{}
 var DBRecursionMax int = 2
+var DBRecursionLock sync.RWMutex = sync.RWMutex{}
 
 /*
  Establishes the connection to the database

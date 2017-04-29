@@ -21,19 +21,25 @@ type Featured struct {
 }
 
 func (s *Featured) AfterFind() {
+    SpaceDock.DBRecursionLock.Lock()
     if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
         SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
     }
-    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == SpaceDock.DBRecursionMax {
+    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] >= SpaceDock.DBRecursionMax {
         return
     }
     isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
     SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
+    SpaceDock.DBRecursionLock.Unlock()
+
     SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
+
+    SpaceDock.DBRecursionLock.Lock()
     SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
         delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
     }
+    SpaceDock.DBRecursionLock.Unlock()
 }
 
 func NewFeatured(mod Mod) *Featured {

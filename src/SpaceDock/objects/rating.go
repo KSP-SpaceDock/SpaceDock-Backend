@@ -10,8 +10,8 @@ package objects
 
 import (
     "SpaceDock"
-    "math"
     "SpaceDock/utils"
+    "math"
 )
 
 type Rating struct {
@@ -25,20 +25,27 @@ type Rating struct {
 }
 
 func (s *Rating) AfterFind() {
+    SpaceDock.DBRecursionLock.Lock()
     if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
         SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
     }
-    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == SpaceDock.DBRecursionMax {
+    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] >= SpaceDock.DBRecursionMax {
+        SpaceDock.DBRecursionLock.Unlock()
         return
     }
     isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
     SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
+    SpaceDock.DBRecursionLock.Unlock()
+
     SpaceDock.Database.Model(s).Related(&(s.User), "User")
     SpaceDock.Database.Model(s).Related(&(s.Mod), "Mod")
+
+    SpaceDock.DBRecursionLock.Lock()
     SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
         delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
     }
+    SpaceDock.DBRecursionLock.Unlock()
 }
 
 func NewRating(user User, mod Mod, score float64) *Rating {
