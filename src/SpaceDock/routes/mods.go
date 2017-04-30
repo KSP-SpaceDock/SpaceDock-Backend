@@ -115,7 +115,7 @@ func mod_list(ctx *iris.Context) {
 func mod_game_list(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).Find(game)
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).Find(game)
     var mods []objects.Mod
     SpaceDock.Database.Find(&mods)
     output := []map[string]interface{}{}
@@ -144,7 +144,7 @@ func mod_info(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -174,7 +174,7 @@ func mod_download(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -239,7 +239,7 @@ func mod_edit(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -289,8 +289,8 @@ func mod_add(ctx *iris.Context) {
         codes = append(codes, 2035)
     }
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         errors = append(errors, "Invalid gameshort.")
         codes = append(codes, 2125)
     }
@@ -336,7 +336,7 @@ func mod_remove(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -372,7 +372,7 @@ func mod_publish(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -403,7 +403,7 @@ func mod_versions(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -446,7 +446,7 @@ func mod_update(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -556,7 +556,7 @@ func mod_version_delete(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -610,7 +610,7 @@ func mod_follow(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -664,7 +664,7 @@ func mod_unfollow(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -720,7 +720,7 @@ func mod_rate(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -765,7 +765,7 @@ func mod_unrate(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -808,7 +808,7 @@ func mod_grant(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -869,7 +869,7 @@ func mod_accept_grant(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -907,7 +907,7 @@ func mod_reject_grant(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -945,7 +945,7 @@ func mod_revoke_grant(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }

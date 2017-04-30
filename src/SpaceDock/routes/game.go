@@ -82,8 +82,8 @@ func list_games(ctx *iris.Context) {
 func show_game(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
     }
@@ -99,8 +99,8 @@ func show_game(ctx *iris.Context) {
 func edit_game(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
     }
@@ -185,12 +185,12 @@ func add_game(ctx *iris.Context) {
  Abilities: game-remove
  */
 func remove_game(ctx *iris.Context) {
-    short := cast.ToString(utils.GetJSON(ctx, "short"))
+    gameshort := cast.ToString(utils.GetJSON(ctx, "short"))
 
     // Check if the game exists
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", short).First(game)
-    if game.Short != short {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
     }
@@ -209,8 +209,8 @@ func remove_game(ctx *iris.Context) {
 func game_versions(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
     }
@@ -232,8 +232,8 @@ func game_versions(ctx *iris.Context) {
 func game_version_add(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
     }
@@ -260,8 +260,8 @@ func game_version_add(ctx *iris.Context) {
 func game_version_remove(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
     }
@@ -291,8 +291,8 @@ func game_version_remove(ctx *iris.Context) {
 func game_version_show(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
     }
@@ -300,8 +300,8 @@ func game_version_show(ctx *iris.Context) {
     // Get game version
     friendly_version := ctx.GetString("friendly_version")
     version := &objects.GameVersion{}
-    SpaceDock.Database.Where("friendly_version = ?", friendly_version).Where("game_id = ?", game.ID).First(version)
-    if version.FriendlyVersion != friendly_version {
+    SpaceDock.Database.Where("friendly_version = ?", friendly_version).Or("id = ?", cast.ToUint(friendly_version)).Where("game_id = ?", game.ID).First(version)
+    if version.FriendlyVersion != friendly_version && version.ID != cast.ToUint(friendly_version) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("This version name does not exist.").Code(2185))
         return
     }
@@ -319,8 +319,8 @@ func game_version_show(ctx *iris.Context) {
 func game_version_edit(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The game does not exist.").Code(2125))
         return
     }
@@ -328,8 +328,8 @@ func game_version_edit(ctx *iris.Context) {
     // Get game version
     friendly_version := ctx.GetString("friendly_version")
     version := &objects.GameVersion{}
-    SpaceDock.Database.Where("friendly_version = ?", friendly_version).Where("game_id = ?", game.ID).First(version)
-    if version.FriendlyVersion != friendly_version {
+    SpaceDock.Database.Where("friendly_version = ?", friendly_version).Or("id = ?", cast.ToUint(friendly_version)).Where("game_id = ?", game.ID).First(version)
+    if version.FriendlyVersion != friendly_version && version.ID != cast.ToUint(friendly_version) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("This version name does not exist.").Code(2185))
         return
     }

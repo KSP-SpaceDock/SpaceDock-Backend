@@ -58,8 +58,8 @@ func list_featured_game(ctx *iris.Context) {
 
     // Check if the game exists
     game := &objects.Game{}
-    SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    SpaceDock.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).First(game)
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -92,7 +92,7 @@ func add_featured(ctx *iris.Context) {
     if mod.ID != modid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid.").Code(2130))
         return
-    } else if mod.Game.Short != gameshort {
+    } else if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     } else if !mod.Published {
@@ -132,7 +132,7 @@ func remove_featured(ctx *iris.Context) {
     if mod.ID != modid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid.").Code(2130))
         return
-    } else if mod.Game.Short != gameshort {
+    } else if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     } else if !mod.Published {

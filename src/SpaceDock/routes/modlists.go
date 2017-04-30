@@ -64,7 +64,7 @@ func list_modlists_game(ctx *iris.Context) {
     SpaceDock.Database.Find(&modlists)
     output := []map[string]interface{}{}
     for _,element := range modlists {
-        if element.Game.Short == gameshort {
+        if element.Game.Short == gameshort || element.GameID == cast.ToUint(gameshort) {
             output = append(output, utils.ToMap(element))
         }
     }
@@ -88,7 +88,7 @@ func list_info(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The pack ID is invalid").Code(2135))
         return
     }
-    if modlist.Game.Short != gameshort {
+    if modlist.Game.Short != gameshort && modlist.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -120,7 +120,7 @@ func lists_add(ctx *iris.Context) {
     }
     game := &objects.Game{}
     SpaceDock.Database.Where("short = ?", gameshort).First(game)
-    if game.Short != gameshort {
+    if game.Short != gameshort && game.ID != cast.ToUint(gameshort) {
         errors = append(errors, "Invalid gameshort.")
         codes = append(codes, 2125)
     }
@@ -160,7 +160,7 @@ func list_edit(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The pack ID is invalid").Code(2135))
         return
     }
-    if modlist.Game.Short != gameshort {
+    if modlist.Game.Short != gameshort  && modlist.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -199,7 +199,7 @@ func list_remove(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The pack ID is invalid").Code(2135))
         return
     }
-    if modlist.Game.Short != gameshort {
+    if modlist.Game.Short != gameshort && modlist.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -228,7 +228,7 @@ func list_add_mod(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The pack ID is invalid").Code(2135))
         return
     }
-    if modlist.Game.Short != gameshort {
+    if modlist.Game.Short != gameshort && modlist.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -240,7 +240,7 @@ func list_add_mod(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && modlist.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -282,7 +282,7 @@ func list_remove_mod(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The pack ID is invalid").Code(2135))
         return
     }
-    if modlist.Game.Short != gameshort {
+    if modlist.Game.Short != gameshort && modlist.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
@@ -294,7 +294,7 @@ func list_remove_mod(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
         return
     }
-    if mod.Game.Short != gameshort {
+    if mod.Game.Short != gameshort && modlist.GameID != cast.ToUint(gameshort) {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
         return
     }
