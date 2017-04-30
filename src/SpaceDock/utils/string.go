@@ -55,8 +55,11 @@ func ToMap(data interface{}) map[string]interface{} {
     m := LoadJSON(DumpJSON(data))
     m["meta"] = LoadJSON(m["meta"].(string))
     for _,element := range structs.Fields(data) {
-        if element.Tag("spacedock") == "json" {
+        if strings.Contains(element.Tag("spacedock"),"json") {
             m[element.Tag("json")] = LoadJSON(m[element.Tag("json")].(string))
+        }
+        if strings.Contains(element.Tag("spacedock"),"tomap") {
+            m[element.Tag("json")] = ToMap(element.Value())
         }
     }
     for _,element := range transformers {
@@ -68,7 +71,7 @@ func ToMap(data interface{}) map[string]interface{} {
 func FromMap(data interface{}, values map[string]interface{}) error {
     values["meta"] = DumpJSON(values["meta"].(map[string]interface{}))
     for _,element := range structs.Fields(data) {
-        if element.Tag("spacedock") == "json" {
+        if strings.Contains(element.Tag("spacedock"),"json") {
             values[element.Tag("json")] = DumpJSON(values[element.Tag("json")])
         }
     }
