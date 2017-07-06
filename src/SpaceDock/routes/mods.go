@@ -182,6 +182,12 @@ func mod_download(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
         return
     }
+    if versionname == "default" {
+        versionname = mod.DefaultVersion.FriendlyVersion
+    }
+    if versionname == "latest" {
+        versionname = mod.Versions[len(mod.Versions) - 1].FriendlyVersion
+    }
 
     // Get the version
     version := &objects.ModVersion{}
@@ -459,6 +465,9 @@ func mod_update(ctx *iris.Context) {
     if version == "" || friendly_version == "" || err != nil {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("All fields are required.").Code(2505))
         return
+    }
+    if friendly_version == "default" || friendly_version == "latest" {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You cannot use a reserved friendly_version").Code(2503))
     }
     game_version := &objects.GameVersion{}
     SpaceDock.Database.Where("friendly_version = ?", friendly_version).First(game_version)
