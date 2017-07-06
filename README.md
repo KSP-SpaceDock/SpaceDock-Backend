@@ -24,7 +24,7 @@ apt-get install postgresql-server-9.3 postgresql-server-dev-9.3
 apt-get install libmysqlclient-dev mysql-server # Only if you want to use MySQL
 ```
 
-SpaceDocks build process involves creating a virtual environment to set your GOPATH properly. If you are new to golang, and don't fully understand it's build / dependency concept, this is the solution for you. Running this code will start the virtual environment, fetch the SpaceDock dependencies, and build the executable file. Depending on your internet connection, this could take a while. The build process isn't verbose, it might look like the command line froze. Just leave it running, after ~5 minutes it will finish. 
+SpaceDocks build process involves creating a virtual environment to set your GOPATH properly. If you are new to golang, and don't fully understand it's build / dependency concept, this is the solution for you. Running this code will start the virtual environment, fetch the SpaceDock dependencies, and build the executable file. Depending on your internet connection, this could take a while.
 
 If you want to use plugins in your SpaceDock instance, you need to enter their goland dependency urls into build/plugins.txt. The build process will fetch and embed them into the main app.
 ```
@@ -43,7 +43,7 @@ To start the backend simply type
 ```
 
 ### Requirements
-SpaceDock-Backend is a Golang Application that uses [iris](https://github.com/kataras/iris) for serving content and [gorm](https://github.com/jinzhu/gorm) for persistency. Even though we are developing and running SpaceDock using PostgreSQL, you can use any SQL based Database in combination with gorm. (That means MySQL, MariaDB, SQLite). At the moment, we only support Postgres though.
+SpaceDock-Backend is a Golang Application that uses [iris](https://github.com/kataras/iris) for serving content and [gorm](https://github.com/jinzhu/gorm) for persistency. Even though we are developing and running SpaceDock using PostgreSQL, you can use any SQL based Database in combination with gorm. (That means MySQL, MariaDB). SQLite could work, but supporting it is a pain, because it uses cgo, which wouldn't allow us to crosscompile the program. At the moment, we only support Postgres.
 
 ### The team
 * godarklight
