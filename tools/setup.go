@@ -155,7 +155,7 @@ func NewDummyGameAdmin(name string, password string, email string, game *objects
     role.AddParam("mods-remove", "gameshort", game.Short)
     role.AddParam("lists-add", "gameshort", game.Short)
     role.AddParam("lists-remove", "gameshort", game.Short)
-    app.NoAssociations(func() {SpaceDock.Database.Save(role)})
+    app.NoAssociations(func() {app.Database.Save(role)})
     return user
 }
 
