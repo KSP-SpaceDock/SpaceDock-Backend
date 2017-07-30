@@ -9,15 +9,15 @@
 package main
 
 import (
-    "SpaceDock"
-    _ "SpaceDock/routes"
+    "github.com/KSP-SpaceDock/SpaceDock-Backend/app"
+    _ "github.com/KSP-SpaceDock/SpaceDock-Backend/routes"
 )
 
 /*
  The entrypoint for the spacedock application.
- Instead of running significant code here, we pass this task to the spacedock package
+ Instead of running significant code here, we pass this task to the app package
 */
 func main() {
-    SpaceDock.Run()
+    app.Run()
 }
 

@@ -9,9 +9,9 @@
 package main
 
 import (
-    "SpaceDock"
-    "SpaceDock/objects"
-    _ "SpaceDock/routes"
+    "github.com/KSP-SpaceDock/SpaceDock-Backend/app"
+    "github.com/KSP-SpaceDock/SpaceDock-Backend/objects"
+    _ "github.com/KSP-SpaceDock/SpaceDock-Backend/routes"
     "archive/zip"
     "flag"
     "github.com/kennygrant/sanitize"
@@ -64,7 +64,7 @@ func main() {
 
 func AddAbilityRe(role *objects.Role, expression string) {
     var abilities []objects.Ability
-    SpaceDock.Database.Find(&abilities)
+    app.Database.Find(&abilities)
     for _,element := range abilities {
         if ok,_ := regexp.MatchString(expression, element.Name); ok {
             role.AddAbility(element.Name)
@@ -78,7 +78,7 @@ func NewDummyUser(name string, password string, email string, admin bool) *objec
     // Confirmation
     user.Confirmation = ""
     user.Public = true
-    SpaceDock.Database.Save(user)
+    app.Database.Save(user)
 
     // Setup roles
     role := user.AddRole(user.Username)
@@ -89,7 +89,7 @@ func NewDummyUser(name string, password string, email string, admin bool) *objec
     role.AddParam("user-edit", "userid", strconv.Itoa(int(user.ID)))
     role.AddParam("mods-add", "gameshort", ".*")
     role.AddParam("lists-add", "gameshort", ".*")
-    SpaceDock.Database.Save(role)
+    app.Database.Save(role)
 
     // Admin roles
     if admin {
@@ -114,31 +114,31 @@ func NewDummyUser(name string, password string, email string, admin bool) *objec
         admin_role.AddParam("token-edit", "tokenid", ".*")
         admin_role.AddParam("token-remove", "tokenid", ".*")
         admin_role.AddParam("user-edit", "userid", ".*")
-        SpaceDock.Database.Save(admin_role)
+        app.Database.Save(admin_role)
     }
     return user
 }
 
 func NewDummyGame(name string, short string, publisher string) *objects.Game {
     pub := objects.NewPublisher(publisher)
-    SpaceDock.Database.Save(pub)
+    app.Database.Save(pub)
 
     // Create the game
     game := objects.NewGame(name, *pub, short)
     game.Active = true
-    SpaceDock.Database.Save(game)
+    app.Database.Save(game)
     return game
 }
 
 func NewDummyVersion(game *objects.Game, name string, beta bool) *objects.GameVersion {
     version := objects.NewGameVersion(name, *game, beta)
-    SpaceDock.Database.Save(version)
+    app.Database.Save(version)
     return version
 }
 
 func NewDummyGameAdmin(name string, password string, email string, game *objects.Game) *objects.User {
     user := NewDummyUser(name, password, email, false)
-    SpaceDock.Database.Save(user)
+    app.Database.Save(user)
 
     // Game specific stuff
     role := user.AddRole(game.Short)
@@ -155,14 +155,14 @@ func NewDummyGameAdmin(name string, password string, email string, game *objects
     role.AddParam("mods-remove", "gameshort", game.Short)
     role.AddParam("lists-add", "gameshort", game.Short)
     role.AddParam("lists-remove", "gameshort", game.Short)
-    SpaceDock.NoAssociations(func() {SpaceDock.Database.Save(role)})
+    app.NoAssociations(func() {SpaceDock.Database.Save(role)})
     return user
 }
 
 func NewDummyMod(name string, user *objects.User, game *objects.Game, license string) *objects.Mod {
     mod := objects.NewMod(name, *user, *game, license)
     mod.Published = true
-    SpaceDock.Database.Save(mod)
+    app.Database.Save(mod)
 
     // Roles
     role := user.AddRole(mod.Name)
@@ -170,7 +170,7 @@ func NewDummyMod(name string, user *objects.User, game *objects.Game, license st
     role.AddAbility("mods-remove")
     role.AddParam("mods-edit", "modid", cast.ToString(mod.ID))
     role.AddParam("mods-remove", "name", mod.Name)
-    SpaceDock.Database.Save(role)
+    app.Database.Save(role)
     return mod
 }
 
@@ -179,7 +179,7 @@ func NewDummyModVersion(mod *objects.Mod, friendly_version string, game *objects
     user := mod.User
     filename := sanitize.BaseName(mod.Name) + "-" + sanitize.BaseName(version.FriendlyVersion) + ".zip"
     base_path := filepath.Join(sanitize.BaseName(user.Username) + "_" + strconv.Itoa(int(user.ID)), sanitize.BaseName(mod.Name))
-    full_path := filepath.Join(SpaceDock.Settings.Storage, base_path)
+    full_path := filepath.Join(app.Settings.Storage, base_path)
     os.MkdirAll(full_path, os.ModePerm)
     path := filepath.Join(full_path, filename)
 
@@ -196,11 +196,11 @@ func NewDummyModVersion(mod *objects.Mod, friendly_version string, game *objects
     out.Close()
 
     // Commit
-    SpaceDock.Database.Save(modversion)
+    app.Database.Save(modversion)
     if !beta {
         mod.DefaultVersion = *modversion
         mod.DefaultVersionID = modversion.ID
-        SpaceDock.Database.Save(mod)
+        app.Database.Save(mod)
     }
     return modversion
 }
