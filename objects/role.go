@@ -24,57 +24,57 @@ type Role struct {
 }
 
 func (s *Role) AfterFind() {
-    SpaceDock.DBRecursionLock.Lock()
-    if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
-        SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
+    app.DBRecursionLock.Lock()
+    if _, ok := app.DBRecursion[utils.CurrentGoroutineID()]; !ok {
+        app.DBRecursion[utils.CurrentGoroutineID()] = 0
     }
-    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] >= SpaceDock.DBRecursionMax {
-        SpaceDock.DBRecursionLock.Unlock()
+    if app.DBRecursion[utils.CurrentGoroutineID()] >= app.DBRecursionMax {
+        app.DBRecursionLock.Unlock()
         return
     }
-    isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
-    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
-    SpaceDock.DBRecursionLock.Unlock()
+    isRoot := app.DBRecursion[utils.CurrentGoroutineID()] == 0
+    app.DBRecursion[utils.CurrentGoroutineID()] += 1
+    app.DBRecursionLock.Unlock()
 
-    SpaceDock.Database.Model(s).Related(&(s.Abilities), "Abilities")
-    SpaceDock.Database.Model(s).Related(&(s.Users), "Users")
+    app.Database.Model(s).Related(&(s.Abilities), "Abilities")
+    app.Database.Model(s).Related(&(s.Users), "Users")
 
-    SpaceDock.DBRecursionLock.Lock()
-    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
+    app.DBRecursionLock.Lock()
+    app.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
-        delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
+        delete(app.DBRecursion, utils.CurrentGoroutineID())
     }
-    SpaceDock.DBRecursionLock.Unlock()
+    app.DBRecursionLock.Unlock()
 }
 
 func (role *Role) AddAbility(name string) *Ability {
     ability := &Ability {}
-    SpaceDock.Database.Where("name = ?", name).First(ability)
+    app.Database.Where("name = ?", name).First(ability)
     if ability.Name != name {
         ability.Name = name
         ability.Meta = "{}"
-        SpaceDock.Database.Save(ability)
+        app.Database.Save(ability)
     }
     role.Abilities = append(role.Abilities, *ability)
-    SpaceDock.Database.Save(role).Save(ability)
+    app.Database.Save(role).Save(ability)
     return &role.Abilities[len(role.Abilities) - 1]
 }
 
 func (role *Role) RemoveAbility(name string) {
     ability := &Ability {}
-    SpaceDock.Database.Where("name = ?", name).First(ability)
+    app.Database.Where("name = ?", name).First(ability)
     if ability.Name == "" {
         return
     }
     if e,i := utils.ArrayContains(ability, role.Abilities); e {
         role.Abilities = append(role.Abilities[:i], role.Abilities[i + 1:]...)
-        SpaceDock.Database.Save(role)
+        app.Database.Save(role)
     }
 }
 
 func (role *Role) HasAbility(name string) bool {
     ability := &Ability {}
-    SpaceDock.Database.Where("name = ?", name).First(ability)
+    app.Database.Where("name = ?", name).First(ability)
     if ability.Name == "" {
         return false
     }

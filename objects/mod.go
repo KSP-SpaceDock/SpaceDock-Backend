@@ -40,32 +40,32 @@ type Mod struct {
 }
 
 func (s *Mod) AfterFind() {
-    SpaceDock.DBRecursionLock.Lock()
-    if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
-        SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
+    app.DBRecursionLock.Lock()
+    if _, ok := app.DBRecursion[utils.CurrentGoroutineID()]; !ok {
+        app.DBRecursion[utils.CurrentGoroutineID()] = 0
     }
-    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] >= SpaceDock.DBRecursionMax {
-        SpaceDock.DBRecursionLock.Unlock()
+    if app.DBRecursion[utils.CurrentGoroutineID()] >= app.DBRecursionMax {
+        app.DBRecursionLock.Unlock()
         return
     }
-    isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
-    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
-    SpaceDock.DBRecursionLock.Unlock()
+    isRoot := app.DBRecursion[utils.CurrentGoroutineID()] == 0
+    app.DBRecursion[utils.CurrentGoroutineID()] += 1
+    app.DBRecursionLock.Unlock()
 
-    SpaceDock.Database.Model(s).Related(&(s.User), "User")
-    SpaceDock.Database.Model(s).Related(&(s.Game), "Game")
-    SpaceDock.Database.Model(s).Related(&(s.DefaultVersion), "DefaultVersion")
-    SpaceDock.Database.Model(s).Related(&(s.Versions), "Versions")
-    SpaceDock.Database.Model(s).Related(&(s.Followers), "Followers")
-    SpaceDock.Database.Model(s).Related(&(s.Ratings), "Ratings")
-    SpaceDock.Database.Model(s).Related(&(s.SharedAuthors), "SharedAuthors")
+    app.Database.Model(s).Related(&(s.User), "User")
+    app.Database.Model(s).Related(&(s.Game), "Game")
+    app.Database.Model(s).Related(&(s.DefaultVersion), "DefaultVersion")
+    app.Database.Model(s).Related(&(s.Versions), "Versions")
+    app.Database.Model(s).Related(&(s.Followers), "Followers")
+    app.Database.Model(s).Related(&(s.Ratings), "Ratings")
+    app.Database.Model(s).Related(&(s.SharedAuthors), "SharedAuthors")
 
-    SpaceDock.DBRecursionLock.Lock()
-    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
+    app.DBRecursionLock.Lock()
+    app.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
-        delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
+        delete(app.DBRecursion, utils.CurrentGoroutineID())
     }
-    SpaceDock.DBRecursionLock.Unlock()
+    app.DBRecursionLock.Unlock()
 }
 
 func (mod *Mod) CalculateScore() {

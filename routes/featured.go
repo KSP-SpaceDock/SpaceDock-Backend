@@ -128,7 +128,7 @@ func remove_featured(ctx *iris.Context) {
 
     // Get the mod
     mod := &objects.Mod{}
-    SpaceDock.Database.Where("id = ?", modid).First(mod)
+    app.Database.Where("id = ?", modid).First(mod)
     if mod.ID != modid {
         utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid.").Code(2130))
         return
@@ -142,14 +142,14 @@ func remove_featured(ctx *iris.Context) {
 
     // Check if the mod is already featured
     feature := &objects.Featured{}
-    SpaceDock.Database.Where("mod_id = ?", modid).First(feature)
+    app.Database.Where("mod_id = ?", modid).First(feature)
     if feature.ModID != modid {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("This mod isn't featured.").Code(3015))
         return
     }
 
     // Everything is fine, lets remove the feature
-    SpaceDock.Database.Delete(feature)
+    app.Database.Delete(feature)
     utils.ClearFeaturedCache(gameshort)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
 }

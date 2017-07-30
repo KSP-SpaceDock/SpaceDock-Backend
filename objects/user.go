@@ -35,28 +35,28 @@ type User struct {
 }
 
 func (s *User) AfterFind() {
-    SpaceDock.DBRecursionLock.Lock()
-    if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
-        SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
+    app.DBRecursionLock.Lock()
+    if _, ok := app.DBRecursion[utils.CurrentGoroutineID()]; !ok {
+        app.DBRecursion[utils.CurrentGoroutineID()] = 0
     }
-    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] >= SpaceDock.DBRecursionMax {
-        SpaceDock.DBRecursionLock.Unlock()
+    if app.DBRecursion[utils.CurrentGoroutineID()] >= app.DBRecursionMax {
+        app.DBRecursionLock.Unlock()
         return
     }
-    isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
-    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
-    SpaceDock.DBRecursionLock.Unlock()
+    isRoot := app.DBRecursion[utils.CurrentGoroutineID()] == 0
+    app.DBRecursion[utils.CurrentGoroutineID()] += 1
+    app.DBRecursionLock.Unlock()
 
-    SpaceDock.Database.Model(s).Related(&(s.Roles), "Roles")
-    SpaceDock.Database.Model(s).Related(&(s.SharedAuthors), "SharedAuthors")
-    SpaceDock.Database.Model(s).Related(&(s.Following), "Following")
+    app.Database.Model(s).Related(&(s.Roles), "Roles")
+    app.Database.Model(s).Related(&(s.SharedAuthors), "SharedAuthors")
+    app.Database.Model(s).Related(&(s.Following), "Following")
 
-    SpaceDock.DBRecursionLock.Lock()
-    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
+    app.DBRecursionLock.Lock()
+    app.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
-        delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
+        delete(app.DBRecursion, utils.CurrentGoroutineID())
     }
-    SpaceDock.DBRecursionLock.Unlock()
+    app.DBRecursionLock.Unlock()
 }
 
 func NewUser(name string, email string, password string) *User {
@@ -97,7 +97,7 @@ func (user *User) Logout() {
 }
 
 func (user *User) GetById(id uint) error {
-    SpaceDock.Database.Where("id = ?", id).First(user)
+    app.Database.Where("id = ?", id).First(user)
     if user.ID != id {
         return errors.New("Invalid user ID")
     }
@@ -108,34 +108,34 @@ func (user *User) GetById(id uint) error {
 
 func (user *User) AddRole(name string) *Role {
     role := &Role {}
-    SpaceDock.Database.Where("name = ?", name).First(role)
+    app.Database.Where("name = ?", name).First(role)
     if role.Name != name {
         role.Name = name
         role.Params = "{}"
         role.Meta = "{}"
-        SpaceDock.Database.Save(role)
+        app.Database.Save(role)
     }
-    SpaceDock.Database.Model(user).Related(&(user.Roles), "Roles")
+    app.Database.Model(user).Related(&(user.Roles), "Roles")
     user.Roles = append(user.Roles, *role)
-    SpaceDock.Database.Save(user).Save(role)
+    app.Database.Save(user).Save(role)
     return &user.Roles[len(user.Roles) - 1]
 }
 
 func (user *User) RemoveRole(name string) {
     role := &Role{}
-    SpaceDock.Database.Where("name = ?", name).First(role)
+    app.Database.Where("name = ?", name).First(role)
     if role.Name == "" {
         return
     }
     if e,i := utils.ArrayContains(role, user.Roles); e {
         user.Roles = append(user.Roles[:i], user.Roles[i + 1:]...)
-        SpaceDock.Database.Save(user)
+        app.Database.Save(user)
     }
 }
 
 func (user *User) HasRole(name string) bool {
     role := &Role {}
-    SpaceDock.Database.Where("name = ?", name).First(role)
+    app.Database.Where("name = ?", name).First(role)
     if role.Name == "" {
         return false
     }
@@ -144,7 +144,7 @@ func (user *User) HasRole(name string) bool {
 }
 
 func (user *User) GetAbilities() []string {
-    SpaceDock.Database.Model(user).Related(&(user.Roles), "Roles")
+    app.Database.Model(user).Related(&(user.Roles), "Roles")
     value := []string{}
     for _,element := range user.Roles {
         for _,element2 := range element.Abilities {

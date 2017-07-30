@@ -30,26 +30,26 @@ type ModVersion struct {
 }
 
 func (s *ModVersion) AfterFind() {
-    SpaceDock.DBRecursionLock.Lock()
-    if _, ok := SpaceDock.DBRecursion[utils.CurrentGoroutineID()]; !ok {
-        SpaceDock.DBRecursion[utils.CurrentGoroutineID()] = 0
+    app.DBRecursionLock.Lock()
+    if _, ok := app.DBRecursion[utils.CurrentGoroutineID()]; !ok {
+        app.DBRecursion[utils.CurrentGoroutineID()] = 0
     }
-    if SpaceDock.DBRecursion[utils.CurrentGoroutineID()] >= SpaceDock.DBRecursionMax {
-        SpaceDock.DBRecursionLock.Unlock()
+    if app.DBRecursion[utils.CurrentGoroutineID()] >= app.DBRecursionMax {
+        app.DBRecursionLock.Unlock()
         return
     }
-    isRoot := SpaceDock.DBRecursion[utils.CurrentGoroutineID()] == 0
-    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] += 1
-    SpaceDock.DBRecursionLock.Unlock()
+    isRoot := app.DBRecursion[utils.CurrentGoroutineID()] == 0
+    app.DBRecursion[utils.CurrentGoroutineID()] += 1
+    app.DBRecursionLock.Unlock()
 
-    SpaceDock.Database.Model(s).Related(&(s.GameVersion), "GameVersion")
+    app.Database.Model(s).Related(&(s.GameVersion), "GameVersion")
 
-    SpaceDock.DBRecursionLock.Lock()
-    SpaceDock.DBRecursion[utils.CurrentGoroutineID()] -= 1
+    app.DBRecursionLock.Lock()
+    app.DBRecursion[utils.CurrentGoroutineID()] -= 1
     if isRoot {
-        delete(SpaceDock.DBRecursion, utils.CurrentGoroutineID())
+        delete(app.DBRecursion, utils.CurrentGoroutineID())
     }
-    SpaceDock.DBRecursionLock.Unlock()
+    app.DBRecursionLock.Unlock()
 }
 
 func NewModVersion(mod Mod, friendly_version string, gameversion GameVersion, download_path string, beta bool) *ModVersion {
@@ -66,7 +66,7 @@ func NewModVersion(mod Mod, friendly_version string, gameversion GameVersion, do
     }
     mv.Meta = "{}"
     if mv.DownloadPath != "" {
-        f, err := os.Open(filepath.Join(SpaceDock.Settings.Storage, mv.DownloadPath))
+        f, err := os.Open(filepath.Join(app.Settings.Storage, mv.DownloadPath))
         defer f.Close()
         if err == nil {
             info, err := f.Stat()
