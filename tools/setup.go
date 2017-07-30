@@ -6,14 +6,13 @@
  Copyright (c) 2017 Dorian Stoll (StollD), RockyTV
 */
 
-package main
+package tools
 
 import (
     "github.com/KSP-SpaceDock/SpaceDock-Backend/app"
     "github.com/KSP-SpaceDock/SpaceDock-Backend/objects"
     _ "github.com/KSP-SpaceDock/SpaceDock-Backend/routes"
     "archive/zip"
-    "flag"
     "github.com/kennygrant/sanitize"
     "github.com/spf13/cast"
     "os"
@@ -21,17 +20,21 @@ import (
     "regexp"
     "strconv"
     "strings"
+    "log"
 )
 
-func main() {
+func Setup(dummy bool) {
+
+    log.SetOutput(os.Stdout)
+    log.Print("Setting up database...")
 
     // Setup an Administrator
     NewDummyUser("Administrator", "admin", "admin@example.com", true)
+    log.Print("Added user Administrator, role: admin")
 
     // Check if we should add dummy data
-    p := flag.Bool("dummy", true, "Adds dummy data")
-    flag.Parse()
-    if *p {
+    if dummy {
+        log.Print("Populating database with dummy data...")
         space_dock_user := NewDummyUser("SpaceDockUser", "user", "user@example.com", false)
 
         // Game 1
