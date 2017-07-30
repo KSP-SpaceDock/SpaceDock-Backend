@@ -13,7 +13,7 @@ Get-Content ($BASE_DIR + "/" + $SOURCE_FILE) | Foreach-Object {
         if (Test-Path $PLUGIN_FILE) {
             Get-Content $PLUGIN_FILE | Foreach-Object {
                 Write-Host "Fetching $_"
-                & "$env:GOPATH/bin/glide.exe" "get $_"
+                & "$env:GOPATH/bin/glide.exe" get $_
                 '    _ "' + $_ + '"'
             }
         }
