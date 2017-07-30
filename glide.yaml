@@ -1,4 +1,4 @@
-package: .
+package: github.com/KSP-SpaceDock/SpaceDock-Backend
 ignore: 
 - gopkg.in/kataras/iris.v5
 import:

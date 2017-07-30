@@ -1,5 +1,5 @@
-hash: 8585cad86edc634ae313783cecd370dc560e82dee7b7901cc917289cd98f8988
-updated: 2017-07-30T14:51:43.0077305-03:00
+hash: a025fbfdc56e6927e27a27cd5c2d7adc5c99f0d815df2a1ab758deea9a6cab0d
+updated: 2017-07-30T14:59:38.624131-03:00
 imports:
 - name: github.com/ant0ine/go-json-rest
   version: 4127f183c172b25f51dbaaa2e035e8f262ac57fb
@@ -83,14 +83,6 @@ imports:
   - zlib
 - name: github.com/klauspost/cpuid
   version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
-- name: github.com/KSP-SpaceDock/SpaceDock-Backend
-  version: 57ddf14fa858c698956175594ae275ac60539b67
-  subpackages:
-  - app
-  - middleware
-  - objects
-  - routes
-  - utils
 - name: github.com/lib/pq
   version: dd1fe2071026ce53f36a39112e645b4d4f5793a4
   subpackages:
