@@ -19,9 +19,8 @@ while IFS= read -r line; do
         fi
     fi        
     FILE="$FILE$line\n"
-done < $PWD/$SOURCE_FILE 
-touch $PWD/build_$SOURCE_FILE
-printf "$FILE" >> $PWD/build_$SOURCE_FILE 
+done < $PWD/$SOURCE_FILE
+printf "$FILE" > $PWD/build_$SOURCE_FILE 
 
 # We are done
 echo "Plugins successfully applied. Please run go build on 'build_$SOURCE_FILE' to complete the build process."
