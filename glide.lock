@@ -1,5 +1,5 @@
-hash: 297b0d2a7663614420aa08bd116a5e4054b113b17dd3c465e406137673ba911f
-updated: 2017-07-24T16:33:53.8961292-03:00
+hash: 8585cad86edc634ae313783cecd370dc560e82dee7b7901cc917289cd98f8988
+updated: 2017-07-30T14:51:43.0077305-03:00
 imports:
 - name: github.com/ant0ine/go-json-rest
   version: 4127f183c172b25f51dbaaa2e035e8f262ac57fb
@@ -31,7 +31,7 @@ imports:
   - uri
 - name: github.com/go-gomail/gomail
   version: 81ebce5c23dfd25c6c67194b37d3dd3f338c98b1
-  repo: git@github.com:go-gomail/gomail
+  repo: https://github.com/go-gomail/gomail
   vcs: git
 - name: github.com/go-sql-driver/mysql
   version: 3955978caca48c1658a4bb7a9c6a0f084e326af3
@@ -55,7 +55,7 @@ imports:
   version: 81b6a071e35797b83562caf4b3cad24dc01912dc
 - name: github.com/iris-contrib/middleware
   version: c2bd36b8b769c0d79a205ae88bad4d7a329f0ca2
-  repo: git@github.com:iris-contrib/middleware.git
+  repo: https://github.com/iris-contrib/middleware
   vcs: git
   subpackages:
   - cors
@@ -83,6 +83,14 @@ imports:
   - zlib
 - name: github.com/klauspost/cpuid
   version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
+- name: github.com/KSP-SpaceDock/SpaceDock-Backend
+  version: 57ddf14fa858c698956175594ae275ac60539b67
+  subpackages:
+  - app
+  - middleware
+  - objects
+  - routes
+  - utils
 - name: github.com/lib/pq
   version: dd1fe2071026ce53f36a39112e645b4d4f5793a4
   subpackages:
@@ -100,7 +108,7 @@ imports:
   version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
 - name: github.com/StollD/iris-cache
   version: 9ba102f7406e11b5b2d03ce9388e5304a89ed860
-  repo: git@github.com:StollD/iris-cache
+  repo: https://github.com/StollD/iris-cache
   vcs: git
 - name: github.com/ulule/limiter
   version: c242da0b4c9524723c5a2dc8e7d49c228d1bb33c
@@ -137,7 +145,7 @@ imports:
   version: 2caba252f4dc53eaf6b553000885530023f54623
 - name: gopkg.in/kataras/iris.v6
   version: 09a2066268f99fc8ee40ecddde8b415f76250f4b
-  repo: git@github.com:kataras/iris.git
+  repo: https://github.com/kataras/iris.git
   vcs: git
   subpackages:
   - adaptors/httprouter

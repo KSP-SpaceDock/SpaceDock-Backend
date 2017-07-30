@@ -4,18 +4,18 @@ ignore:
 import:
 - package: github.com/StollD/iris-cache
   vcs: git
-  repo: git@github.com:StollD/iris-cache
+  repo: https://github.com/StollD/iris-cache
   version: master
 - package: github.com/fatih/structs
   version: v1.0
 - package: github.com/go-gomail/gomail
   version: v2
   vcs: git
-  repo: git@github.com:go-gomail/gomail
+  repo: https://github.com/go-gomail/gomail
 - package: github.com/iris-contrib/middleware
   version: 6.0.0
   vcs: git
-  repo: git@github.com:iris-contrib/middleware.git
+  repo: https://github.com/iris-contrib/middleware
   subpackages:
   - cors
 - package: github.com/jameskeane/bcrypt
@@ -33,7 +33,7 @@ import:
 - package: github.com/ulule/limiter
 - package: gopkg.in/kataras/iris.v6
   vcs: git
-  repo: git@github.com:kataras/iris.git
+  repo: https://github.com/kataras/iris.git
   version: v6
   subpackages:
   - adaptors/httprouter
