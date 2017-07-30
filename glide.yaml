@@ -1,0 +1,42 @@
+package: .
+ignore: 
+- gopkg.in/kataras/iris.v5
+import:
+- package: github.com/StollD/iris-cache
+  vcs: git
+  repo: git@github.com:StollD/iris-cache
+  version: master
+- package: github.com/fatih/structs
+  version: v1.0
+- package: github.com/go-gomail/gomail
+  version: v2
+  vcs: git
+  repo: git@github.com:go-gomail/gomail
+- package: github.com/iris-contrib/middleware
+  version: 6.0.0
+  vcs: git
+  repo: git@github.com:iris-contrib/middleware.git
+  subpackages:
+  - cors
+- package: github.com/jameskeane/bcrypt
+- package: github.com/jinzhu/configor
+- package: github.com/jinzhu/gorm
+  version: v1.0
+  subpackages:
+  - dialects/mssql
+  - dialects/mysql
+  - dialects/postgres
+- package: github.com/kennygrant/sanitize
+  version: v1.2
+- package: github.com/spf13/cast
+  version: v1.1.0
+- package: github.com/ulule/limiter
+- package: gopkg.in/kataras/iris.v6
+  vcs: git
+  repo: git@github.com:kataras/iris.git
+  version: v6
+  subpackages:
+  - adaptors/httprouter
+  - adaptors/sessions
+  - middleware/logger
+- package: gopkg.in/redis.v5

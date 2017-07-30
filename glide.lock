@@ -1,0 +1,158 @@
+hash: 297b0d2a7663614420aa08bd116a5e4054b113b17dd3c465e406137673ba911f
+updated: 2017-07-24T16:33:53.8961292-03:00
+imports:
+- name: github.com/ant0ine/go-json-rest
+  version: 4127f183c172b25f51dbaaa2e035e8f262ac57fb
+  subpackages:
+  - rest
+  - rest/trie
+- name: github.com/BurntSushi/toml
+  version: a368813c5e648fee92e5f6c30e3944ff9d5e8895
+- name: github.com/denisenkom/go-mssqldb
+  version: 8fccfc84e623d423acb233745fda997c42d13a6b
+- name: github.com/fatih/structs
+  version: a720dfa8df582c51dee1b36feabb906bde1588bd
+- name: github.com/garyburd/redigo
+  version: 9f3a0116c9f72c5a56f958206a43dc881b502c37
+  subpackages:
+  - internal
+  - redis
+- name: github.com/geekypanda/httpcache
+  version: 01f18a9beadcc489be4f89c92e82c02e251268cc
+  subpackages:
+  - cfg
+  - entry
+  - fhttp
+  - fhttp/rule
+  - nethttp
+  - nethttp/rule
+  - ruleset
+  - server
+  - uri
+- name: github.com/go-gomail/gomail
+  version: 81ebce5c23dfd25c6c67194b37d3dd3f338c98b1
+  repo: git@github.com:go-gomail/gomail
+  vcs: git
+- name: github.com/go-sql-driver/mysql
+  version: 3955978caca48c1658a4bb7a9c6a0f084e326af3
+- name: github.com/golang/protobuf
+  version: 0a4f71a498b7c4812f64969510bcb4eca251e33a
+  subpackages:
+  - proto
+- name: github.com/google/go-github
+  version: 00874eae3fbfc6750bfff364b1897101684d2f30
+  subpackages:
+  - github
+- name: github.com/google/go-querystring
+  version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
+  subpackages:
+  - query
+- name: github.com/hashicorp/go-version
+  version: 03c5bf6be031b6dd45afec16b1cf94fc8938bc77
+- name: github.com/imdario/mergo
+  version: e3000cb3d28c72b837601cac94debd91032d19fe
+- name: github.com/iris-contrib/formBinder
+  version: 81b6a071e35797b83562caf4b3cad24dc01912dc
+- name: github.com/iris-contrib/middleware
+  version: c2bd36b8b769c0d79a205ae88bad4d7a329f0ca2
+  repo: git@github.com:iris-contrib/middleware.git
+  vcs: git
+  subpackages:
+  - cors
+- name: github.com/jameskeane/bcrypt
+  version: c3cd44c1e20fec46baad45b108a45be93394dc8d
+- name: github.com/jinzhu/configor
+  version: ff2ac2b1ce3d687c3a1da0d2847fbce42524a7f3
+- name: github.com/jinzhu/gorm
+  version: 5174cc5c242a728b435ea2be8a2f7f998e15429b
+  subpackages:
+  - dialects/mssql
+  - dialects/mysql
+  - dialects/postgres
+- name: github.com/jinzhu/inflection
+  version: 1c35d901db3da928c72a72d8458480cc9ade058f
+- name: github.com/kataras/go-errors
+  version: 6fb46ef666f60ce19b5cc73906d531645d5bf8bc
+- name: github.com/kennygrant/sanitize
+  version: 6a0bfdde8629a3a3a7418a7eae45c54154692514
+- name: github.com/klauspost/compress
+  version: f3dce52e0576655d55fd69e74b63da96ad1108f3
+  subpackages:
+  - flate
+  - gzip
+  - zlib
+- name: github.com/klauspost/cpuid
+  version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
+- name: github.com/lib/pq
+  version: dd1fe2071026ce53f36a39112e645b4d4f5793a4
+  subpackages:
+  - hstore
+  - oid
+- name: github.com/microcosm-cc/bluemonday
+  version: e79763773ab6222ca1d5a7cbd9d62d83c1f77081
+- name: github.com/patrickmn/go-cache
+  version: 7ac151875ffb48b9f3ccce9ea20f020b0c1596c8
+- name: github.com/rs/cors
+  version: 8dd4211afb5d08dbb39a533b9bb9e4b486351df6
+- name: github.com/russross/blackfriday
+  version: 067529f716f4c3f5e37c8c95ddd59df1007290ae
+- name: github.com/spf13/cast
+  version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
+- name: github.com/StollD/iris-cache
+  version: 9ba102f7406e11b5b2d03ce9388e5304a89ed860
+  repo: git@github.com:StollD/iris-cache
+  vcs: git
+- name: github.com/ulule/limiter
+  version: c242da0b4c9524723c5a2dc8e7d49c228d1bb33c
+- name: github.com/valyala/bytebufferpool
+  version: e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7
+- name: github.com/valyala/fasthttp
+  version: 52a0993b96f032dea57fa93081d7c0a1aa906430
+  subpackages:
+  - fasthttputil
+  - stackless
+- name: golang.org/x/crypto
+  version: 7f7c0c2d75ebb4e32a21396ce36e87b6dadc91c9
+  subpackages:
+  - acme
+  - acme/autocert
+  - md4
+- name: golang.org/x/net
+  version: b3756b4b77d7b13260a0a2ec658753cf48922eac
+  subpackages:
+  - context
+  - html
+  - html/atom
+- name: google.golang.org/appengine
+  version: ad2570cd3913654e00c5f0183b39d2f998e54046
+  subpackages:
+  - internal
+  - internal/app_identity
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/modules
+  - internal/remote_api
+- name: gopkg.in/alexcesaro/quotedprintable.v3
+  version: 2caba252f4dc53eaf6b553000885530023f54623
+- name: gopkg.in/kataras/iris.v6
+  version: 09a2066268f99fc8ee40ecddde8b415f76250f4b
+  repo: git@github.com:kataras/iris.git
+  vcs: git
+  subpackages:
+  - adaptors/httprouter
+  - adaptors/sessions
+  - middleware/logger
+- name: gopkg.in/redis.v5
+  version: a16aeec10ff407b1e7be6dd35797ccf5426ef0f0
+  subpackages:
+  - internal
+  - internal/consistenthash
+  - internal/hashtag
+  - internal/pool
+  - internal/proto
+- name: gopkg.in/yaml.v1
+  version: 9f9df34309c04878acc86042b16630b0f696e1de
+- name: gopkg.in/yaml.v2
+  version: 3b4ad1db5b2a649883ff3782f5f9f6fb52be71af
+testImports: []
