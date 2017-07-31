@@ -164,7 +164,7 @@ func mod_info(ctx *iris.Context) {
 
         mods_list := []map[string]interface{}{}
         for _,element := range mods {
-            if element.Published {
+            if element.Published && element.GameID == game.ID {
                 mods_list = append(mods_list, utils.ToMap(element))
             }
         }
