@@ -23,6 +23,7 @@ import (
     "strconv"
     "strings"
     "time"
+    "math/rand"
 )
 
 /*
@@ -114,17 +115,36 @@ func mod_list(ctx *iris.Context) {
  */
 func mod_game_list(ctx *iris.Context) {
     gameshort := ctx.GetString("gameshort")
-    game := &objects.Game{}
-    app.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).Find(game)
-    var mods []objects.Mod
-    app.Database.Find(&mods)
-    output := []map[string]interface{}{}
-    for _,element := range mods {
-        if element.GameID == game.ID {
-            output = append(output, utils.ToMap(element))
+    if gameshort == "random" {
+        var mods []objects.Mod
+        app.Database.Find(&mods)
+
+        mods_list := []map[string]interface{}{}
+        for _,element := range mods {
+            if element.Published {
+                mods_list = append(mods_list, utils.ToMap(element))
+            }
         }
+
+        // Initialize our random number generator
+        rand.Seed(time.Now().Unix())
+        mod := mods[rand.Intn(len(mods_list))]
+        output := utils.ToMap(mod)
+
+        utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": output})
+    } else {
+        game := &objects.Game{}
+        app.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).Find(game)
+        var mods []objects.Mod
+        app.Database.Find(&mods)
+        output := []map[string]interface{}{}
+        for _,element := range mods {
+            if element.GameID == game.ID {
+                output = append(output, utils.ToMap(element))
+            }
+        }
+        utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": len(output), "data": output})
     }
-    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": len(output), "data": output})
 }
 
 /*
@@ -135,25 +155,48 @@ func mod_game_list(ctx *iris.Context) {
 func mod_info(ctx *iris.Context) {
     // Get params
     gameshort := ctx.GetString("gameshort")
-    modid := cast.ToUint(ctx.GetString("modid"))
+    modid := ctx.GetString("modid")
+    if modid == "random" {
+        game := &objects.Game{}
+        app.Database.Where("short = ?", gameshort).Or("id = ?", cast.ToUint(gameshort)).Find(game)
+        var mods []objects.Mod
+        app.Database.Find(&mods)
 
-    // Get the mod
-    mod := &objects.Mod{}
-    app.Database.Where("id = ?", modid).First(mod)
-    if mod.ID != modid {
-        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
-        return
+        mods_list := []map[string]interface{}{}
+        for _,element := range mods {
+            if element.Published {
+                mods_list = append(mods_list, utils.ToMap(element))
+            }
+        }
+
+        // Initialize our random number generator
+        rand.Seed(time.Now().Unix())
+        mod := mods[rand.Intn(len(mods_list))]
+        output := utils.ToMap(mod)
+
+        utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": output})
+
+    } else {
+        modid := cast.ToUint(ctx.GetString("modid"))
+
+        // Get the mod
+        mod := &objects.Mod{}
+        app.Database.Where("id = ?", modid).First(mod)
+        if mod.ID != modid {
+            utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+            return
+        }
+        if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
+            utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+            return
+        }
+        if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+            utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+            return
+        }
+        // Display info
+        utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(mod)})
     }
-    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
-        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
-        return
-    }
-    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
-        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
-        return
-    }
-    // Display info
-    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(mod)})
 }
 
 /*
