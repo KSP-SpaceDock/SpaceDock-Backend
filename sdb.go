@@ -38,7 +38,7 @@ func main() {
         fmt.Println("")
         fmt.Println("SpaceDock backend application for handling database operations and http routes.")
         fmt.Println("")
-        fmt.Println("Use \"sdb help <command>\" for more information about a command.")
+        fmt.Println("Use 'sdb help <command>' for more information about a command.")
         fmt.Println("")
         fmt.Println("    Commands:")
         fmt.Println("")
