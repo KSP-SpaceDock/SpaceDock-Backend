@@ -6,7 +6,7 @@
  Copyright (c) 2017 Dorian Stoll (StollD), RockyTV
 */
 
-package main
+package tools
 
 import (
     "database/sql"
@@ -64,7 +64,7 @@ func DumpJSON(data interface{}) string {
     return string(buff)
 }
 
-func main() {
+func MigrateDB() {
     oldDB, err := sql.Open(driver_old_SD, connection_old_SD)
     if err != nil {
         panic(err)
