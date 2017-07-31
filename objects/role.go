@@ -19,8 +19,8 @@ type Role struct {
 
     Name      string `gorm:"size:128;unique_index;not null" spacedock:"lock"`
     Params    string `gorm:"size:4096" spacedock:"json" spacedock:"lock"`
-    Abilities []Ability `gorm:"many2many:role_abilities" json"-" spacedock:"lock"`
-    Users     []User `gorm:"many2many:role_users" json"-" spacedock:"lock"`
+    Abilities []Ability `gorm:"many2many:role_abilities" json:"-" spacedock:"lock"`
+    Users     []User `gorm:"many2many:role_users" json:"-" spacedock:"lock"`
 }
 
 func (s *Role) AfterFind() {

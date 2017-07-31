@@ -31,7 +31,7 @@ type User struct {
     Roles               []Role `gorm:"many2many:role_users" json:"-" spacedock:"lock"`
     authed              bool
     SharedAuthors       []SharedAuthor `json:"-" spacedock:"lock"`
-    Following           []Mod `json"-" gorm:"many2many:mod_followers" spacedock:"lock"`
+    Following           []Mod `json:"-" gorm:"many2many:mod_followers" spacedock:"lock"`
 }
 
 func (s *User) AfterFind() {
