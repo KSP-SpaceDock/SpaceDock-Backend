@@ -147,7 +147,7 @@ func add_game(ctx *iris.Context) {
         errors = append(errors, "The name is invalid.")
         codes = append(codes, 2117)
     }
-    if short == "" {
+    if short == "" || short == "random" {
         errors = append(errors, "The gameshort is invalid.")
         codes = append(codes, 2125)
     }
