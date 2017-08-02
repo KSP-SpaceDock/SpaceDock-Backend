@@ -53,6 +53,7 @@ func AccessRegister() {
         middleware.NeedsPermission("access-edit", true),
         remove_param,
     )
+    Register(POST, "/api/access/check", check_permission)
 }
 
 /*
@@ -300,4 +301,34 @@ func remove_param(ctx *iris.Context) {
     role.RemoveParam(abname, param, value)
     app.Database.Save(role)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/access/check
+ Method: POST
+ Description: Checks if the current user has a specific ability. Required parameters: permission, public, params
+ */
+func check_permission(ctx *iris.Context) {
+    // Grab parameters from the JSON
+    permission := cast.ToString(utils.GetJSON(ctx, "permission"))
+    public := cast.ToBool(utils.GetJSON(ctx, "public"))
+    params := cast.ToStringSlice(utils.GetJSON(ctx, "params"))
+
+    status := middleware.UserHasPermission(ctx, permission, public, params)
+    if status == 0 {
+        utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+        return
+    } else if status == 1 {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("You need to be logged in to access this page").Code(1035))
+        return
+    } else if status == 2 {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("Only users with public profiles may access this page.").Code(1000))
+        return
+    } else if status == 3 {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("You don't have access to this page. You need to have the abilities: " + permission).Code(1020))
+        return
+    } else {
+        utils.WriteJSON(ctx, iris.StatusInternalServerError, utils.Error("Invalid Role parameter detected. Please contact the server administrator").Code(1010))
+        return
+    }
 }
