@@ -20,7 +20,7 @@ type Mod struct {
     UserID           uint `json:"user" spacedock:"lock"`
     Game             Game `json:"-" spacedock:"lock"`
     GameID           uint `json:"game" spacedock:"lock"`
-    SharedAuthors    []SharedAuthor `json:"-" spacedock:"lock"`
+    SharedAuthors    []SharedAuthor `json:"shared_authors" spacedock:"lock"`
     Name             string `json:"name" gorm:"size:1024;unique_index;not null"`
     Description      string `json:"description" gorm:"size:100000"`
     ShortDescription string `json:"short_description" gorm:"size:1000"`
