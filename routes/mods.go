@@ -91,6 +91,7 @@ func ModsRegister() {
         middleware.NeedsPermission("logged-in", true),
         mod_revoke_grant,
     )
+    Register(GET, "/api/mods/:gameshort/:modid/stats/:stattype", mod_stats)
 }
 
 /*
@@ -1033,4 +1034,58 @@ func mod_revoke_grant(ctx *iris.Context) {
 
     // Display info
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/stats/:stattype
+ Method: GET
+ Description: Gets the statistics for a mod
+ */
+func mod_stats(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    stattype := ctx.GetString("stattype")
+
+    // Get the mod
+    mod := &objects.Mod{}
+    app.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+
+    // Downloads
+    if stattype == "downloads" {
+        downloads := &[]objects.DownloadEvent{}
+        app.Database.Where("mod_id = ?", mod.ID).
+            Where("created_at > ?", time.Now().AddDate(0, 0, -30)).
+            Order("created_at").
+            Find(downloads)
+        fancy_downloads := make([]map[string]interface{}, len(*downloads))
+        for i,element := range *downloads {
+            fancy_downloads[i] = utils.ToMap(element)
+        }
+        utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": len(*downloads), "data": fancy_downloads})
+        return
+    } else if stattype == "follower" {
+        followers := &[]objects.FollowEvent{}
+        app.Database.Where("mod_id = ?", mod.ID).
+            Where("created_at > ?", time.Now().AddDate(0, 0, -30)).
+            Order("created_at").
+            Find(followers)
+        fancy_followers := make([]map[string]interface{}, len(*followers))
+        for i,element := range *followers {
+            fancy_followers[i] = utils.ToMap(element)
+        }
+        utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": len(*followers), "data": fancy_followers})
+        return
+    } else {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("Invalid stattype").Code(2195))
+        return
+    }
 }

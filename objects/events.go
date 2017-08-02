@@ -37,7 +37,7 @@ func (s *DownloadEvent) AfterFind() {
     app.DBRecursionLock.Unlock()
 
     app.Database.Model(s).Related(&(s.Mod), "Mod")
-    app.Database.Related(&(s.Version), "Version")
+    app.Database.Model(s).Related(&(s.Version), "Version")
 
     app.DBRecursionLock.Lock()
     app.DBRecursion[utils.CurrentGoroutineID()] -= 1
