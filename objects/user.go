@@ -31,7 +31,7 @@ type User struct {
     Roles               []Role `gorm:"many2many:role_users" json:"-" spacedock:"lock"`
     authed              bool
     SharedAuthors       []SharedAuthor `json:"-" spacedock:"lock"`
-    Following           []Mod `json:"-" gorm:"many2many:mod_followers" spacedock:"lock"`
+    Following           []Mod `json:"following" gorm:"many2many:mod_followers" spacedock:"lock"`
 }
 
 func (s *User) AfterFind() {
@@ -161,6 +161,10 @@ func (user *User) Format(admin bool) map[string]interface{} {
         for i,element := range roles {
             names[i] = element.Name
         }
+        following := make([]uint, len(user.Following))
+        for i, element := range user.Following {
+            following[i] = element.ID
+        }
         return map[string]interface{}{
             "id": user.ID,
             "created": user.CreatedAt,
@@ -171,6 +175,7 @@ func (user *User) Format(admin bool) map[string]interface{} {
             "public": user.Public,
             "description": user.Description,
             "roles": names,
+            "following": following,
             "meta": utils.LoadJSON(user.Meta),
         }
     } else {
@@ -178,6 +183,10 @@ func (user *User) Format(admin bool) map[string]interface{} {
         names := make([]string, len(roles))
         for i,element := range roles {
             names[i] = element.Name
+        }
+        following := make([]uint, len(user.Following))
+        for i, element := range user.Following {
+            following[i] = element.ID
         }
         meta := utils.LoadJSON(user.Meta)
         if _,ok := meta["private"]; ok {
@@ -193,6 +202,7 @@ func (user *User) Format(admin bool) map[string]interface{} {
             "public": user.Public,
             "description": user.Description,
             "roles": names,
+            "following": following,
             "meta": utils.LoadJSON(user.Meta),
         }
     }
