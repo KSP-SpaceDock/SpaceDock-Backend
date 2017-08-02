@@ -245,7 +245,7 @@ func mod_download(ctx *iris.Context) {
     app.Database.
         Where("mod_id = ?", mod.ID).
         Where("version_id = ?", version.ID).
-        Order("download_event.created_at desc").
+        Order("download_events.created_at desc").
         First(download)
 
     // Check whether the path exists

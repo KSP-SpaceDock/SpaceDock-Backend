@@ -187,7 +187,7 @@ func NewDummyModVersion(mod *objects.Mod, friendly_version string, game *objects
     path := filepath.Join(full_path, filename)
 
     // Create the object
-    modversion := objects.NewModVersion(*mod, friendly_version, *version, "/content/" + strings.Replace(base_path, "\\", "/", -1) + "/" + filename, beta)
+    modversion := objects.NewModVersion(*mod, friendly_version, *version, strings.Replace(base_path, "\\", "/", -1) + "/" + filename, beta)
 
     // Save data
     out, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)

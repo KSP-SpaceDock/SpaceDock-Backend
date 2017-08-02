@@ -36,7 +36,7 @@ func GameRegister() {
         middleware.NeedsPermission("game-remove", true, "pubid"),
         remove_game,
     )
-    Register(GET, "/api/games/:gameshort/versions", middleware.Recursion(0), middleware.Cache, game_versions)
+    Register(GET, "/api/games/:gameshort/versions", middleware.Cache, game_versions)
     Register(POST, "/api/games/:gameshort/versions",
         middleware.NeedsPermission("game-edit", true, "gameshort"),
         game_version_add,
