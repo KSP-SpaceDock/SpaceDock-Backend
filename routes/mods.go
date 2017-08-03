@@ -51,12 +51,16 @@ func ModsRegister() {
         mod_publish,
     )
     Register(GET, "/api/mods/:gameshort/:modid/versions", middleware.Recursion(0), middleware.Cache, mod_versions)
+    Register(PUT, "/api/mods/:gameshort/:modid/versions/:versionid",
+        middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
+        mod_version_edit,
+    )
     Register(POST, "/api/mods/:gameshort/:modid/versions",
-        middleware.NeedsPermission("mod-edit", true, "gameshort", "modid"),
+        middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
         mod_update,
     )
     Register(DELETE, "/api/mods/:gameshort/:modid/versions",
-        middleware.NeedsPermission("mod-edit", true, "gameshort", "modid"),
+        middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
         mod_version_delete,
     )
     Register(GET, "/api/mods/:gameshort/:modid/follow",
@@ -470,6 +474,53 @@ func mod_versions(ctx *iris.Context) {
 
     // Display info
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": len(output), "data": output})
+}
+
+/*
+ Path: /api/mods/:gameshort/:modid/versions/:versionid
+ Method: PUT
+ Description: Edits a mod version, based on the request parameters. Required fields: data
+ Abilities: mods-edit
+ */
+func mod_version_edit(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    versionid := cast.ToUint(ctx.GetString("versionid"))
+
+    // Get the mod version
+    version := &objects.ModVersion{}
+    app.Database.Where("id = ?", versionid).First(version)
+    if version.ID != versionid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The versionid is invalid").Code(2131))
+        return
+    }
+    if version.ModID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if version.GameVersion.Game.Short != gameshort && version.GameVersion.GameID != cast.ToUint(gameshort) {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+
+    // Edit the mod
+    code := utils.EditObject(version, utils.GetFullJSON(ctx))
+    if code == 3 {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The value you submitted is invalid").Code(2180))
+        return
+    } else if code == 2 {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You tried to edit a value that doesn't exist.").Code(3090))
+        return
+    } else if code == 1 {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("You tried to edit a value that is marked as read-only.").Code(3095))
+        return
+    }
+    app.Database.Save(version)
+    utils.ClearModCache(gameshort, modid)
+
+    // Display info
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(version)})
 }
 
 /*

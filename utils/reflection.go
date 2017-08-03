@@ -11,6 +11,7 @@ package utils
 import (
     "github.com/fatih/structs"
     "reflect"
+    "strings"
 )
 
 func ReadField(value *interface{}, field string) interface{} {
@@ -30,8 +31,9 @@ func EditObject(value interface{}, data map[string]interface{}) int {
     obj := ToMap(value)
     lock := []string{}
     for _,f := range structs.Fields(value) {
-        if f.Tag("spacedock") == "lock" {
+        if strings.Contains(f.Tag("spacedock"),"lock") {
             lock = append(lock, f.Tag("json"))
+            delete(obj, f.Tag("json"))
         }
     }
     code := editObjectInternal(&obj, data, lock, false)
