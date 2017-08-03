@@ -55,6 +55,10 @@ func ModsRegister() {
         middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
         mod_version_edit,
     )
+    Register(POST, "/api/mods/:gameshort/:modid/versions/:versionid/set-default",
+        middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
+        mod_set_default_version,
+    )
     Register(POST, "/api/mods/:gameshort/:modid/versions",
         middleware.NeedsPermission("mods-edit", true, "gameshort", "modid"),
         mod_update,
@@ -521,6 +525,62 @@ func mod_version_edit(ctx *iris.Context) {
 
     // Display info
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(version)})
+}
+
+
+
+/*
+ Path: /api/mods/:gameshort/:modid/versions/:versionid/set-default
+ Method: POST
+ Description: Sets the default version for a mod.
+ Abilities: mods-edit
+ */
+func mod_set_default_version(ctx *iris.Context) {
+    // Get params
+    gameshort := ctx.GetString("gameshort")
+    modid := cast.ToUint(ctx.GetString("modid"))
+    versionid := cast.ToUint(ctx.GetString("versionid"))
+
+    // Get the mod version
+    version := &objects.ModVersion{}
+    app.Database.Where("id = ?", versionid).First(version)
+    if version.ID != versionid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The versionid is invalid").Code(2131))
+        return
+    }
+    if version.ModID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if version.GameVersion.Game.Short != gameshort && version.GameVersion.GameID != cast.ToUint(gameshort) {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+
+    // Get the mod
+    mod := &objects.Mod{}
+    app.Database.Where("id = ?", modid).First(mod)
+    if mod.ID != modid {
+        utils.WriteJSON(ctx, iris.StatusNotFound, utils.Error("The modid is invalid").Code(2130))
+        return
+    }
+    if mod.Game.Short != gameshort && mod.GameID != cast.ToUint(gameshort) {
+        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("The gameshort is invalid.").Code(2125))
+        return
+    }
+    if !mod.Published && !middleware.IsCurrentUser(ctx, &mod.User) {
+        utils.WriteJSON(ctx, iris.StatusForbidden, utils.Error("The mod is not published").Code(3020))
+        return
+    }
+
+    // Set the default version
+    mod.DefaultVersion = *version
+    mod.DefaultVersionID = version.ID
+    app.NoAssociations(func() { app.Database.Save(mod) })
+    utils.ClearModCache(gameshort, modid)
+
+    // Display info
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(mod)})
 }
 
 /*
