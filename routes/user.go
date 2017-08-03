@@ -94,9 +94,9 @@ func register(ctx *iris.Context) {
     usernameError := checkUsernameForRegistration(username)
     if usernameError != "" {
         errors = append(errors, usernameError)
-        codes = append(codes, 4000)
+        codes = append(codes, 4010)
         if check == "username" {
-            utils.WriteJSON(ctx, iris.StatusOK, utils.Error(usernameError).Code(4000))
+            utils.WriteJSON(ctx, iris.StatusOK, utils.Error(usernameError).Code(4010))
             return
         }
     }

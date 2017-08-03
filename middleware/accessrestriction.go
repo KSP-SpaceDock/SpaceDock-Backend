@@ -77,6 +77,10 @@ func UserHasPermission(ctx *iris.Context, permission string, public bool, params
 func NeedsPermission(permission string, public bool, params ...string) func(ctx *iris.Context) {
     var a objects.Ability
     app.Database.FirstOrInit(&a, objects.Ability{Name: permission})
+    if a.Meta == "" {
+        a.Meta = "{}"
+    }
+    app.Database.Save(&a)
     return func(ctx *iris.Context) {
         status := UserHasPermission(ctx, permission, public, params)
         if status == 0 {

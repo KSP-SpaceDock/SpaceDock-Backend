@@ -38,11 +38,11 @@ func SendMail(sender string, recipients []string, subject string, message string
     }
     m.SetBody("text/plain", message)
     sc,err := srv.Dial()
-    defer sc.Close()
     if err != nil {
         log.Printf("Error while sending mail: %s", err)
         return
     }
+    defer sc.Close()
     sc.Send(sender, recipients, m)
     log.Printf("Sending email from %s to %d recipients", sender, len(recipients))
 }
