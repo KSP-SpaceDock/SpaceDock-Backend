@@ -50,8 +50,9 @@ func limitFunc(context limiter.Context, ctx *iris.Context) bool {
             return context.Reached
         }
         _,ips := token.GetValue("ips")
+        _,isLimitingToken := token.GetValue("isLimitingToken");
         e,_ := utils.ArrayContains(ctx.RemoteAddr(), cast.ToStringSlice(ips))
-        return utils.Ternary(e, false, context.Reached).(bool)
+        return utils.Ternary(e && cast.ToBool(isLimitingToken), false, context.Reached).(bool)
     }
     return context.Reached
 }

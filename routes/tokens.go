@@ -44,6 +44,7 @@ func TokensRegister() {
 func generate_token(ctx *iris.Context) {
     token := objects.NewToken()
     token.SetValue("ips", []string{})
+    token.SetValue("isLimitingToken", true)
     app.Database.Save(token)
     utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(token)})
 }

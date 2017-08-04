@@ -13,7 +13,6 @@ import (
     "github.com/KSP-SpaceDock/SpaceDock-Backend/middleware"
     "github.com/KSP-SpaceDock/SpaceDock-Backend/objects"
     "github.com/KSP-SpaceDock/SpaceDock-Backend/utils"
-    "archive/zip"
     "github.com/kennygrant/sanitize"
     "github.com/spf13/cast"
     "gopkg.in/kataras/iris.v6"
@@ -23,7 +22,6 @@ import (
     "strings"
     "time"
     "math/rand"
-    "encoding/base64"
 )
 
 /*
@@ -586,7 +584,7 @@ func mod_set_default_version(ctx *iris.Context) {
 /*
  Path: /api/mods/:gameshort/:modid/versions
  Method: POST
- Description: Releases a new version of your mod. Required fields: version, game-version, notify-followers, is-beta, zipball. Optional fields: changelog
+ Description: Releases a new version of your mod. Required fields: version, game-version, notify-followers, is-beta. Optional fields: changelog
  */
 func mod_update(ctx *iris.Context) {
     // Get params
@@ -595,7 +593,6 @@ func mod_update(ctx *iris.Context) {
     friendly_version := cast.ToString(utils.GetJSON(ctx, "game-version"))
     notify := cast.ToBool(utils.GetJSON(ctx, "notify-followers"))
     beta := cast.ToBool(utils.GetJSON(ctx, "is-beta"))
-    zipball, err := base64.StdEncoding.DecodeString(cast.ToString(utils.GetJSON(ctx,"zipball")))
 
     gameshort := ctx.GetString("gameshort")
     modid := cast.ToUint(ctx.GetString("modid"))
@@ -617,7 +614,7 @@ func mod_update(ctx *iris.Context) {
     }
 
     // Process fields
-    if version == "" || friendly_version == "" || err != nil {
+    if version == "" || friendly_version == "" {
         utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("All fields are required.").Code(2505))
         return
     }
@@ -635,9 +632,6 @@ func mod_update(ctx *iris.Context) {
     user := middleware.CurrentUser(ctx)
     filename := sanitize.BaseName(mod.Name) + "-" + sanitize.BaseName(version) + ".zip"
     base_path := filepath.Join(sanitize.BaseName(user.Username) + "_" + strconv.Itoa(int(user.ID)), sanitize.BaseName(mod.Name))
-    full_path := filepath.Join(app.Settings.Storage, base_path)
-    os.MkdirAll(full_path, os.ModePerm)
-    path := filepath.Join(full_path, filename)
     for _,v := range mod.Versions {
         if v.FriendlyVersion == sanitize.BaseName(version) {
             utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("We already have this version. Did you mistype the version number?").Code(3040))
@@ -645,25 +639,13 @@ func mod_update(ctx *iris.Context) {
         }
     }
 
-    // Remove the old file. If it fails, dont care
-    _ = os.Remove(filepath.Join(app.Settings.Storage, path))
-    out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
-    if err != nil {
-        utils.WriteJSON(ctx, iris.StatusInternalServerError, utils.Error(err.Error()).Code(2153))
-        return
-    }
-    out.Write(zipball)
-    out.Close()
+    // Create a token
+    token := objects.NewToken()
+    token.SetValue("isUploading", true)
+    token.SetValue("path", filepath.Join(base_path, filename))
+    app.Database.Save(token)
 
-    // Check if the file is a zipfile
-    temp,err := zip.OpenReader(path)
-    if err != nil {
-        _ = os.Remove(filepath.Join(app.Settings.Storage, path))
-        utils.WriteJSON(ctx, iris.StatusBadRequest, utils.Error("This is not a valid zip file.").Code(2160))
-        return
-    } else {
-        temp.Close()
-    }
+    // Create the mod version
     modversion := objects.NewModVersion(*mod, sanitize.BaseName(version), *game_version, strings.Replace(filepath.Join(base_path, filename), "\\", "/", -1), beta)
     modversion.Changelog = changelog
 
@@ -698,7 +680,7 @@ func mod_update(ctx *iris.Context) {
     utils.ClearModCache(gameshort, modid)
 
     // Display info
-    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": utils.ToMap(modversion)})
+    utils.WriteJSON(ctx, iris.StatusOK, iris.Map{"error": false, "count": 1, "data": iris.Map{"token": token.Token, "version": utils.ToMap(modversion)}})
 }
 
 /*
