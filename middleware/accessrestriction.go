@@ -52,7 +52,19 @@ func UserHasPermission(ctx *iris.Context, permission string, public bool, params
             return 4
         }
         for k, v := range temp {
-            user_params[k] = v
+            if _,ok := user_params[k]; ok {
+                for i,j := range v {
+                    if _,ok := user_params[k][i]; ok {
+                        for _,element := range j {
+                            user_params[k][i] = append(user_params[k][i], element)
+                        }
+                    } else {
+                        user_params[k][i] = j
+                    }
+                }
+            } else {
+                user_params[k] = v
+            }
         }
     }
 
