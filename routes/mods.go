@@ -17,13 +17,13 @@ import (
     "github.com/kennygrant/sanitize"
     "github.com/spf13/cast"
     "gopkg.in/kataras/iris.v6"
-    "io"
     "os"
     "path/filepath"
     "strconv"
     "strings"
     "time"
     "math/rand"
+    "encoding/base64"
 )
 
 /*
@@ -595,7 +595,7 @@ func mod_update(ctx *iris.Context) {
     friendly_version := cast.ToString(utils.GetJSON(ctx, "game-version"))
     notify := cast.ToBool(utils.GetJSON(ctx, "notify-followers"))
     beta := cast.ToBool(utils.GetJSON(ctx, "is-beta"))
-    zipball, _, err := ctx.FormFile("zipball")
+    zipball, err := base64.StdEncoding.DecodeString(cast.ToString(utils.GetJSON(ctx,"zipball")))
 
     gameshort := ctx.GetString("gameshort")
     modid := cast.ToUint(ctx.GetString("modid"))
@@ -652,9 +652,8 @@ func mod_update(ctx *iris.Context) {
         utils.WriteJSON(ctx, iris.StatusInternalServerError, utils.Error(err.Error()).Code(2153))
         return
     }
-    io.Copy(out, zipball)
+    out.Write(zipball)
     out.Close()
-    zipball.Close()
 
     // Check if the file is a zipfile
     temp,err := zip.OpenReader(path)
