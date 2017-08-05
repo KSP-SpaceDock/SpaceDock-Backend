@@ -176,6 +176,7 @@ func (user *User) Format(admin bool) map[string]interface{} {
             "description": user.Description,
             "roles": names,
             "following": following,
+            "confirmation": user.Confirmation,
             "meta": utils.LoadJSON(user.Meta),
         }
     } else {
