@@ -16,9 +16,9 @@ import (
 type ModList struct {
     Model
 
-    User             User `json:"-" spacedock:"lock"`
+    User             User `json:"-" gorm:"ForeignKey:UserID" spacedock:"lock"`
     UserID           uint `json:"user" spacedock:"lock"`
-    Game             Game `json:"-" spacedock:"lock"`
+    Game             Game `json:"-" gorm:"ForeignKey:GameID" spacedock:"lock"`
     GameID           uint `json:"game" spacedock:"lock"`
     Description      string `gorm:"size:100000"`
     ShortDescription string `gorm:"size:1000"`

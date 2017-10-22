@@ -16,9 +16,9 @@ import (
 type SharedAuthor struct {
     Model
 
-    User   User `json:"-" spacedock:"lock"`
+    User   User `json:"-" gorm:"ForeignKey:UserID" spacedock:"lock"`
     UserID uint `json:"user" spacedock:"lock"`
-    Mod    Mod `json:"-" spacedock:"lock"`
+    Mod    Mod `json:"-" gorm:"ForeignKey:ModID" spacedock:"lock"`
     ModID  uint `json:"mod" spacedock:"lock"`
     Accepted  bool `gorm:"not null" json:"accepted"`
 }
