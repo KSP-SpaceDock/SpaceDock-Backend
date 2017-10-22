@@ -16,9 +16,9 @@ import (
 type Mod struct {
     Model
 
-    User             User `json:"-" spacedock:"lock"`
+    User             User `json:"-" gorm:"ForeignKey:UserID" spacedock:"lock"`
     UserID           uint `json:"user" spacedock:"lock"`
-    Game             Game `json:"-" spacedock:"lock"`
+    Game             Game `json:"-" gorm:"ForeignKey:GameID" spacedock:"lock"`
     GameID           uint `json:"game" spacedock:"lock"`
     SharedAuthors    []SharedAuthor `json:"shared_authors" spacedock:"lock"`
     Name             string `json:"name" gorm:"size:1024;unique_index;not null"`

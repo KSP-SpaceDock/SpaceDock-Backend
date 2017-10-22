@@ -16,7 +16,7 @@ import (
 type Featured struct {
     Model
 
-    Mod    Mod `json:"mod" spacedock:"lock;tomap"`
+    Mod    Mod `json:"mod" gorm:"ForeignKey:ModID" spacedock:"lock;tomap"`
     ModID  uint `json:"mod_id" spacedock:"lock"`
 }
 

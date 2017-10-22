@@ -16,9 +16,9 @@ import (
 type DownloadEvent struct {
     Model
 
-    Mod   Mod `json:"-" spacedock:"lock"`
+    Mod   Mod `json:"-" gorm:"ForeignKey:ModID" spacedock:"lock"`
     ModID uint `json:"mod" spacedock:"lock"`
-    Version ModVersion `json:"-" spacedock:"lock"`
+    Version ModVersion `json:"-" gorm:"ForeignKey:VersionID" spacedock:"lock"`
     VersionID uint `json:"version" spacedock:"lock"`
     Downloads int `json:"downloads" spacedock:"lock"`
 }
@@ -64,7 +64,7 @@ func NewDownloadEvent(mod Mod, version ModVersion) *DownloadEvent {
 type FollowEvent struct {
     Model
 
-    Mod   Mod `json:"-" spacedock:"lock"`
+    Mod   Mod `json:"-" gorm:"ForeignKey:ModID" spacedock:"lock"`
     ModID uint `json:"mod" spacedock:"lock"`
     Events int `json:"events" spacedock:"lock"`
     Delta int `json:"delta" spacedock:"lock"`
@@ -109,7 +109,7 @@ func NewFollowEvent(mod Mod) *FollowEvent {
 type ReferralEvent struct {
     Model
 
-    Mod   Mod `json:"-" spacedock:"lock"`
+    Mod   Mod `json:"-" gorm:"ForeignKey:Mod" spacedock:"lock"`
     ModID uint `json:"mod" spacedock:"lock"`
     Events int `json:"events" spacedock:"lock"`
     Host string `json:"host" gorm:"size:128" spacedock:"lock"`

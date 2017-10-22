@@ -23,7 +23,7 @@ type Game struct {
     Rating           float32 `json:"rating" spacedock:"lock"`
     Releasedate      time.Time `json:"releasedate" spacedock:"lock"`
     Short            string `gorm:"size:1024" json:"short" spacedock:"lock"`
-    Publisher        Publisher `json:"-" spacedock:"lock"`
+    Publisher        Publisher `json:"-" gorm:"ForeignKey:PublisherID" spacedock:"lock"`
     PublisherID      uint `json:"publisher" spacedock:"lock"`
     Description      string `gorm:"size:100000" json:"description"`
     ShortDescription string `gorm:"size:1000" json:"short_description"`

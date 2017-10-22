@@ -16,9 +16,9 @@ import (
 type ModListItem struct {
     Model
 
-    Mod       Mod `json:"-" spacedock:"lock"`
+    Mod       Mod `json:"-" gorm:"ForeignKey:ModID" spacedock:"lock"`
     ModID     uint `json:"mod" spacedock:"lock"`
-    ModList   ModList `json:"-" spacedock:"lock"`
+    ModList   ModList `json:"-" gorm:"ForeignKey:ModListID" spacedock:"lock"`
     ModListID uint `json:"mod_list" spacedock:"lock"`
     SortIndex uint `json:"sort_index" spacedock:"lock"`
 }
