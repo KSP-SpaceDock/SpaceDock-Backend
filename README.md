@@ -2,8 +2,8 @@
 SpaceDock is an open source website software that can host modifications for multiple games. It started as a fork of the popular KerbalStuff software for Kerbal Space Program and evolved since then.
 
 SpaceDock is split into two parts:
-* The frontend, which is not released under an open source license and unavailable to the public
-* The backend which is licensed as MIT and free for everyone to use.
+* The frontend, which is currently developed under the name [OpenDock](https://github.com/KSP-SpaceDock/OpenDock)
+* The backend which developed here.
 
 The backend handles all the content that SpaceDock stores, like mods and users. The program is designed to be as lightweight as possible to distribute it across multiple nodes. A frontend can then query the multiple nodes. Due to the modular nature of the framework, third party persons who are interested in mod hosting can either host their own backend together with a custom frontend, or create just a frontend and rely on SpaceDocks infrastructure internally to host their mods. This allows for flexible and easily customised mod repositories (once there are free frontends available)
 
@@ -50,6 +50,8 @@ Installing the SpaceDock-Backend dependencies is as simple as running `$ glide i
 Well, "plugins"...
 
 If you want to use plugins in your SpaceDock instance, you need to enter their goland dependency urls into build/plugins.txt. You can use full glide versioning syntax here. After doing so, you need to run `build/fetch_plugins.sh` if you are on Linux/MacOS or `build/fetch_plugins.ps1` on Windows. This will create a file called `build_sdb.go` that includes the specified plugins and fetch them using glide.
+
+Even if you don't plan to use plugins, execute the `fetch_plugins` script. It will work without a `build/plugins.txt` file being present, and just creates the `build_sdb.go` file.
 
 #### Building and starting the application
 To build the app you need to call `go build` on the `build_sdb.go` file. The only difference between Linux and Windows is, that Windows users should use `sdb.exe` instead of `sdb`

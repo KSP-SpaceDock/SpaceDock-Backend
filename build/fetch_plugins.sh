@@ -12,10 +12,11 @@ while IFS= read -r line; do
     then
         if [ -e "$PWD/build/plugins.txt" ]
         then
-            while IFS= read -r line2; do 
+            for line2 in `cat $PWD/build/plugins.txt`; do
+                echo $line2
                 FILE="$FILE    _ \"$line2\"\n"
-                $GOPATH/bin/glide get $line2 || true
-            done < $PWD/build/plugins.txt
+                glide get $line2 || true
+            done
         fi
     fi        
     FILE="$FILE$line\n"

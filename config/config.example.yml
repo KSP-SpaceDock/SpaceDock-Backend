@@ -32,8 +32,8 @@ smtp-password: ""
 smtp-tls: false
 
 # SQL settings
-dialect: "mysql"
-connection-data: ""
+dialect: "postgres"
+connection-data: "postgresql://user:password@host/dbname?sslmode=disable"
 
 # Absolute path to the directory you want to store mods in
 storage: ""
