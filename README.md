@@ -41,7 +41,7 @@ SpaceDocks build process follows the golang specifications: You need to clone th
 ```
 
 #### Glide
-We use the [Glide package manager](https://glide.sh) to manage the sdb dependencies. For installing glide, please execute the appropreate buildscript for your plattform (Linux/MacOS Users: build/install_glide.sh, Windows Users: build/install_glide.ps1). This will install glide into $GOPATH/bin, which requires a valid $GOPATH! It is also useful to add $GOPATH/bin to your $PATH.
+We use the [Glide package manager](https://glide.sh) to manage the sdb dependencies. For installing glide, please execute the appropreate buildscript for your plattform (Linux/MacOS Users: build/install_glide.sh, Windows Users: build/install_glide.ps1). This will install glide into $GOPATH/bin, which requires a valid $GOPATH! It is also **required** to add $GOPATH/bin to your $PATH!
 
 #### Installing the dependencies
 Installing the SpaceDock-Backend dependencies is as simple as running `$ glide install` in the SDB root directory after installing glide.
