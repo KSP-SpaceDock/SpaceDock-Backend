@@ -32,8 +32,6 @@ import:
   version: v1.1.0
 - package: github.com/ulule/limiter
 - package: gopkg.in/kataras/iris.v6
-  vcs: git
-  repo: https://github.com/kataras/iris.git
   version: v6
   subpackages:
   - adaptors/httprouter

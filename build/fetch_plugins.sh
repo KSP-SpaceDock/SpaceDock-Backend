@@ -15,7 +15,7 @@ while IFS= read -r line; do
             for line2 in `cat $PWD/build/plugins.txt`; do
                 echo $line2
                 FILE="$FILE    _ \"$line2\"\n"
-                glide get $line2 || true
+                $GOPATH/bin/glide get $line2 || true
             done
         fi
     fi        
