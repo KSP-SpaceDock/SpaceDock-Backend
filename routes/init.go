@@ -13,6 +13,7 @@ import (
     "github.com/KSP-SpaceDock/SpaceDock-Backend/middleware"
     "github.com/iris-contrib/middleware/cors"
     "github.com/ulule/limiter"
+    "github.com/ulule/limiter/drivers/store/memory"
     "gopkg.in/kataras/iris.v6"
     "gopkg.in/kataras/iris.v6/middleware/logger"
     "log"
@@ -74,8 +75,8 @@ func MiddlewareRegister() {
         log.Fatal("Failed to parse the request limit")
         return
     }
-    store := limiter.NewMemoryStore()
-    limiterInstance := limiter.NewLimiter(store, rate)
+    store := memory.NewStore()
+    limiterInstance := limiter.New(store, rate)
     app.App.Use(middleware.NewAccessLimiter(limiterInstance))
 
     // Cross-Origin Requests

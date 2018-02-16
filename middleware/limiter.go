@@ -23,7 +23,7 @@ import (
  */
 func NewAccessLimiter(limiterObj *limiter.Limiter) iris.HandlerFunc {
     return func (ctx *iris.Context) {
-        context, err := limiterObj.Get(limiter.GetIPKey(ctx.Request))
+        context, err := limiterObj.Get(ctx, limiter.GetIPKey(ctx.Request))
         if err != nil {
             panic(err)
         }
