@@ -1,22 +1,12 @@
-hash: a025fbfdc56e6927e27a27cd5c2d7adc5c99f0d815df2a1ab758deea9a6cab0d
-updated: 2017-07-30T14:59:38.624131-03:00
+hash: e593a24ad4f75f5214d4e8ae1fb83ad2be98aec15f7e1f415aee3c196abd74a8
+updated: 2018-02-16T18:36:22.030799132+01:00
 imports:
-- name: github.com/ant0ine/go-json-rest
-  version: 4127f183c172b25f51dbaaa2e035e8f262ac57fb
-  subpackages:
-  - rest
-  - rest/trie
 - name: github.com/BurntSushi/toml
   version: a368813c5e648fee92e5f6c30e3944ff9d5e8895
 - name: github.com/denisenkom/go-mssqldb
-  version: 8fccfc84e623d423acb233745fda997c42d13a6b
+  version: ee492709d4324cdcb051d2ac266b77ddc380f5c5
 - name: github.com/fatih/structs
   version: a720dfa8df582c51dee1b36feabb906bde1588bd
-- name: github.com/garyburd/redigo
-  version: 9f3a0116c9f72c5a56f958206a43dc881b502c37
-  subpackages:
-  - internal
-  - redis
 - name: github.com/geekypanda/httpcache
   version: 01f18a9beadcc489be4f89c92e82c02e251268cc
   subpackages:
@@ -34,13 +24,9 @@ imports:
   repo: https://github.com/go-gomail/gomail
   vcs: git
 - name: github.com/go-sql-driver/mysql
-  version: 3955978caca48c1658a4bb7a9c6a0f084e326af3
-- name: github.com/golang/protobuf
-  version: 0a4f71a498b7c4812f64969510bcb4eca251e33a
-  subpackages:
-  - proto
+  version: bc14601d1bd56421dd60f561e6052c9ed77f9daf
 - name: github.com/google/go-github
-  version: 00874eae3fbfc6750bfff364b1897101684d2f30
+  version: 632a2caf6d3d380753dc7e422748202982ad18a3
   subpackages:
   - github
 - name: github.com/google/go-querystring
@@ -48,11 +34,11 @@ imports:
   subpackages:
   - query
 - name: github.com/hashicorp/go-version
-  version: 03c5bf6be031b6dd45afec16b1cf94fc8938bc77
+  version: 4fe82ae3040f80a03d04d2cccb5606a626b8e1ee
 - name: github.com/imdario/mergo
-  version: e3000cb3d28c72b837601cac94debd91032d19fe
+  version: 0d4b488675fdec1dde48751b05ab530cf0b630e1
 - name: github.com/iris-contrib/formBinder
-  version: 81b6a071e35797b83562caf4b3cad24dc01912dc
+  version: ad9fb86c356f971f30319c40ddbdcf72129a2791
 - name: github.com/iris-contrib/middleware
   version: c2bd36b8b769c0d79a205ae88bad4d7a329f0ca2
   repo: https://github.com/iris-contrib/middleware
@@ -62,7 +48,7 @@ imports:
 - name: github.com/jameskeane/bcrypt
   version: c3cd44c1e20fec46baad45b108a45be93394dc8d
 - name: github.com/jinzhu/configor
-  version: ff2ac2b1ce3d687c3a1da0d2847fbce42524a7f3
+  version: 6ecfe629230f24c2e92c7894c6ab21b83b757a39
 - name: github.com/jinzhu/gorm
   version: 5174cc5c242a728b435ea2be8a2f7f998e15429b
   subpackages:
@@ -76,26 +62,34 @@ imports:
 - name: github.com/kennygrant/sanitize
   version: 6a0bfdde8629a3a3a7418a7eae45c54154692514
 - name: github.com/klauspost/compress
-  version: f3dce52e0576655d55fd69e74b63da96ad1108f3
+  version: 5698df94daded084fa836b7df2ffbf6cbd3dd63a
   subpackages:
   - flate
   - gzip
   - zlib
 - name: github.com/klauspost/cpuid
-  version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
+  version: ae832f27941af41db13bd6d8efd2493e3b22415a
+- name: github.com/KSP-SpaceDock/SpaceDock-Extras
+  version: 3c7befa20e75d2c9f9a92389f7c6abc18c8d3256
+  subpackages:
+  - plugins/adapter
+  - plugins/ckan
+  - plugins/media
+  - plugins/search
+  - plugins/transformers
 - name: github.com/lib/pq
-  version: dd1fe2071026ce53f36a39112e645b4d4f5793a4
+  version: 88edab0803230a3898347e77b474f8c1820a1f20
   subpackages:
   - hstore
   - oid
 - name: github.com/microcosm-cc/bluemonday
-  version: e79763773ab6222ca1d5a7cbd9d62d83c1f77081
-- name: github.com/patrickmn/go-cache
-  version: 7ac151875ffb48b9f3ccce9ea20f020b0c1596c8
+  version: 542fd4642604d0d0c26112396ce5b1a9d01eee0b
+- name: github.com/pkg/errors
+  version: 30136e27e2ac8d167177e8a583aa4c3fea5be833
 - name: github.com/rs/cors
-  version: 8dd4211afb5d08dbb39a533b9bb9e4b486351df6
+  version: feef513b9575b32f84bafa580aad89b011259019
 - name: github.com/russross/blackfriday
-  version: 067529f716f4c3f5e37c8c95ddd59df1007290ae
+  version: 8db9055e38f0289798f4f99b3cfe8ad839e4fbfc
 - name: github.com/spf13/cast
   version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
 - name: github.com/StollD/iris-cache
@@ -103,42 +97,33 @@ imports:
   repo: https://github.com/StollD/iris-cache
   vcs: git
 - name: github.com/ulule/limiter
-  version: c242da0b4c9524723c5a2dc8e7d49c228d1bb33c
+  version: 0d25c13867d07314999d01525f9d69d40c6bf235
 - name: github.com/valyala/bytebufferpool
   version: e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7
 - name: github.com/valyala/fasthttp
-  version: 52a0993b96f032dea57fa93081d7c0a1aa906430
+  version: e5f51c11919d4f66400334047b897ef0a94c6f3c
   subpackages:
   - fasthttputil
   - stackless
 - name: golang.org/x/crypto
-  version: 7f7c0c2d75ebb4e32a21396ce36e87b6dadc91c9
+  version: 650f4a345ab4e5b245a3034b110ebc7299e68186
   subpackages:
   - acme
   - acme/autocert
   - md4
 - name: golang.org/x/net
-  version: b3756b4b77d7b13260a0a2ec658753cf48922eac
+  version: 136a25c244d3019482a795d728110278d6ba09a4
   subpackages:
-  - context
   - html
   - html/atom
 - name: google.golang.org/appengine
-  version: ad2570cd3913654e00c5f0183b39d2f998e54046
+  version: 5bee14b453b4c71be47ec1781b0fa61c2ea182db
   subpackages:
-  - internal
-  - internal/app_identity
-  - internal/base
-  - internal/datastore
-  - internal/log
-  - internal/modules
-  - internal/remote_api
+  - cloudsql
 - name: gopkg.in/alexcesaro/quotedprintable.v3
   version: 2caba252f4dc53eaf6b553000885530023f54623
 - name: gopkg.in/kataras/iris.v6
   version: 09a2066268f99fc8ee40ecddde8b415f76250f4b
-  repo: https://github.com/kataras/iris.git
-  vcs: git
   subpackages:
   - adaptors/httprouter
   - adaptors/sessions
@@ -151,8 +136,6 @@ imports:
   - internal/hashtag
   - internal/pool
   - internal/proto
-- name: gopkg.in/yaml.v1
-  version: 9f9df34309c04878acc86042b16630b0f696e1de
 - name: gopkg.in/yaml.v2
-  version: 3b4ad1db5b2a649883ff3782f5f9f6fb52be71af
+  version: d670f9405373e636a5a2765eea47fac0c9bc91a4
 testImports: []
