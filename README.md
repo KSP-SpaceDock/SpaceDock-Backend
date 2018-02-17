@@ -50,10 +50,10 @@ $GOPATH/src/github.com/KSP-SpaceDock/SpaceDock-Backend/
 
 #### Install Go
 
-Install Go 1.8. You can get it from https://golang.org/dl/ or from apt-get:
+Install Go 1.9. You can get it from https://golang.org/dl/ or from apt-get:
 
 ```sh
-apt-get install golang
+apt-get install golang-1.9
 ```
 
 The `go` executable should be in your `$PATH`.
