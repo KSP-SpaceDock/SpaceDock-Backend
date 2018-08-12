@@ -1,4 +1,4 @@
-FROM golang:1.9-alpine
+FROM golang:1.9-alpine AS builder
 
 # Install curl, git
 RUN apk add --no-cache curl, git
@@ -32,15 +32,15 @@ RUN sh build/fetch_plugins.sh
 
 # Setup configuration file
 RUN cp config/config.example.yml config/config.yml \
-        && sed -i 's!postgres\b!$DB_DIALECT!g' config/config.yml \
-        && sed -i 's!postgresql://user:password@host/dbname?sslmode=disable!$DB_CONNECTION_STRING!g' config/config.yml \
-        && sed -i 's!redis://localhost:6379/0!$REDIS_STRING!g' config/config.yml
+        && sed -i 's!postgres\b!'"$DB_DIALECT"'!g' config/config.yml \
+        && sed -i 's!postgresql://user:password@host/dbname?sslmode=disable!'"$DB_CONNECTION_STRING"'!g' config/config.yml \
+        && sed -i 's!redis://localhost:6379/0!'"$REDIS_STRING"'!g' config/config.yml
 
 # Install dependencies
 RUN glide install
 
 # Build the app
-RUN go build -v -o sdb build_sdb.go
+RUN go build -o sdb build_sdb.go
 
 RUN mkdir /output/ \
         && mkdir /output/config \
@@ -54,7 +54,8 @@ FROM alpine
 WORKDIR /app
 COPY --from=builder /output/sdb /app/sdb
 COPY --from=builder /output/config.yml /app/config/config.yml
+RUN chmod +x /app/sdb
 
-ENTRYPOINT ['./app/sdb']
+ENTRYPOINT ["/app/sdb"]
 
 EXPOSE 5000
